@@ -35,7 +35,8 @@ npm run dev        # http://localhost:5181
 원본 시트(`../hexafrontier/*.png`)에서 `python3 tools/extract_assets.py`로 잘라 `public/assets/`에 저장합니다. 원본은 수정하지 않습니다.
 
 ### 배포
-`main`에 push하면 GitHub Actions가 테스트·빌드 후 GitHub Pages에 올립니다(`.github/workflows/deploy.yml`).
+`npm run deploy` → 테스트·빌드 후 `gh-pages` 브랜치로 올라가 GitHub Pages에 반영됩니다.
+플레이 주소: https://sangbiny-creater.github.io/hexa-frontier/
 
 ## 폴더 구조
 
