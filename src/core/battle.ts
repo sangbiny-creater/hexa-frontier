@@ -27,6 +27,7 @@ export interface BattleSetup {
   allies: BattleUnitInput[];
   enemies: BattleUnitInput[];
   seed: number;
+  encounterId?: string;
 }
 
 export interface TargetResult {

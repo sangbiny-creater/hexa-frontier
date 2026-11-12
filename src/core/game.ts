@@ -8,12 +8,13 @@ import { analyzeDefeat, type DefeatAnalysis } from './analysis';
 import { simulateBattle, type BattleResult, type BattleSetup, type BattleUnitInput } from './battle';
 import { HOUR } from './clock';
 import { conditionDelta, conditionMultiplier } from './condition';
-import { grantXp, rankUpCost, trainingXp, xpMultiplier } from './growth';
+import { grantXp, levelUpCost, rankUpCost, trainingXp, xpMultiplier } from './growth';
 import { axialNeighbors } from './hex';
+import { recommendedPower, teamPower } from './power';
 import { createRng, hashSeed } from './rng';
 import type { ActivityRun, ActivityType, OwnedSpirit } from './types';
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 /** 튜토리얼 진행 (저장 v2) */
 export interface TutorialState {
@@ -23,6 +24,7 @@ export interface TutorialState {
   winTip: boolean; // 첫 승리 설명
   defeatTip: boolean; // 첫 패배 설명
   trainingTip: boolean; // 훈련을 한 번 맡겨 봤는가
+  levelTip?: boolean; // 골드 레벨업을 해 봤는가 (D32)
 }
 
 export function newTutorial(): TutorialState {
@@ -79,8 +81,10 @@ export function newGame(now: number): GameState {
 
 function addSpirit(s: GameState, id: string) {
   if (s.spirits[id]) return;
-  s.spirits[id] = { defId: id, level: 1, xp: 0, rank: 0, condition: 100, injured: false, injuryProgress: 0 };
-  // 같은 레벨대로 빠르게 합류하도록 따라잡기(E)가 자동 적용된다.
+  // 새 동료는 최고 레벨의 80%로 합류 (따라잡기 E의 단순화, D32)
+  const top = Math.max(1, ...Object.values(s.spirits).map((x) => x.level));
+  const level = Math.max(1, Math.floor(top * BALANCE.growth.joinLevelRatio));
+  s.spirits[id] = { defId: id, level, xp: 0, rank: 0, condition: 100, injured: false, injuryProgress: 0 };
   if (Object.keys(s.formation).length < s.maxDeploy) {
     const want = DEFAULT_SLOT[id] ?? 4;
     const used = new Set(Object.values(s.formation));
@@ -194,8 +198,8 @@ export function buildSetup(s: GameState, encounterId: string, seed: number, now:
       slot: s.formation[id],
       level: sp.level,
       rank: sp.rank,
-      condition: sp.condition,
-      injured: sp.injured,
+      condition: BALANCE.condition.enabled ? sp.condition : 100,
+      injured: BALANCE.condition.enabled ? sp.injured : false,
     };
   });
   const enemies: BattleUnitInput[] = enc.enemies.map((e, i) => ({
@@ -206,13 +210,12 @@ export function buildSetup(s: GameState, encounterId: string, seed: number, now:
     level: e.level,
     isBoss: !!ENEMIES[e.enemyId].isBoss,
   }));
-  return { allies, enemies, seed };
+  return { allies, enemies, seed, encounterId };
 }
 
 export type EnterResult =
   | { type: 'spirit'; spiritId: string }
   | { type: 'resource'; resource: 'stones' | 'gold'; bonus: { gold: number; stones: number } }
-  | { type: 'facility'; facility: 'training' | 'rest' }
   | { type: 'gate' }
   | { type: 'battle'; outcome: BattleOutcome }
   | { type: 'error'; message: string };
@@ -236,19 +239,11 @@ export function enterTile(s: GameState, tileId: string, now: number): EnterResul
   }
   if (tile.kind === 'resource' && tile.resource) {
     s.nodes.push(tileId);
-    const bonus = tile.resource === 'stones' ? { gold: 0, stones: 5 } : { gold: 150, stones: 0 };
+    const bonus = tile.resource === 'stones' ? { gold: 0, stones: 10 } : { gold: 250, stones: 0 };
     s.gold += bonus.gold;
     s.stones += bonus.stones;
-    msg(s, `자원 헥사 발견: ${tile.name}. 채집 목적지로 등록되었다.`);
+    msg(s, `보물 상자: ${tile.name}`);
     return { type: 'resource', resource: tile.resource, bonus };
-  }
-  if (tile.kind === 'facility' && tile.facility) {
-    if (tile.facility === 'training') {
-      s.unlocked.training = true;
-      s.unlocked.gathering = true;
-    } else s.unlocked.rest = true;
-    msg(s, `시설 발견: ${tile.name}`);
-    return { type: 'facility', facility: tile.facility };
   }
   return { type: 'error', message: '아무것도 없다.' };
 }
@@ -281,11 +276,14 @@ function fight(s: GameState, tile: TileDef, now: number): EnterResult {
       rewards.stones += enc.firstClear.stones;
     }
   }
-  // 경험치: 승리 시 전액, 패배 시에도 30% (패배가 완전한 손해가 되지 않게)
+  // P0 단순화(D32): 레벨은 골드로 올린다. 전투 경험치는 지급하지 않음 (패배 시에도 골드 30%).
+  if (!won) {
+    for (const e of enc.enemies) rewards.gold += Math.round(ENEMIES[e.enemyId].gold * (1 + BALANCE.enemy.goldPerLevel * (e.level - 1)) * 0.3);
+  }
   const baseXp = enc.enemies.reduce((acc, e) => acc + ENEMIES[e.enemyId].xp * (1 + BALANCE.enemy.xpPerLevel * (e.level - 1)), 0);
   const xpShare = won ? 1 : 0.3;
   const xpMul = Object.fromEntries(team.map((id) => [id, xpMultiplier(s.spirits[id], roster, 'battle')]));
-  for (const id of team) {
+  for (const id of BALANCE.growth.battleXp ? team : []) {
     const sp = s.spirits[id];
     const firstXp = firstClear ? enc.firstClear.xp ?? 0 : 0;
     const amount = Math.round((baseXp * xpShare + firstXp) * xpMul[id]);
@@ -299,7 +297,7 @@ function fight(s: GameState, tile: TileDef, now: number): EnterResult {
   // 컨디션·경상
   const conditionChanges: Record<string, number> = {};
   const newInjuries: string[] = [];
-  for (const id of team) {
+  for (const id of BALANCE.condition.enabled ? team : []) {
     const rep = result.reports[`a:${id}`];
     const ko = rep.koTime !== null;
     const d = conditionDelta({ won, isBoss, minHpRatio: rep.minHpRatio, ko });
@@ -321,8 +319,7 @@ function fight(s: GameState, tile: TileDef, now: number): EnterResult {
     if (enc.bossKind === 'normal') {
       s.unlocked.training = true;
       s.unlocked.gathering = true;
-      unlockedText.push('훈련장과 채집이 열렸습니다. 떠나 있는 동안에도 스피릿이 강해집니다.');
-      unlockedText.push('고목 수호자 너머의 길이 열렸습니다.');
+      unlockedText.push('고목 골렘 너머로 길이 여러 갈래 열렸어요!');
     }
     if (enc.bossKind === 'region') {
       s.maxDeploy = Math.min(5, s.maxDeploy + 1);
@@ -342,6 +339,7 @@ function fight(s: GameState, tile: TileDef, now: number): EnterResult {
 
 /** 전투 전 피로 경고: 출전 예정 스피릿 중 컨디션 '최상' 미만 또는 경상 */
 export function fatigueWarning(s: GameState, now: number): { names: string[]; worstMul: number } | null {
+  if (!BALANCE.condition.enabled) return null;
   const team = availableTeam(s, now).map((id) => s.spirits[id]);
   const tired = team.filter((sp) => sp.condition < BALANCE.condition.tiers[0].min || sp.injured);
   if (!tired.length) return null;
@@ -349,7 +347,54 @@ export function fatigueWarning(s: GameState, now: number): { names: string[]; wo
   return { names: tired.map((sp) => `${SPIRITS[sp.defId].name} ${Math.floor(sp.condition)}${sp.injured ? '·경상' : ''}`), worstMul };
 }
 
+/** 골드 벌기 좋은 칸: 클리어한 일반 전투 칸 중 '쉬움'인 가장 높은 칸 (없으면 가장 쉬운 칸) */
+export function bestFarmTile(s: GameState): string | null {
+  const tp = teamPower(s);
+  const farm = s.cleared
+    .map((id) => TILE_BY_ID[id])
+    .filter((t) => t.kind === 'battle' && t.encounterId)
+    .map((t) => ({ t, rec: recommendedPower(t.encounterId!) }));
+  if (!farm.length) return null;
+  const ok = farm.filter((f) => tp >= f.rec * BALANCE.power.easyAt).sort((a, b) => b.rec - a.rec);
+  return (ok[0] ?? farm.sort((a, b) => a.rec - b.rec)[0]).t.id;
+}
+
+/** 지금 들를 수 있는 동료 칸 */
+export function reachableSpiritTile(s: GameState): string | null {
+  return [...reachableTiles(s)].find((id) => TILE_BY_ID[id].kind === 'spirit') ?? null;
+}
+
+/** 지금 골드로 할 수 있는 레벨업 횟수 (가장 싼 것부터) */
+export function affordableLevelUps(s: GameState): number {
+  const levels = Object.keys(s.formation).map((id) => s.spirits[id].level);
+  let gold = s.gold;
+  let n = 0;
+  for (;;) {
+    levels.sort((a, b) => a - b);
+    if (levels[0] === undefined || levels[0] >= BALANCE.growth.maxLevel) break;
+    const c = levelUpCost(levels[0]);
+    if (gold < c) break;
+    gold -= c;
+    levels[0]++;
+    n++;
+    if (n > 200) break;
+  }
+  return n;
+}
+
 // ───────── 성장 ─────────
+
+/** 골드로 레벨업 (D32) */
+export function levelUp(s: GameState, spiritId: string): string | null {
+  const sp = s.spirits[spiritId];
+  if (!sp) return '보유하지 않은 스피릿';
+  if (sp.level >= BALANCE.growth.maxLevel) return '최대 레벨입니다.';
+  const cost = levelUpCost(sp.level);
+  if (s.gold < cost) return `골드가 부족합니다 (${cost} 필요).`;
+  s.gold -= cost;
+  sp.level++;
+  return null;
+}
 
 export function rankUp(s: GameState, spiritId: string): string | null {
   const sp = s.spirits[spiritId];
@@ -485,7 +530,11 @@ function pruneActivities(s: GameState) {
 export function idlePreview(s: GameState, now: number) {
   const I = BALANCE.idle;
   const hours = Math.max(0, Math.min(I.capHours, (now - s.lastIdleClaimAt) / HOUR));
-  return { hours, gold: Math.floor(hours * I.goldPerHour), stones: Math.floor(hours * I.stonesPerHour) };
+  return { hours, gold: Math.floor(hours * idleGoldPerHour(s)), stones: Math.floor(hours * I.stonesPerHour) };
+}
+
+export function idleGoldPerHour(s: GameState): number {
+  return BALANCE.idle.goldPerHour + BALANCE.idle.goldPerClearedTile * (s.cleared.length - 1);
 }
 
 export function claimIdle(s: GameState, now: number) {
@@ -499,35 +548,43 @@ export function claimIdle(s: GameState, now: number) {
 
 // ───────── 목표 안내 (온보딩) ─────────
 
+/** 튜토리얼 한 줄 길 순서 */
+export const TUTORIAL_PATH = ['a1', 'a2', 'a3', 's1', 's2', 'b1'];
+
 /** 목표 안내가 가리키는 칸 (지도에 ▼ 표시) */
 export function objectiveTile(s: GameState): string | null {
-  const c = (id: string) => s.cleared.includes(id);
+  const next = TUTORIAL_PATH.find((id) => !s.cleared.includes(id));
+  if (next) return next;
+  if (s.cleared.includes('b2')) return null;
   const reach = reachableTiles(s);
-  if (!c('a1')) return 'a1';
-  if (!c('a2')) return 'a2';
-  if (!c('a3')) return 'a3';
-  if (!c('b1') && !s.bossAttempts['b1']) return 'b1';
-  if (!c('b1') && !s.spirits.sylphy) return c('s1') ? 's2' : 's1';
-  if (!c('b1')) return 'b1';
-  if (!c('c1')) return 'c1';
-  if (c('b2')) return null;
   if (reach.has('b2')) return 'b2';
-  // 지역 보스까지 가장 가까운(오른쪽) 미탐험 칸
-  const next = [...reach]
-    .map((id) => TILE_BY_ID[id])
-    .filter((t) => t.kind !== 'gate')
-    .sort((a, b) => b.q + b.r / 2 - (a.q + a.r / 2))[0];
-  return next?.id ?? null;
+  // 위쪽(지역 보스 방향)의 미탐험 칸 중 가장 높은 칸
+  const cand = [...reach].map((id) => TILE_BY_ID[id]).filter((t) => t.kind !== 'gate');
+  cand.sort((a, b) => b.row - a.row || (a.kind === 'battle' ? -1 : 1));
+  return cand[0]?.id ?? null;
+}
+
+/** 지금 '강화'(레벨업)를 쓸 수 있는가: 첫 보스에 도전한 뒤 열린다 */
+export function upgradeUnlocked(s: GameState): boolean {
+  return !!s.bossAttempts['b1'] || s.cleared.includes('b1');
+}
+
+/** 자동 사냥(방치 보상)은 첫 보스 돌파 후 열린다 */
+export function idleUnlocked(s: GameState): boolean {
+  return s.cleared.includes('b1');
 }
 
 export function currentObjective(s: GameState): string {
-  const c = (id: string) => s.cleared.includes(id);
-  if (!c('a1')) return '오른쪽의 빛나는 칸을 눌러 이동하세요. 타이드쉘이 알아서 싸웁니다.';
-  if (!c('a2')) return '불씨 바위로 가서 새 동료를 만나세요.';
-  if (!c('b1') && !s.bossAttempts['b1']) return '숲을 지키는 고목 수호자에게 도전하세요.';
-  if (!c('b1') && !s.spirits.sylphy) return '고목 수호자를 넘으려면 동료가 더 필요합니다. 남서쪽 멧돼지 굴 너머를 살펴보세요.';
-  if (!c('b1')) return '파밍과 승급으로 강해진 뒤 고목 수호자에게 다시 도전하세요.';
-  if (!c('c1')) return '고목 수호자 너머의 훈련장에 들러 보세요.';
-  if (!c('b2')) return '이끼 숲의 주인, 바위 거인 몽돌을 쓰러뜨리세요. 막히면 훈련·채집을 맡기고 다시 오세요.';
-  return '이끼 숲 돌파 완료! 다음 지역은 준비 중입니다.';
+  const next = TUTORIAL_PATH.find((id) => !s.cleared.includes(id));
+  const texts: Record<string, string> = {
+    a1: '위쪽 칸의 잎새 강아지를 물리치세요',
+    a2: '불씨 둥지에서 새 동료를 만나세요',
+    a3: '수풀 오솔길을 지나가세요',
+    s1: '바위엄니 굴을 돌파하세요',
+    s2: '꽃피는 샘에서 치유사를 데려오세요',
+    b1: s.bossAttempts['b1'] ? '강화로 전투력을 올리고 고목 골렘에 재도전!' : '숲을 지키는 고목 골렘에 도전하세요',
+  };
+  if (next) return texts[next];
+  if (!s.cleared.includes('b2')) return '길을 골라 숲 끝의 테라스톤을 쓰러뜨리세요';
+  return '이끼 숲 돌파! 다음 지역은 준비 중';
 }

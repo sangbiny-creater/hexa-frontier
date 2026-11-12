@@ -35,6 +35,10 @@ export function grantXp(spirit: OwnedSpirit, amount: number): number {
   return ups;
 }
 
+export function levelUpCost(level: number): number {
+  return Math.round(G.levelCostBase * Math.pow(G.levelCostGrowth, level - 1));
+}
+
 export function rankUpCost(spirit: OwnedSpirit) {
   if (spirit.rank >= G.maxRank) return null;
   return G.rankCost[spirit.rank];

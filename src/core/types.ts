@@ -50,6 +50,12 @@ export interface SkillDef {
 export interface UnitDef {
   id: string;
   name: string;
+  /** 이미지 키 (public/assets/{art}-p1~3.webp 초상, -t1~3.webp 헥스 스프라이트) */
+  art: string;
+  /** 진화 단계 이름 [Lv1~, Lv10~, Lv25~] */
+  stages?: [string, string, string];
+  /** 적: 항상 이 진화 단계 그림을 쓴다 (보스) */
+  fixedStage?: 1 | 2 | 3;
   element: Element;
   role: Role;
   range: Range;

@@ -52,7 +52,7 @@ export const ELEMENT_LABEL: Record<Element, string> = {
   fire: '불',
   forest: '숲',
   earth: '대지',
-  electric: '전기',
+  electric: '바람',
 };
 export const ROLE_LABEL: Record<Role, string> = { tank: '탱커', dealer: '딜러', support: '지원', healer: '회복' };
 

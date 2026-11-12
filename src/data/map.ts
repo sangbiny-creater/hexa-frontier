@@ -1,51 +1,61 @@
-// 지역 1: 이끼 숲 (수작업 고정 맵, D9). axial 좌표 (q, r), pointy-top.
-// 보스 칸은 x = q + r/2 축에서 유일한 관문이 되도록 배치한다 (테스트로 검증).
+// 지역 1: 이끼 숲 — 세로(아래→위)로 올라가는 헥사 맵 (모바일 세로 화면용).
+// 좌표: (col, row) odd-r 오프셋. row 0이 맨 아래, 위로 갈수록 row가 커진다.
+// 튜토리얼 구간(row 0~6)은 한 줄 길, 고목 골렘(row 6)을 넘으면 여러 갈래로 넓어진다.
 
-export type TileKind = 'start' | 'battle' | 'spirit' | 'resource' | 'facility' | 'boss' | 'gate';
+export type TileKind = 'start' | 'battle' | 'elite' | 'spirit' | 'resource' | 'boss' | 'gate';
 
 export interface TileDef {
   id: string;
-  q: number;
+  col: number;
+  row: number;
+  q: number; // axial (계산용)
   r: number;
   kind: TileKind;
   name: string;
   encounterId?: string;
   spiritId?: string;
   resource?: 'stones' | 'gold';
-  facility?: 'training' | 'rest';
   hint?: string;
 }
 
 export const REGION_NAME = '이끼 숲';
 
-export const TILES: TileDef[] = [
-  // 고목 수호자 이전 (x ≤ 3.5)
-  { id: 'start', q: 0, r: 0, kind: 'start', name: '숲 입구', spiritId: 'tideshell', hint: '타이드쉘과 만난 곳' },
-  { id: 'a1', q: 1, r: 0, kind: 'battle', name: '슬라임 무리', encounterId: 'slimes_a' },
-  { id: 'a2', q: 2, r: 0, kind: 'spirit', name: '불씨 바위', spiritId: 'igni' },
-  { id: 'a3', q: 3, r: 0, kind: 'battle', name: '수호자의 앞뜰', encounterId: 'slimes_b' },
-  { id: 'b1', q: 4, r: 0, kind: 'boss', name: '고목 수호자', encounterId: 'boss_treant' },
-  { id: 's1', q: 1, r: 1, kind: 'battle', name: '멧돼지 굴', encounterId: 'boar_den' },
-  { id: 's2', q: 0, r: 2, kind: 'spirit', name: '이끼 요정의 샘', spiritId: 'sylphy' },
-  { id: 's3', q: 2, r: 1, kind: 'resource', name: '이끼 수정 광맥', resource: 'stones' },
-  { id: 's4', q: 3, r: 1, kind: 'battle', name: '개울가', encounterId: 'creek' },
-  { id: 'w1', q: -1, r: 1, kind: 'battle', name: '덤불숲', encounterId: 'north_path' },
-  { id: 'n1', q: 1, r: -1, kind: 'battle', name: '북쪽 오솔길', encounterId: 'north_path' },
-  { id: 'n2', q: 2, r: -1, kind: 'resource', name: '반짝이는 풀밭', resource: 'gold' },
-  { id: 'n3', q: 3, r: -1, kind: 'battle', name: '이끼 숲', encounterId: 'north_grove' },
-  // 고목 수호자 이후 (5 ≤ x ≤ 8.5)
-  { id: 'c1', q: 5, r: 0, kind: 'facility', name: '숲속 훈련장', facility: 'training' },
-  { id: 'c2', q: 6, r: 0, kind: 'battle', name: '물안개 여울', encounterId: 'mist_ford' },
-  { id: 'c3', q: 5, r: 1, kind: 'battle', name: '딱정벌레 들판', encounterId: 'beetle_field' },
-  { id: 'c4', q: 6, r: -1, kind: 'facility', name: '이끼 휴식처', facility: 'rest' },
-  { id: 'c5', q: 7, r: -1, kind: 'battle', name: '멧돼지 떼', encounterId: 'boar_herd' },
-  { id: 'c6', q: 6, r: 1, kind: 'resource', name: '깊은 수정 동굴', resource: 'stones' },
-  { id: 'c7', q: 7, r: 0, kind: 'battle', name: '야생 무리', encounterId: 'mixed_camp' },
-  { id: 'c8', q: 7, r: 1, kind: 'battle', name: '깊은 숲', encounterId: 'deep_woods' },
-  { id: 'c9', q: 8, r: -1, kind: 'battle', name: '폭풍 능선', encounterId: 'storm_ridge' },
-  { id: 'c10', q: 8, r: 0, kind: 'battle', name: '거인의 문턱', encounterId: 'giant_gate' },
-  { id: 'b2', q: 9, r: 0, kind: 'boss', name: '바위 거인 몽돌', encounterId: 'boss_giant' },
-  { id: 'gate', q: 10, r: 0, kind: 'gate', name: '다음 지역 (준비 중)' },
+type Raw = Omit<TileDef, 'q' | 'r'>;
+
+const RAW: Raw[] = [
+  // ── 튜토리얼: 한 줄 길 ──
+  { id: 'start', col: 2, row: 0, kind: 'start', name: '숲 입구', hint: '여기서 모험이 시작됐다' },
+  { id: 'a1', col: 2, row: 1, kind: 'battle', name: '잎새 강아지 무리', encounterId: 'slimes_a' },
+  { id: 'a2', col: 2, row: 2, kind: 'spirit', name: '불씨 둥지', spiritId: 'igni' },
+  { id: 'a3', col: 2, row: 3, kind: 'battle', name: '수풀 오솔길', encounterId: 'slimes_b' },
+  { id: 's1', col: 2, row: 4, kind: 'battle', name: '바위엄니 굴', encounterId: 'boar_den' },
+  { id: 's2', col: 2, row: 5, kind: 'spirit', name: '꽃피는 샘', spiritId: 'sylphy' },
+  { id: 'b1', col: 2, row: 6, kind: 'boss', name: '고목 골렘', encounterId: 'boss_treant' },
+  // ── 고목 골렘 너머: 여러 갈래 ──
+  { id: 'c1', col: 1, row: 7, kind: 'battle', name: '물안개 여울', encounterId: 'mist_ford' },
+  { id: 'c2', col: 2, row: 7, kind: 'resource', name: '버려진 야영지', resource: 'gold' },
+  { id: 'c3', col: 1, row: 8, kind: 'battle', name: '돌풍 언덕', encounterId: 'beetle_field' },
+  { id: 'c4', col: 2, row: 8, kind: 'battle', name: '바위엄니 떼', encounterId: 'boar_herd' },
+  { id: 'c5', col: 3, row: 8, kind: 'resource', name: '이끼 동굴', resource: 'stones' },
+  { id: 'c6', col: 0, row: 9, kind: 'elite', name: '정예: 폭풍 둥지', encounterId: 'storm_ridge' },
+  { id: 'c7', col: 1, row: 9, kind: 'battle', name: '야생 무리', encounterId: 'mixed_camp' },
+  { id: 'c8', col: 2, row: 9, kind: 'battle', name: '깊은 숲', encounterId: 'deep_woods' },
+  { id: 'c9', col: 3, row: 9, kind: 'resource', name: '반짝이는 풀밭', resource: 'gold' },
+  { id: 'c10', col: 1, row: 10, kind: 'resource', name: '수정 광맥', resource: 'stones' },
+  { id: 'c11', col: 2, row: 10, kind: 'battle', name: '거인의 문턱', encounterId: 'giant_gate' },
+  { id: 'c12', col: 3, row: 10, kind: 'elite', name: '정예: 고대 바위엄니', encounterId: 'elite_tusk' },
+  { id: 'b2', col: 2, row: 11, kind: 'boss', name: '테라스톤', encounterId: 'boss_giant' },
+  { id: 'gate', col: 2, row: 12, kind: 'gate', name: '다음 지역 (준비 중)' },
 ];
 
+/** odd-r 오프셋 → axial */
+export function offsetToAxial(col: number, row: number): { q: number; r: number } {
+  return { q: col - (row - (row & 1)) / 2, r: row };
+}
+
+export const TILES: TileDef[] = RAW.map((t) => ({ ...t, ...offsetToAxial(t.col, t.row) }));
+
 export const TILE_BY_ID: Record<string, TileDef> = Object.fromEntries(TILES.map((t) => [t.id, t]));
+
+/** 튜토리얼 구간(한 줄 길)의 마지막 row */
+export const TUTORIAL_LAST_ROW = 6;

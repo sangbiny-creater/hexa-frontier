@@ -4,8 +4,10 @@ import type { SpiritDef } from '../core/types';
 export const SPIRITS: Record<string, SpiritDef> = {
   tideshell: {
     id: 'tideshell',
-    name: '타이드쉘',
-    title: '물결 등껍질의 수호자',
+    name: '쉘나이트',
+    art: 'shellknight',
+    stages: ['쉘타이드', '리프나이트', '리바이어던'],
+    title: '바다 등껍질의 수호자',
     element: 'water',
     role: 'tank',
     range: 'melee',
@@ -18,8 +20,10 @@ export const SPIRITS: Record<string, SpiritDef> = {
   },
   igni: {
     id: 'igni',
-    name: '이그니',
-    title: '불씨를 품은 여우',
+    name: '엠버윙',
+    art: 'emberwing',
+    stages: ['엠버 칙', '플레어윙', '피닉스 아처'],
+    title: '불꽃 깃털의 궁수',
     element: 'fire',
     role: 'dealer',
     range: 'ranged',
@@ -32,8 +36,10 @@ export const SPIRITS: Record<string, SpiritDef> = {
   },
   sylphy: {
     id: 'sylphy',
-    name: '실피',
-    title: '이끼 요정 치유사',
+    name: '블루멜',
+    art: 'bloomel',
+    stages: ['버들링', '플로라나', '버던티스'],
+    title: '꽃피우는 숲의 치유사',
     element: 'forest',
     role: 'healer',
     range: 'ranged',

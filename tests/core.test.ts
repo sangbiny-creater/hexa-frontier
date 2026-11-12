@@ -10,6 +10,7 @@ import {
   claimIdle,
   enterTile,
   fatigueWarning,
+  levelUp,
   newGame,
   reachableTiles,
   setFormation,
@@ -17,7 +18,8 @@ import {
   tick,
   type GameState,
 } from '../src/core/game';
-import { grantXp, xpMultiplier } from '../src/core/growth';
+import { grantXp, levelUpCost, xpMultiplier } from '../src/core/growth';
+import { recommendedPower, teamPower } from '../src/core/power';
 import { deserialize, serialize } from '../src/core/save';
 import { BALANCE } from '../src/data/balance';
 import { TILE_BY_ID, TILES } from '../src/data/map';
@@ -84,36 +86,14 @@ describe('전투 시뮬레이션', () => {
   });
 });
 
-describe('온보딩 밸런스 (D28)', () => {
-  it('2명 Lv4로는 고목 수호자에게 아깝게 진다 (HP 25% 이하 남김)', () => {
-    const s2 = stateWith([spirit('tideshell', 4), spirit('igni', 4)], { tideshell: 1, igni: 7 });
-    const r = simulateBattle(buildSetup(s2, 'boss_treant', 99, T0));
-    expect(r.outcome).not.toBe('win');
-    expect(r.enemyHpRatio).toBeLessThanOrEqual(0.25);
-  });
-  it('보스 패배 후 멧돼지 굴 → 실피 합류 → 재도전으로 돌파 가능', () => {
-    const g = newGame(T0);
-    for (const id of ['a1', 'a2', 'a3', 'b1']) enterTile(g, id, T0);
-    const den = enterTile(g, 's1', T0);
-    expect(den.type === 'battle' && den.outcome.won).toBe(true);
-    expect(enterTile(g, 's2', T0).type).toBe('spirit');
-    const again = enterTile(g, 'b1', T0);
-    expect(again.type === 'battle' && again.outcome.won).toBe(true);
-  });
-  it('회복 담당이 합류하면 같은 레벨에서도 돌파 가능', () => {
-    const s3 = stateWith([spirit('tideshell', 4), spirit('igni', 4), spirit('sylphy', 4)], { tideshell: 1, igni: 7, sylphy: 6 });
-    expect(simulateBattle(buildSetup(s3, 'boss_treant', 99, T0)).outcome).toBe('win');
-  });
-  it('실제 첫 경로(a1→a2→a3→b1)에서 첫 보스는 패배하고 원인 분석이 나온다', () => {
-    const g = newGame(T0);
-    for (const id of ['a1', 'a2', 'a3']) enterTile(g, id, T0);
-    const r = enterTile(g, 'b1', T0);
-    expect(r.type).toBe('battle');
-    if (r.type !== 'battle') return;
-    expect(r.outcome.won).toBe(false);
-    expect(r.outcome.analysis?.nearMiss).toBe(true);
-    expect(r.outcome.analysis?.reasons.length).toBeGreaterThan(0);
-    expect(r.outcome.analysis?.actions.some((a) => a.id === 'farm')).toBe(true);
+describe('온보딩 밸런스 (D37)', () => {
+  it('3명 Lv1이면 고목 골렘에 아깝게 지고(HP 25% 이하), 3명 Lv4면 이긴다', () => {
+    const s1 = stateWith([spirit('tideshell', 1), spirit('igni', 1), spirit('sylphy', 1)], { tideshell: 1, igni: 7, sylphy: 6 });
+    const r1 = simulateBattle(buildSetup(s1, 'boss_treant', 99, T0));
+    expect(r1.outcome).not.toBe('win');
+    expect(r1.enemyHpRatio).toBeLessThanOrEqual(0.25);
+    const s4 = stateWith([spirit('tideshell', 4), spirit('igni', 4), spirit('sylphy', 4)], { tideshell: 1, igni: 7, sylphy: 6 });
+    expect(simulateBattle(buildSetup(s4, 'boss_treant', 99, T0)).outcome).toBe('win');
   });
 });
 
@@ -128,13 +108,13 @@ describe('맵 (D9)', () => {
     }
     for (const id of ['c1', 'c2', 'b2', 'gate']) expect(seen.has(id)).toBe(false);
   });
-  it('맵 크기 25~40칸', () => {
-    expect(TILES.length).toBeGreaterThanOrEqual(25);
+  it('맵 크기 18~40칸', () => {
+    expect(TILES.length).toBeGreaterThanOrEqual(18);
     expect(TILES.length).toBeLessThanOrEqual(40);
   });
   it('처음엔 인접 칸만 갈 수 있다', () => {
     const g = newGame(T0);
-    expect([...reachableTiles(g)].sort()).toEqual(['a1', 'n1', 'w1'].sort());
+    expect([...reachableTiles(g)]).toEqual(['a1']);
     expect(enterTile(g, 'b1', T0).type).toBe('error');
   });
 });
@@ -188,19 +168,52 @@ describe('피로 대응 (D29·D30)', () => {
       if (r.type === 'battle') expect(r.outcome.newInjuries).toEqual([]);
     }
   });
-  it('지친 상태로 지면 패배 분석이 휴식을 가장 먼저 추천한다', () => {
+  it('컨디션 효과가 꺼져 있으면(D32) 피로 경고가 없다', () => {
     const g = newGame(T0);
-    for (const id of ['a1', 'a2', 'a3']) enterTile(g, id, T0);
-    for (const sp of Object.values(g.spirits)) sp.condition = 50;
-    const r = enterTile(g, 'b1', T0);
-    expect(r.type === 'battle' && r.outcome.analysis?.actions[0].id).toBe('rest');
-    expect(r.type === 'battle' && r.outcome.analysis?.reasons[0].tag).toBe('fatigue');
-  });
-  it('컨디션 최상이면 경고 없음, 떨어지면 경고', () => {
-    const g = newGame(T0);
-    expect(fatigueWarning(g, T0)).toBeNull();
     g.spirits.tideshell.condition = 30;
-    expect(fatigueWarning(g, T0)?.worstMul).toBe(0.87);
+    expect(fatigueWarning(g, T0)).toBeNull();
+  });
+});
+
+describe('골드 레벨업·전투력 (D32)', () => {
+  it('레벨업은 골드를 쓰고 전투력을 올린다', () => {
+    const g = newGame(T0);
+    const before = teamPower(g);
+    expect(levelUp(g, 'tideshell')).toMatch('골드가 부족');
+    g.gold = 1000;
+    expect(levelUp(g, 'tideshell')).toBeNull();
+    expect(g.spirits.tideshell.level).toBe(2);
+    expect(g.gold).toBe(1000 - levelUpCost(1));
+    expect(teamPower(g)).toBeGreaterThan(before);
+  });
+  it('새 동료는 최고 레벨의 80%로 합류', () => {
+    const g = newGame(T0);
+    g.spirits.tideshell.level = 10;
+    enterTile(g, 'a1', T0);
+    enterTile(g, 'a2', T0);
+    expect(g.spirits.igni.level).toBe(8);
+  });
+  it('권장 전투력보다 15% 이상 높으면 실제로 거의 이긴다', () => {
+    const g = newGame(T0);
+    g.spirits = { tideshell: spirit('tideshell', 1), igni: spirit('igni', 1), sylphy: spirit('sylphy', 1) };
+    g.formation = { tideshell: 1, igni: 7, sylphy: 6 };
+    for (const enc of ['slimes_b', 'boss_treant', 'mixed_camp', 'boss_giant']) {
+      const rec = recommendedPower(enc);
+      while (teamPower(g) < rec * 1.15) for (const sp of Object.values(g.spirits)) sp.level++;
+      let wins = 0;
+      for (let i = 0; i < 10; i++) if (simulateBattle(buildSetup(g, enc, 500 + i, T0)).outcome === 'win') wins++;
+      expect(wins).toBeGreaterThanOrEqual(8);
+    }
+  });
+  it('패배 화면의 버튼은 바로 실행할 수 있는 행동이다', () => {
+    const g = newGame(T0);
+    for (const id of ['a1', 'a2', 'a3', 's1', 's2']) enterTile(g, id, T0);
+    const r = enterTile(g, 'b1', T0);
+    if (r.type !== 'battle') throw new Error();
+    const acts = r.outcome.analysis!.actions;
+    expect(acts.length).toBeGreaterThan(0);
+    for (const a of acts) expect(['levelup', 'farm', 'recruit', 'rankup', 'formation']).toContain(a.id);
+    expect(r.outcome.analysis!.teamPower).toBeLessThan(r.outcome.analysis!.recommended);
   });
 });
 
@@ -227,12 +240,12 @@ describe('활동·보상 중복 방지 (기획서 13장 8)', () => {
   function ready() {
     const s = stateWith([spirit('tideshell', 5), spirit('igni', 5)], { tideshell: 1 });
     s.unlocked = { training: true, gathering: true, rest: true };
-    s.nodes = ['s3'];
+    s.nodes = ['c5'];
     return s;
   }
   it('수령은 한 번만 된다', () => {
     const s = ready();
-    expect(startActivity(s, 'gathering', 'igni', T0, 's3')).toBeNull();
+    expect(startActivity(s, 'gathering', 'igni', T0, 'c5')).toBeNull();
     const id = s.activities[0].id;
     expect(claimActivity(s, id, T0 + HOUR)).toBeNull(); // 아직 미완료
     const first = claimActivity(s, id, T0 + 2 * HOUR);
@@ -243,7 +256,7 @@ describe('활동·보상 중복 방지 (기획서 13장 8)', () => {
   });
   it('중단 보상은 경과 시간 비례, 이후 수령 불가', () => {
     const s = ready();
-    startActivity(s, 'gathering', 'igni', T0, 's3');
+    startActivity(s, 'gathering', 'igni', T0, 'c5');
     const id = s.activities[0].id;
     const r = cancelActivity(s, id, T0 + HOUR);
     expect(r?.stones).toBe(Math.floor(BALANCE.activity.gatheringReward.stones / 2));

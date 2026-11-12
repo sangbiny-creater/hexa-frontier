@@ -28,6 +28,11 @@ export const BALANCE = {
   },
   growth: {
     maxLevel: 30, // [가설]
+    // 골드로 레벨업 (D32): L→L+1 비용 = levelCostBase × levelCostGrowth^(L-1)
+    levelCostBase: 20,
+    levelCostGrowth: 1.3,
+    joinLevelRatio: 0.8, // 새 동료는 최고 레벨의 80%로 합류
+    battleXp: false, // 전투 경험치 (D32에서 끔)
     statPerLevel: 0.09, // [가설] 레벨당 +9%
     statPerRank: 0.12, // [가설] 승급당 +12%
     maxRank: 5,
@@ -50,10 +55,12 @@ export const BALANCE = {
   enemy: {
     statPerLevel: 0.1,
     xpPerLevel: 0.12, // [가설] 적 레벨당 경험치 +12%
-    goldPerLevel: 0.25,
+    goldPerLevel: 0.15,
     stoneChanceMul: 1.5,
   },
   condition: {
+    // P0 단순화(D32): 컨디션·경상 효과를 끔. 켜려면 true.
+    enabled: false,
     // [결정 D20] 개인 단위
     lossNormal: -5,
     lossBoss: -8,
@@ -86,10 +93,15 @@ export const BALANCE = {
     gatheringReward: { stones: 10, gold: 300 },
   },
   idle: {
-    // [결정 D21] 최대 12시간
+    // [결정 D21] 최대 12시간. 시간당 골드 = goldPerHour + goldPerClearedTile × 클리어한 칸 수
     capHours: 12,
     goldPerHour: 40,
+    goldPerClearedTile: 12,
     stonesPerHour: 0.5,
+  },
+  power: {
+    easyAt: 1.15,
+    fairAt: 0.95,
   },
   deploy: {
     initialMax: 3, // [결정 D11]

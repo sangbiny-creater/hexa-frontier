@@ -1,54 +1,52 @@
 import { describe, expect, it } from 'vitest';
-import { enterTile, newGame, startActivity } from '../src/core/game';
-import { migrate } from '../src/core/save';
-import { computeGuide } from '../src/ui/tutorial';
+import { enterTile, levelUp, newGame, reachableTiles, upgradeUnlocked } from '../src/core/game';
+import { levelUpCost } from '../src/core/growth';
+import { recommendedPower, teamPower } from '../src/core/power';
+import { computeGuide, type Tab } from '../src/ui/tutorial';
 
 const T0 = 1_700_000_000_000;
 
-describe('튜토리얼 안내 흐름', () => {
-  it('시작 화면을 보기 전·튜토리얼 종료 후에는 안내 없음', () => {
+describe('튜토리얼: 한 줄 길 (D37)', () => {
+  it('튜토리얼 구간에서는 갈 수 있는 칸이 항상 하나뿐이다', () => {
     const g = newGame(T0);
-    expect(computeGuide(g, { selected: null, tab: 'spirits' })).toBeNull();
-    g.tutorial.introSeen = true;
-    g.tutorial.done = true;
-    expect(computeGuide(g, { selected: null, tab: 'spirits' })).toBeNull();
+    for (const id of ['a1', 'a2', 'a3', 's1', 's2']) {
+      expect([...reachableTiles(g)]).toEqual([id]);
+      enterTile(g, id, T0);
+    }
+    expect([...reachableTiles(g)]).toEqual(['b1']);
   });
 
-  it('첫 10분 동안 매 단계 가리키는 곳이 있다: 칸 → 버튼 → … → 훈련 → 마무리', () => {
+  it('흐름: 칸 → 버튼 … → 보스 패배 → 강화 탭 → 레벨업 → 지도 → 재도전 승리 → 마무리', () => {
     const g = newGame(T0);
     g.tutorial.introSeen = true;
-    const at = (selected: string | null, tab = 'spirits') => computeGuide(g, { selected, tab })!;
-    const steps: string[] = [];
-    const go = (tile: string) => {
-      const before = at(null);
-      expect(before.target).toEqual({ kind: 'tile', id: tile });
-      expect(at(tile).target).toEqual({ kind: 'tileAction' });
-      steps.push(tile);
-      return enterTile(g, tile, T0);
+    let tab: Tab = 'map';
+    const at = (selected: string | null) => computeGuide(g, { selected, tab })!;
+    const go = (id: string) => {
+      expect(at(null).target).toEqual({ kind: 'tile', id });
+      expect(at(id).target).toEqual({ kind: 'tileAction' });
+      return enterTile(g, id, T0);
     };
-    go('a1');
-    go('a2');
-    go('a3');
+    for (const id of ['a1', 'a2', 'a3', 's1', 's2']) go(id);
+    expect(upgradeUnlocked(g)).toBe(false);
     const boss = go('b1');
     expect(boss.type === 'battle' && boss.outcome.won).toBe(false);
-    go('s1');
-    go('s2');
+    expect(boss.type === 'battle' && boss.outcome.analysis?.nearMiss).toBe(true);
+    expect(upgradeUnlocked(g)).toBe(true);
+    expect(at(null).target).toEqual({ kind: 'tab', tab: 'upgrade' });
+    tab = 'upgrade';
+    expect(at(null).target).toEqual({ kind: 'levelUp' });
+    for (let i = 0; i < 100; i++) {
+      const id = Object.keys(g.formation).sort((a, b) => g.spirits[a].level - g.spirits[b].level)[0];
+      if (g.gold < levelUpCost(g.spirits[id].level)) break;
+      levelUp(g, id);
+    }
+    expect(teamPower(g)).toBeGreaterThanOrEqual(recommendedPower('boss_treant'));
+    expect(at(null).target).toEqual({ kind: 'tab', tab: 'map' });
+    tab = 'map';
     const again = go('b1');
     expect(again.type === 'battle' && again.outcome.won).toBe(true);
-    expect(at(null).target).toEqual({ kind: 'activityTab' });
-    expect(at(null, 'activity').target).toEqual({ kind: 'trainingStart' });
-    expect(startActivity(g, 'training', 'tideshell', T0)).toBeNull();
-    expect(at(null, 'activity').finish).toBe(true);
-    expect(steps).toEqual(['a1', 'a2', 'a3', 'b1', 's1', 's2', 'b1']);
-  });
-});
-
-describe('저장 v1 → v2', () => {
-  it('튜토리얼 필드를 채우고 시작 화면을 다시 보여 준다', () => {
-    const v1: any = { ...newGame(T0), version: 1 };
-    delete v1.tutorial;
-    const m = migrate(v1)!;
-    expect(m.version).toBe(2);
-    expect(m.tutorial.introSeen).toBe(false);
+    expect(at(null).finish).toBe(true);
+    // 보스를 넘으면 길이 여러 갈래
+    expect(reachableTiles(g).size).toBeGreaterThan(1);
   });
 });

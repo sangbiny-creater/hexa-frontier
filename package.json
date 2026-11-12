@@ -10,7 +10,8 @@
     "test": "vitest run",
     "sim:boss": "tsx sim/boss-check.ts",
     "sim:onboarding": "tsx sim/onboarding-check.ts",
-    "sim:tune": "tsx sim/tune.ts"
+    "sim:tune": "tsx sim/tune.ts",
+    "sim:power": "tsx sim/power-calibrate.ts"
   },
   "dependencies": {
     "react": "^19.3.1",

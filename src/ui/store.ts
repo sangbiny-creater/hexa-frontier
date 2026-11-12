@@ -55,18 +55,23 @@ export function useGame() {
     safeSet(SAVE_KEY, serialize(state));
   }, [state]);
 
-  /** 상태를 복사해 행동을 실행하고 저장한다. */
+  // 같은 순간에 행동이 연달아 일어나도 서로 덮어쓰지 않도록 최신 상태를 ref로 들고 있는다
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
+  /** 최신 상태를 복사해 행동을 실행하고 저장한다. */
   const act = useCallback(
     <T,>(fn: (draft: GameState, now: number) => T): T => {
       const t = clock.now();
-      const draft = structuredClone(state);
+      const draft = structuredClone(stateRef.current);
       tick(draft, t);
       const result = fn(draft, t);
+      stateRef.current = draft;
       setState(draft);
       setNow(t);
       return result;
     },
-    [state, clock],
+    [clock],
   );
 
   const saveDev = () => safeSet(DEV_KEY, JSON.stringify({ offset: clock.offset(), speed: clock.getSpeed() }));
@@ -92,6 +97,7 @@ export function useGame() {
     resetSave(patch?: (s: GameState) => void) {
       const fresh = newGame(clock.now());
       patch?.(fresh);
+      stateRef.current = fresh;
       setState(fresh);
     },
   };

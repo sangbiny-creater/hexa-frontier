@@ -5,17 +5,21 @@ import { SPIRITS } from '../data/spirits';
 import { elementMultiplier, ELEMENT_LABEL } from './board';
 import { simulateBattle, type BattleResult, type BattleSetup, type BattleUnitInput } from './battle';
 import type { GameState } from './game';
-import { canRankUp, isBusy } from './game';
+import { affordableLevelUps, bestFarmTile, canRankUp, isBusy, objectiveTile, reachableSpiritTile } from './game';
+import { recommendedPower, teamPower } from './power';
+import { TILE_BY_ID } from '../data/map';
 
 export type ReasonTag = 'attack' | 'survival' | 'fatigue' | 'element' | 'healing' | 'timeout';
-export type ActionId = 'farm' | 'rankup' | 'train' | 'gather' | 'rest' | 'formation' | 'explore';
+export type ActionId = 'farm' | 'rankup' | 'levelup' | 'recruit' | 'formation' | 'train' | 'gather' | 'rest' | 'explore';
 
 export interface DefeatAnalysis {
   nearMiss: boolean;
   enemyHpPct: number;
   facts: string[];
   reasons: { tag: ReasonTag; label: string; detail: string }[];
-  actions: { id: ActionId; label: string; why: string }[];
+  actions: { id: ActionId; label: string; why: string; tileId?: string }[];
+  teamPower: number;
+  recommended: number;
   variants: { key: string; label: string; won: boolean; enemyHpPct: number }[];
 }
 
@@ -83,39 +87,36 @@ export function analyzeDefeat(s: GameState, setup: BattleSetup, result: BattleRe
   const winVariants = variants.filter((v) => v.r.outcome === 'win').map((v) => v.label);
   if (winVariants.length) facts.push(`모의 전투: ${winVariants.join(', ')}이면 이겼습니다.`);
 
-  // 행동 경로
+  // 행동 경로: 누르면 바로 실행되는 것만 (D32)
   const actions: DefeatAnalysis['actions'] = [];
   const ownedIds = Object.keys(s.spirits);
-  if (ownedIds.some((id) => canRankUp(s, id))) actions.push({ id: 'rankup', label: '지금 승급', why: '승급 재료가 모였습니다. 능력치 +12%.' });
-  actions.push({ id: 'farm', label: '지금 파밍', why: '탐험한 전투 칸을 반복해 경험치·성장석을 모읍니다.' });
-  if (s.unlocked.training) actions.push({ id: 'train', label: '1시간 훈련', why: '자리를 비운 동안 경험치를 얻습니다.' });
-  if (s.unlocked.gathering && s.nodes.length) actions.push({ id: 'gather', label: '2시간 채집', why: '성장석·골드를 모아 승급합니다.' });
-  if (fatigueMatters) {
-    const worst = Math.min(...tired.map((sp) => sp.condition));
-    const need = Math.max(0, BALANCE.condition.tiers[0].min - worst);
-    const hours = s.unlocked.rest ? need / BALANCE.condition.restPerHour : need / BALANCE.condition.naturalPerHour;
-    const where = s.unlocked.rest ? '휴식처에서' : '자연 회복으로';
-    // 피로가 원인이면 휴식을 가장 먼저 추천 (D: 피로 하향 나선 방지)
-    actions.unshift({ id: 'rest', label: '휴식 (추천)', why: `${where} 약 ${Math.ceil(hours * 10) / 10}시간이면 컨디션 '최상'으로 돌아옵니다.` });
-    facts.push(`지금 컨디션: ${tired.map((sp) => `${SPIRITS[sp.defId].name} ${Math.floor(sp.condition)}`).join(', ')}`);
+  const recruit = reachableSpiritTile(s);
+  const objective = objectiveTile(s);
+  if (recruit) actions.push({ id: 'recruit', label: '동료 데리러 가기', why: `"${TILE_BY_ID[recruit].name}"에 새 동료가 있어요. 동료가 늘면 전투력이 크게 오릅니다.`, tileId: recruit });
+  else if (objective && TILE_BY_ID[objective].kind !== 'boss' && Object.keys(s.spirits).length < 3) {
+    actions.push({ id: 'recruit', label: '동료 찾으러 가기', why: `"${TILE_BY_ID[objective].name}" 너머에 새 동료가 있어요. 바로 출발합니다.`, tileId: objective });
   }
+  const ups = affordableLevelUps(s);
+  if (ups > 0) actions.push({ id: 'levelup', label: `레벨업 하기 (${ups}번 가능)`, why: `지금 가진 골드로 레벨업을 ${ups}번 할 수 있어요.` });
+  if (ownedIds.some((id) => canRankUp(s, id))) actions.push({ id: 'rankup', label: '승급 하기', why: '성장석이 모였어요. 승급하면 능력치 +12%.' });
+  const farm = bestFarmTile(s);
+  if (farm) actions.push({ id: 'farm', label: '골드 벌러 가기', why: `쉬운 칸 "${TILE_BY_ID[farm].name}"에서 바로 싸워 골드를 법니다.`, tileId: farm });
   const benched = ownedIds.filter((id) => s.formation[id] === undefined && !isBusy(s, id, now));
-  if (benched.length || avgElem < 1) {
-    actions.push({
-      id: 'formation',
-      label: '편성 변경',
-      why: benched.length ? `${benched.map((id) => SPIRITS[id].name).join(', ')}이(가) 쉬고 있습니다.` : '상성이 유리한 배치를 찾아보세요.',
-    });
-  }
-  if (!hasHealer && !s.spirits.sylphy) actions.push({ id: 'explore', label: '동료 찾기', why: '아직 가 보지 않은 칸에 새 동료가 있을지도 모릅니다.' });
+  if (benched.length) actions.push({ id: 'formation', label: '편성에 넣기', why: `${benched.map((id) => SPIRITS[id].name).join(', ')}이(가) 출전하지 않고 있어요.` });
 
   reasons.sort((a, b) => (a.tag === 'fatigue' ? -1 : 0) - (b.tag === 'fatigue' ? -1 : 0));
   return {
-    nearMiss: result.enemyHpRatio <= 0.2,
+    teamPower: teamPower(s, setup.allies.map((u) => u.uid.slice(2))),
+    recommended: recommendedPower(encounterIdOf(setup)),
+    nearMiss: result.enemyHpRatio <= 0.25,
     enemyHpPct: pct(result),
     facts,
     reasons,
     actions,
     variants: variants.map((v) => ({ key: v.key, label: v.label, won: v.r.outcome === 'win', enemyHpPct: pct(v.r) })),
   };
+}
+
+function encounterIdOf(setup: BattleSetup): string {
+  return setup.encounterId ?? '';
 }
