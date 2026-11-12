@@ -50,6 +50,22 @@ export const SPIRITS: Record<string, SpiritDef> = {
       { id: 'mr_ult', name: '숲의 축복', kind: 'ultimate', cooldown: 0, target: 'allyAll', effects: [{ type: 'heal', coef: 1.4 }, { type: 'buffAtk', ratio: 0.15, duration: 6 }], condition: { type: 'allyHpBelow', ratio: 0.7 }, desc: '아군 전체 회복 + 6초간 공격 +15%.' },
     ],
   },
+  galewing: {
+    id: 'galewing',
+    name: '게일윙',
+    art: 'galewing',
+    stages: ['게일 칙', '게일윙', '템페스트 아처'],
+    title: '바람을 타는 궁수',
+    element: 'electric',
+    role: 'dealer',
+    range: 'ranged',
+    base: { hp: 82, atk: 18, def: 6, spd: 56 },
+    skills: [
+      { id: 'gw_basic', name: '바람 깃털', kind: 'basic', cooldown: 0, target: 'enemyDefault', effects: [{ type: 'damage', coef: 1.0 }], condition: { type: 'none' }, desc: '적 하나에게 깃털을 날린다.' },
+      { id: 'gw_shot', name: '돌풍 화살', kind: 'active', cooldown: 6, target: 'enemyHighestAtk', effects: [{ type: 'damage', coef: 1.7 }], condition: { type: 'none' }, desc: '공격력이 가장 높은 적에게 170% 피해.' },
+      { id: 'gw_ult', name: '폭풍 깃', kind: 'ultimate', cooldown: 0, target: 'enemyAll', effects: [{ type: 'damage', coef: 1.1 }, { type: 'debuffDef', ratio: 0.2, duration: 5 }], condition: { type: 'none' }, desc: '적 전체에 110% 피해 + 5초간 방어 -20%.' },
+    ],
+  },
 };
 
 /** 기본 편성 슬롯 (0~2 전열, 3~5 중열, 6~8 후열) */
@@ -57,4 +73,5 @@ export const DEFAULT_SLOT: Record<string, number> = {
   tideshell: 1,
   igni: 7,
   sylphy: 6,
+  galewing: 8,
 };

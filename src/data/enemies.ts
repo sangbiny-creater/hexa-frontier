@@ -22,8 +22,13 @@ export const ENEMIES: Record<string, EnemyDef> = {
       { id: 'mn_basic', name: '물줄기', kind: 'basic', cooldown: 0, target: 'enemyHighestAtk', effects: [{ type: 'damage', coef: 1 }], condition: { type: 'none' }, desc: '' },
     ],
   },
+  fox_kit: {
+    id: 'fox_kit', name: '아기 물결 여우', art: 'tidekit', fixedStage: 1, element: 'water', role: 'dealer', range: 'ranged',
+    base: { hp: 55, atk: 10, def: 4, spd: 44 }, xp: 10, gold: 15, stoneChance: 0.15,
+    skills: [{ id: 'fk_basic', name: '물방울', kind: 'basic', cooldown: 0, target: 'enemyHighestAtk', effects: [{ type: 'damage', coef: 1 }], condition: { type: 'none' }, desc: '' }],
+  },
   spark_beetle: {
-    id: 'spark_beetle', name: '돌풍 깃새', art: 'galewing', element: 'electric', role: 'support', range: 'ranged',
+    id: 'spark_beetle', name: '돌풍 늑대', art: 'skywarden', element: 'electric', role: 'support', range: 'ranged',
     base: { hp: 90, atk: 15, def: 10, spd: 52 }, xp: 18, gold: 22, stoneChance: 0.22,
     skills: [
       { id: 'sb_basic', name: '정전기', kind: 'basic', cooldown: 0, target: 'enemyDefault', effects: [{ type: 'damage', coef: 1 }], condition: { type: 'none' }, desc: '' },
@@ -55,8 +60,8 @@ const e = (enemyId: string, level: number, slot: number) => ({ enemyId, level, s
 
 export const ENCOUNTERS: Record<string, Encounter> = {
   slimes_a: { id: 'slimes_a', name: '슬라임 무리', enemies: [e('moss_slime', 1, 1), e('moss_slime', 1, 4)], firstClear: { gold: 30, stones: 1, xp: 30 } },
-  slimes_b: { id: 'slimes_b', name: '슬라임과 멧돼지', enemies: [e('moss_slime', 2, 0), e('thorn_boar', 2, 2), e('moss_slime', 2, 4)], firstClear: { gold: 40, stones: 2, xp: 80 } },
-  boar_den: { id: 'boar_den', name: '바위엄니 굴', enemies: [e('thorn_boar', 2, 1), e('thorn_boar', 2, 4)], firstClear: { gold: 50, stones: 2 } },
+  slimes_b: { id: 'slimes_b', name: '잎새 강아지 떼', enemies: [e('moss_slime', 2, 0), e('moss_slime', 2, 2), e('moss_slime', 2, 4)], firstClear: { gold: 40, stones: 2, xp: 80 } },
+  boar_den: { id: 'boar_den', name: '물결 여우 개울', enemies: [e('fox_kit', 1, 1), e('fox_kit', 1, 5)], firstClear: { gold: 50, stones: 2 } },
   north_path: { id: 'north_path', name: '북쪽 오솔길', enemies: [e('moss_slime', 2, 0), e('moss_slime', 2, 1), e('moss_slime', 2, 2)], firstClear: { gold: 40, stones: 1 } },
   north_grove: { id: 'north_grove', name: '이끼 숲', enemies: [e('thorn_boar', 3, 0), e('moss_slime', 3, 2), e('moss_slime', 3, 5)], firstClear: { gold: 60, stones: 2 } },
   creek: { id: 'creek', name: '개울가', enemies: [e('thorn_boar', 3, 1), e('moss_slime', 3, 3), e('moss_slime', 3, 5)], firstClear: { gold: 60, stones: 2 } },

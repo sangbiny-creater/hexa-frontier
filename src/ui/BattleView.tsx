@@ -13,6 +13,7 @@ export interface BattleTips {
   battle: boolean;
   win: boolean;
   defeat: boolean;
+  note?: string;
 }
 
 function unitPos(u: UnitSnapshot) {
@@ -141,14 +142,16 @@ export function BattleView({
             const txt = tg.kind === 'dmg' ? `-${tg.amount}` : tg.kind === 'heal' && tg.amount > 0 ? `+${tg.amount}` : tg.kind === 'shield' ? '🛡' : tg.kind === 'taunt' ? '도발!' : tg.kind === 'buff' ? '공격↑' : '';
             if (!txt) return null;
             const strong = tg.elementMul && tg.elementMul > 1;
+            const weak = tg.kind === 'dmg' && tg.elementMul !== undefined && tg.elementMul < 1;
             return (
               <div
                 key={`${e.t}${e.actor}${i}`}
-                className={`float ${tg.kind} ${strong ? 'strong' : ''}`}
+                className={`float ${tg.kind} ${strong ? 'strong' : ''} ${weak ? 'weak' : ''}`}
                 style={{ left: `${p.x + ((i % 3) - 1) * 4}%`, top: `calc(${p.y}% - ${30 + age * 40}px)`, opacity: 1 - age / 0.7 }}
               >
+                {strong && <small className="ftag">유리!</small>}
+                {weak && <small className="ftag">불리</small>}
                 {txt}
-                {strong ? '!' : ''}
               </div>
             );
           }),
@@ -163,7 +166,8 @@ export function BattleView({
           );
         })}
       </div>
-      {tips?.battle && !done && (
+      {tips?.note && !done && <div className="tip element-tip">{tips.note}</div>}
+      {tips?.battle && !tips?.note && !done && (
         <div className="tip">
           스피릿들이 <b>알아서</b> 싸워요. 파란 글씨는 스킬, <b className="gold">★노란 글씨</b>는 필살기! 빨리 보려면 ⏭
         </div>

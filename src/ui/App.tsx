@@ -10,16 +10,19 @@ import {
   idleUnlocked,
   objectiveTile,
   reachableTiles,
+  setFormation,
   upgradeUnlocked,
   type BattleOutcome,
   type GameState,
 } from '../core/game';
-import { difficulty, DIFFICULTY_LABEL, recommendedPower, teamPower } from '../core/power';
+import { attackMatchup, difficulty, DIFFICULTY_LABEL, recommendedPower, suggestTeam, teamPower } from '../core/power';
 import { BALANCE } from '../data/balance';
 import { ENCOUNTERS, ENEMIES } from '../data/enemies';
 import { REGION_NAME, TILE_BY_ID } from '../data/map';
 import { SPIRITS } from '../data/spirits';
-import { asset, ElementTag, enemyStage, GOLD, portrait, POWER, RoleTag, STONE } from './art';
+import { asset, ELEMENT_ICON, ElementChart, ElementTag, enemyStage, GOLD, portrait, POWER, RoleTag, spiritStage, STONE } from './art';
+import { ELEMENT_LABEL } from '../core/board';
+import { DEFAULT_SLOT } from '../data/spirits';
 import { BattleView } from './BattleView';
 import { IdleView } from './IdleView';
 import { DIFF_COLOR, MapView } from './MapView';
@@ -38,10 +41,12 @@ export function App() {
   const [devOpen, setDevOpen] = useState(false);
   const [help, setHelp] = useState(false);
   const [focusLevel, setFocusLevel] = useState(false);
+  const [elemOpen, setElemOpen] = useState(false);
 
   const tut = state.tutorial;
   const tutActive = tut.introSeen && !tut.done;
-  const guide = battle || joined || evolve ? null : computeGuide(state, { selected, tab });
+  const elemIntroDue = tut.introSeen && !tut.done && !tut.elementIntro && !!state.spirits.igni && !joined;
+  const guide = battle || joined || evolve || elemOpen || elemIntroDue ? null : computeGuide(state, { selected, tab });
   const objTile = objectiveTile(state);
   const mapTarget = guide ? (guide.target?.kind === 'tile' ? guide.target.id : null) : objTile;
   const markTut = (f: (t: GameState['tutorial']) => void) => act((s) => f(s.tutorial));
@@ -126,6 +131,9 @@ export function App() {
             {STONE} {state.stones}
           </span>
         </div>
+        <button className="icon-btn elem-btn" onClick={() => setElemOpen(true)} aria-label="속성표">
+          🔥💧
+        </button>
         <button className="icon-btn" onClick={() => setDevOpen(!devOpen)} aria-label="설정">
           ⚙
         </button>
@@ -207,13 +215,33 @@ export function App() {
       </nav>
 
       {tile && tab === 'map' && (
-        <TileSheet state={state} id={tile.id} now={now} power={power} focus={guide?.target?.kind === 'tileAction'} onGo={() => enter(tile.id)} onClose={() => setSelected(null)} />
+        <TileSheet
+          state={state}
+          id={tile.id}
+          now={now}
+          power={power}
+          focus={guide?.target?.kind === 'tileAction'}
+          onGo={() => enter(tile.id)}
+          onClose={() => setSelected(null)}
+          onToggle={(sid) => {
+            const deployed = state.formation[sid] !== undefined;
+            if (!deployed && Object.keys(state.formation).length >= state.maxDeploy) return toast(`출전은 ${state.maxDeploy}명까지! 먼저 다른 스피릿을 빼세요`);
+            if (deployed && Object.keys(state.formation).length <= 1) return toast('최소 1명은 출전해야 해요');
+            act((s) => setFormation(s, sid, deployed ? null : DEFAULT_SLOT[sid]));
+          }}
+          onSuggest={(ids) =>
+            act((s) => {
+              for (const k of Object.keys(s.formation)) setFormation(s, k, null);
+              for (const k of ids) setFormation(s, k, DEFAULT_SLOT[k]);
+            })
+          }
+        />
       )}
 
       {battle && (
         <BattleView
           outcome={battle}
-          tips={tutActive ? { battle: !tut.battleTip, win: !tut.winTip, defeat: !tut.defeatTip } : null}
+          tips={tutActive ? { battle: !tut.battleTip, win: !tut.winTip, defeat: !tut.defeatTip, note: battleNote(battle.tileId) } : null}
           onClose={() => {
             if (tutActive) markTut((t) => ((t.battleTip = true), battle.won ? (t.winTip = true) : (t.defeatTip = true)));
             setBattle(null);
@@ -238,6 +266,9 @@ export function App() {
             <div className="reveal-power">
               팀 전투력 {POWER} <b>{power}</b>
             </div>
+            {state.formation[joined] === undefined && (
+              <div className="small">출전은 {state.maxDeploy}명까지! 칸을 누르면 상성에 맞게 출전 동료를 고를 수 있어요.</div>
+            )}
             <button className="cta">함께 가자!</button>
           </div>
         </div>
@@ -255,6 +286,36 @@ export function App() {
             <h2>{SPIRITS[evolve.id].stages?.[evolve.stage - 1]}</h2>
             <div className="muted">모습이 바뀌고 더 강해졌어요!</div>
             <button className="cta">멋져!</button>
+          </div>
+        </div>
+      )}
+
+      {(elemOpen || elemIntroDue) && (
+        <div className="modal" onClick={() => (elemIntroDue ? null : setElemOpen(false))}>
+          <div className="reveal elem-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="reveal-tag">속성 상성</div>
+            <ElementChart highlight={elemIntroDue ? ['fire', 'forest'] : undefined} />
+            <p className="elem-rule">
+              <b>화살표 방향으로 강해요.</b> 유리한 상대에게는 피해 <b className="adv">×1.3</b>, 불리한 상대에게는 <b className="dis">×0.75</b>.
+            </p>
+            <div className="elem-lines">
+              💧물 → 🔥불 → 🌿숲 → ⛰️대지 → 🌪️바람 → 💧물
+            </div>
+            {elemIntroDue && (
+              <p className="elem-rule">
+                방금 온 <b>엠버윙은 🔥불</b>! 다음 적 <b>잎새 강아지는 🌿숲</b>이라 엠버윙이 아주 강해요. 반대로 💧물 적을 만나면 약해져요.
+              </p>
+            )}
+            <p className="muted small">칸을 누르면 어떤 동료가 유리한지 ▲▼로 보여 줘요. 위쪽 🔥💧 버튼으로 언제든 다시 볼 수 있어요.</p>
+            <button
+              className="cta"
+              onClick={() => {
+                if (elemIntroDue) markTut((t) => (t.elementIntro = true));
+                setElemOpen(false);
+              }}
+            >
+              알겠어!
+            </button>
           </div>
         </div>
       )}
@@ -282,7 +343,37 @@ export function App() {
   );
 }
 
-function TileSheet({ state, id, now, power, focus, onGo, onClose }: { state: GameState; id: string; now: number; power: number; focus: boolean; onGo: () => void; onClose: () => void }) {
+/** 튜토리얼 전투 중 속성 설명 한 줄 */
+function battleNote(tileId: string): string | undefined {
+  if (tileId === 'a3') return '엠버윙(🔥불)이 🌿숲 적을 때리면 주황색 "유리!" 큰 숫자가 떠요. 상성이 맞으면 피해가 1.3배!';
+  if (tileId === 's1') return '이번 적은 💧물. 물은 🔥불에 강해서 엠버윙 공격은 회색 "불리" 작은 숫자예요. 쉘나이트(💧)는 영향 없이 버텨요.';
+  if (tileId === 'b1') return '고목 골렘은 🌿숲 속성! 🔥엠버윙의 공격이 가장 아파요.';
+  return undefined;
+}
+
+const MATCH_LABEL = { adv: '▲ 유리', dis: '▼ 불리', even: '= 보통' } as const;
+
+function TileSheet({
+  state,
+  id,
+  now,
+  power,
+  focus,
+  onGo,
+  onClose,
+  onToggle,
+  onSuggest,
+}: {
+  state: GameState;
+  id: string;
+  now: number;
+  power: number;
+  focus: boolean;
+  onGo: () => void;
+  onClose: () => void;
+  onToggle: (spiritId: string) => void;
+  onSuggest: (ids: string[]) => void;
+}) {
   const t = TILE_BY_ID[id];
   const cleared = state.cleared.includes(id);
   const reachable = reachableTiles(state).has(id);
@@ -349,7 +440,43 @@ function TileSheet({ state, id, now, power, focus, onGo, onClose }: { state: Gam
               {!cleared && (enc.firstClear.stones > 0 ? ` · ${STONE} ${enc.firstClear.stones}` : '')}
               {!cleared && <small> (첫 승리 보너스 포함)</small>}
             </div>
-            <div className="muted small">출전: {team.map((x) => SPIRITS[x].stages?.[0] ?? SPIRITS[x].name).join(', ')}</div>
+            <div className="team-box">
+              <div className="team-head">
+                <b>
+                  출전 {team.length}/{state.maxDeploy}
+                </b>
+                <span className="muted small">
+                  적 속성: {[...new Set(enc.enemies.map((e) => ENEMIES[e.enemyId].element))].map((el) => `${ELEMENT_ICON[el]}${ELEMENT_LABEL[el]}`).join(' ')}
+                </span>
+              </div>
+              <div className="team-row">
+                {Object.keys(state.spirits).map((sid) => {
+                  const d = SPIRITS[sid];
+                  const m = attackMatchup(sid, enc.id);
+                  const on = state.formation[sid] !== undefined;
+                  const multi = Object.keys(state.spirits).length > state.maxDeploy;
+                  return (
+                    <button key={sid} className={`member ${on ? 'on' : ''} ${m}`} onClick={() => (multi ? onToggle(sid) : null)}>
+                      <img src={portrait(d, spiritStage(state.spirits[sid].level))} alt="" />
+                      <span className="m-el">{ELEMENT_ICON[d.element]}</span>
+                      <span className={`m-match ${m}`}>{MATCH_LABEL[m]}</span>
+                      {multi && <span className="m-on">{on ? '출전' : '대기'}</span>}
+                    </button>
+                  );
+                })}
+              </div>
+              {Object.keys(state.spirits).length > state.maxDeploy && (() => {
+                const best = suggestTeam(Object.keys(state.spirits), enc.id, state.maxDeploy);
+                const same = best.every((b) => state.formation[b] !== undefined);
+                return same ? (
+                  <div className="muted small">상성이 좋은 동료로 출전 중이에요.</div>
+                ) : (
+                  <button className="suggest" onClick={() => onSuggest(best)}>
+                    ✨ 상성 추천 편성으로 바꾸기
+                  </button>
+                );
+              })()}
+            </div>
           </>
         )}
         {t.kind === 'spirit' && t.spiritId && !cleared && (

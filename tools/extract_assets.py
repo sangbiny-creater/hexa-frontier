@@ -92,6 +92,7 @@ SHEETS = [
     ('galewing', 'S04-R01.png'),
     ('grovegolem', 'S01-T01.png'),
     ('terrastone', 'S05-T01.png'),
+    ('skywarden', 'S04-M02.png'),
 ]
 PORTRAIT_BAND = (900, 95, 1470, 285)
 TILE_BAND = (900, 285, 1440, 470)
@@ -102,6 +103,7 @@ OVERRIDE = {
     'grovegolem': (None, (1015, 312, 1400, 452)),
     'terrastone': ((1060, 95, 1370, 200), (1095, 292, 1522, 402)),
     'rocktusk': (None, (995, 250, 1520, 382)),
+    'skywarden': (None, (972, 305, 1325, 452)),
 }
 
 report = []

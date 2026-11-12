@@ -105,6 +105,7 @@ export function UpgradeView({
               </div>
               <div className="tags">
                 <ElementTag element={def.element} /> <RoleTag role={def.role} />
+                <span className={`tag ${state.formation[id] !== undefined ? 'deployed' : ''}`}>{state.formation[id] !== undefined ? '출전' : '대기'}</span>
               </div>
               <div className="scard-power">
                 {POWER} {power}

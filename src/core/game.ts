@@ -14,7 +14,7 @@ import { recommendedPower, teamPower } from './power';
 import { createRng, hashSeed } from './rng';
 import type { ActivityRun, ActivityType, OwnedSpirit } from './types';
 
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 /** 튜토리얼 진행 (저장 v2) */
 export interface TutorialState {
@@ -25,6 +25,7 @@ export interface TutorialState {
   defeatTip: boolean; // 첫 패배 설명
   trainingTip: boolean; // 훈련을 한 번 맡겨 봤는가
   levelTip?: boolean; // 골드 레벨업을 해 봤는가 (D32)
+  elementIntro?: boolean; // 속성표 설명을 봤는가 (D42)
 }
 
 export function newTutorial(): TutorialState {
@@ -579,8 +580,8 @@ export function currentObjective(s: GameState): string {
   const texts: Record<string, string> = {
     a1: '위쪽 칸의 잎새 강아지를 물리치세요',
     a2: '불씨 둥지에서 새 동료를 만나세요',
-    a3: '수풀 오솔길을 지나가세요',
-    s1: '바위엄니 굴을 돌파하세요',
+    a3: '🌿숲 잎새 강아지 떼를 🔥엠버윙으로 물리치세요',
+    s1: '💧물결 여우 개울을 지나가세요 (불이 불리!)',
     s2: '꽃피는 샘에서 치유사를 데려오세요',
     b1: s.bossAttempts['b1'] ? '강화로 전투력을 올리고 고목 골렘에 재도전!' : '숲을 지키는 고목 골렘에 도전하세요',
   };

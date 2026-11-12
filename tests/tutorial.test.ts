@@ -50,3 +50,25 @@ describe('튜토리얼: 한 줄 길 (D37)', () => {
     expect(reachableTiles(g).size).toBeGreaterThan(1);
   });
 });
+
+import { attackMatchup, suggestTeam } from '../src/core/power';
+import { ENCOUNTERS, ENEMIES } from '../src/data/enemies';
+import { TILE_BY_ID } from '../src/data/map';
+
+describe('속성 학습 단계 (D42)', () => {
+  it('3번째 칸은 숲 적만 → 엠버윙(불) 유리, 4번째 칸은 물 적 → 엠버윙 불리', () => {
+    const a3 = ENCOUNTERS[TILE_BY_ID.a3.encounterId!];
+    expect(a3.enemies.every((e) => ENEMIES[e.enemyId].element === 'forest')).toBe(true);
+    expect(attackMatchup('igni', a3.id)).toBe('adv');
+    const s1 = ENCOUNTERS[TILE_BY_ID.s1.encounterId!];
+    expect(s1.enemies.every((e) => ENEMIES[e.enemyId].element === 'water')).toBe(true);
+    expect(attackMatchup('igni', s1.id)).toBe('dis');
+    expect(attackMatchup('igni', 'boss_treant')).toBe('adv');
+  });
+  it('고목 골렘 너머에 바람 동료가 있고, 물 적에게는 바람 동료를 추천한다', () => {
+    expect(TILE_BY_ID.c3.spiritId).toBe('galewing');
+    const best = suggestTeam(['tideshell', 'igni', 'sylphy', 'galewing'], 'mist_ford', 3);
+    expect(best).toContain('galewing');
+    expect(best).not.toContain('igni');
+  });
+});

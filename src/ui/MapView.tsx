@@ -6,7 +6,7 @@ import { difficulty, recommendedPower, teamPower } from '../core/power';
 import { ENCOUNTERS, ENEMIES } from '../data/enemies';
 import { TILES, type TileDef } from '../data/map';
 import { SPIRITS } from '../data/spirits';
-import { asset, enemyStage, sprite } from './art';
+import { asset, ELEMENT_ICON, enemyStage, sprite } from './art';
 
 const SIZE = 38; // 헥스 반지름
 const W = Math.sqrt(3) * SIZE;
@@ -92,6 +92,7 @@ export function MapView({
             const rec = t.encounterId ? recommendedPower(t.encounterId) : 0;
             const diff = rec ? difficulty(tp, rec) : null;
             const showPower = rec > 0 && (!cleared || t.kind !== 'boss');
+            const mainEl = t.encounterId ? ENEMIES[(ENCOUNTERS[t.encounterId].enemies.find((e) => ENEMIES[e.enemyId].isBoss) ?? ENCOUNTERS[t.encounterId].enemies[0]).enemyId].element : null;
             return (
               <g key={t.id} className={`tile ${cleared ? 'is-cleared' : ''}`} onClick={() => onTap(t.id)} role="button" aria-label={t.name}>
                 <polygon points={hexCorners(x, y, SIZE)} fill="transparent" />
@@ -101,9 +102,10 @@ export function MapView({
                 )}
                 {showPower && (
                   <g transform={`translate(${x}, ${y - SIZE * (t.kind === 'boss' ? 1.55 : 1.05)})`}>
-                    <rect x={-22} y={-9} width={44} height={17} rx={8} className="chip" stroke={cleared ? '#8899aa' : diff ? DIFF_COLOR[diff] : '#ccc'} />
+                    <rect x={-29} y={-9} width={58} height={17} rx={8} className="chip" stroke={cleared ? '#8899aa' : diff ? DIFF_COLOR[diff] : '#ccc'} />
                     <text y={4} textAnchor="middle" className="chip-text" fill={cleared ? '#c9d3df' : diff ? DIFF_COLOR[diff] : '#fff'}>
-                      {cleared ? '⟳ ' : ''}
+                      {mainEl ? ELEMENT_ICON[mainEl] : ''}
+                      {cleared ? '⟳' : ''}
                       {rec}
                     </text>
                   </g>

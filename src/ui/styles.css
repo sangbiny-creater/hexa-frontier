@@ -240,3 +240,30 @@ img { user-select: none; -webkit-user-drag: none; }
 
 .toast { position: absolute; left: 50%; top: 110px; transform: translateX(-50%); z-index: 60; background: #000d; border: 1px solid #ffffff30; padding: 10px 16px; border-radius: 12px; font-size: 14px; font-weight: 700; white-space: nowrap; max-width: 92%; overflow: hidden; text-overflow: ellipsis; animation: fade 0.2s; }
 .notice { position: absolute; top: 60px; left: 10px; right: 10px; z-index: 60; background: #3a2a10; border: 1px solid #7a5a1d; border-radius: 12px; padding: 10px; font-size: 13px; }
+
+/* 속성 */
+.elem-btn { width: auto; padding: 0 8px; font-size: 13px; }
+.elem-modal { max-width: 360px; }
+.echart { width: 220px; height: 220px; }
+.elem-rule { font-size: 13px; line-height: 1.6; margin: 0; }
+.elem-rule .adv { color: #d9480f; }
+.elem-rule .dis { color: #6b7280; }
+.elem-lines { font-weight: 800; font-size: 13px; background: #fff9; border-radius: 10px; padding: 6px 10px; }
+.team-box { background: #fff9; border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+.team-head { display: flex; justify-content: space-between; align-items: center; }
+.team-row { display: flex; gap: 8px; overflow-x: auto; }
+.member { position: relative; flex: none; width: 74px; border-radius: 12px; padding: 4px 4px 6px; background: #fff; border: 2px solid #d8ccb0; display: flex; flex-direction: column; align-items: center; gap: 2px; opacity: 0.55; }
+.member.on { opacity: 1; border-color: #3f9a60; }
+.member img { width: 62px; height: 62px; object-fit: cover; border-radius: 8px; }
+.m-el { position: absolute; top: 2px; left: 4px; font-size: 14px; }
+.m-match { font-size: 11px; font-weight: 900; }
+.m-match.adv { color: #d9480f; }
+.m-match.dis { color: #6b7280; }
+.m-match.even { color: #7a6a48; }
+.m-on { font-size: 10px; font-weight: 800; color: #3f6a4f; }
+.member:not(.on) .m-on { color: #9a8a68; }
+.suggest { padding: 9px; border-radius: 10px; background: linear-gradient(#b48cff, #7a52d1); color: #fff; font-weight: 800; }
+.element-tip { border: 2px solid #e0583a; }
+.float.dmg.weak { color: #aab2bd; font-size: 14px; }
+.ftag { display: block; font-size: 11px; line-height: 1; }
+.tag.deployed { color: #7be0a4; border-color: #7be0a466; }
