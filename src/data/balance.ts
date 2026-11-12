@@ -100,8 +100,8 @@ export const BALANCE = {
     stonesPerHour: 0.5,
   },
   power: {
-    easyAt: 1.15,
-    fairAt: 0.95,
+    easyAt: 1.2,
+    fairAt: 1.0,
   },
   summon: {
     cost: 10, // 🔮 소환석 1회 비용

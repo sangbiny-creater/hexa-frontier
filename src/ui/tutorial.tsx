@@ -1,7 +1,7 @@
 // 튜토리얼: 모험가 '아렌'이 단계별로 안내한다. 단계는 게임 상태에서 계산한다.
 // 핵심 흐름(D47): 시작 팀(💧+🌿)으로 첫 보스(🌿)에 반드시 진다 → 소환으로 🔥불 스피릿 → 배치 → 승리.
 import { objectiveTile, TUTORIAL_PATH, type GameState } from '../core/game';
-import { recommendedPower, teamPower } from '../core/power';
+import { effectivePower, recommendedPower } from '../core/power';
 import type { Element } from '../core/types';
 import { BALANCE } from '../data/balance';
 import { TILE_BY_ID } from '../data/map';
@@ -14,6 +14,7 @@ export type GuideTarget =
   | { kind: 'tab'; tab: Tab }
   | { kind: 'altar'; element: Element }
   | { kind: 'levelUp' }
+  | { kind: 'suggest' }
   | null;
 
 export interface Guide {
@@ -28,8 +29,43 @@ export function computeGuide(state: GameState, ctx: { selected: string | null; t
   const c = (id: string) => state.cleared.includes(id);
 
   if (c('b1')) {
+    // ── 튜토리얼 2단계 (D52) ──
+    const atMap = (id: string, ask: string, press: string): Guide =>
+      ctx.tab !== 'map'
+        ? { text: '🗺탐험 탭으로 돌아가자!', target: { kind: 'tab', tab: 'map' } }
+        : ctx.selected === id
+          ? { text: press, target: { kind: 'tileAction' } }
+          : { text: ask, target: { kind: 'tile', id } };
+    if (!c('c1')) {
+      if (!state.attempts['c1'])
+        return atMap('c1', '골렘을 넘었어! 이제 길이 갈라졌지? 바위로 막힌 칸은 못 가. 먼저 왼쪽 위 💧물안개 여울에 도전해 보자!', '출전 칸에 🔥엠버윙이 ▼불리야. 그래도 일단 [전투 시작]!');
+      if (!state.spirits.galewing) {
+        if (state.summonStones >= BALANCE.summon.cost) {
+          if (ctx.tab !== 'summon') return { text: '🔮결정이 모였어! ✨소환 탭으로!', target: { kind: 'tab', tab: 'summon' } };
+          return { text: '💧물에 강한 건 🌪️바람! 바람의 제단에서 [소환]!', target: { kind: 'altar', element: 'electric' } };
+        }
+        if (!c('c2')) return atMap('c2', '💧물 적은 🔥불을 막아 내. 💧물에 강한 건 🌪️바람이야! 오른쪽 야영지를 지나면 바람의 결정이 있어.', '[상자 열기]!');
+        return atMap('c5', '저기 🔮바람의 결정! 주우면 소환을 한 번 더 할 수 있어.', '[결정 줍기]!');
+      }
+      if (state.formation.galewing === undefined) {
+        if (ctx.tab !== 'map') return { text: '🗺탐험으로 가서 물안개 여울을 다시 눌러 봐.', target: { kind: 'tab', tab: 'map' } };
+        if (ctx.selected !== 'c1') return { text: '물안개 여울을 다시 눌러 봐.', target: { kind: 'tile', id: 'c1' } };
+        return { text: '출전은 3명뿐! 🔥엠버윙 ▼불리, 🌪️게일윙 ▲유리. [✨상성 추천 편성]을 눌러 바꿔 보자.', target: { kind: 'suggest' } };
+      }
+      return atMap('c1', '게일윙이 출전했어. 물안개 여울 재도전!', '이번엔 ▲유리가 보이지? [전투 시작]!');
+    }
+    if (!c('c4')) {
+      if (!state.attempts['c4']) return atMap('c4', '상성 공부 끝! 다음은 ⛰️바위엄니 떼야. 도전!', '[전투 시작]!');
+      const goal = recommendedPower('boar_herd');
+      const eff = effectivePower(state, 'boar_herd');
+      if (eff < goal) {
+        if (ctx.tab !== 'spirit') return { text: `상성으로 안 되면 기본 힘을 키울 차례! 🐾스피릿 탭에서 레벨업하자. (목표 ${POWER}${goal})`, target: { kind: 'tab', tab: 'spirit' } };
+        return { text: `${GOLD}골드로 [모두 레벨업]이나 [▲ 레벨업]! 바위엄니 떼 기준 ${POWER}${eff} / 목표 ${goal}`, target: { kind: 'levelUp' } };
+      }
+      return atMap('c4', `${POWER}${eff}! 이제 충분해. 바위엄니 떼 재도전!`, '[전투 시작]!');
+    }
     return {
-      text: '해냈어! 상성 맞는 동료 하나가 판을 바꿨지? 이제 길이 여러 갈래야. 칸을 누르면 적 속성과 동료별 ▲유리/▼불리가 보여. 🔮결정을 모아 소환하고, 🐾스피릿 탭에서 배치·레벨업, 🏕캠프의 자동 사냥도 열렸어!',
+      text: '튜토리얼 끝! 막히면 ① 상성 맞는 동료로 바꾸고(✨소환·편성) ② 레벨업으로 힘을 키우면 돼. 남은 길을 골라 숲 꼭대기의 테라스톤(⛰️)을 쓰러뜨려! 🏕캠프 자동 사냥도 잊지 마.',
       target: null,
       finish: true,
     };
@@ -51,7 +87,7 @@ export function computeGuide(state: GameState, ctx: { selected: string | null; t
     if (!fireOwned) {
       // 다른 속성을 골랐다면: 레벨업으로 보완
       const goal = recommendedPower('boss_treant');
-      const tp = teamPower(state);
+      const tp = effectivePower(state, 'boss_treant');
       if (tp < goal) {
         if (ctx.tab !== 'spirit') return { text: `상성이 맞지 않으면 전투력으로 버텨야 해. 🐾스피릿 탭에서 레벨업하자! (목표 ${POWER}${goal})`, target: { kind: 'tab', tab: 'spirit' } };
         return { text: `${GOLD}골드로 [모두 레벨업]! 목표 ${POWER}${goal} (지금 ${tp})`, target: { kind: 'levelUp' } };

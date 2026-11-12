@@ -7,7 +7,7 @@ import { simulateBattle, type BattleResult, type BattleSetup, type BattleUnitInp
 import type { GameState } from './game';
 import { affordableLevelUps, bestFarmTile, canRankUp, isBusy, objectiveTile, reachableSpiritTile, SUMMON_POOL, summonUnlocked } from './game';
 import type { Element } from './types';
-import { recommendedPower, teamPower } from './power';
+import { effectivePower, recommendedPower } from './power';
 import { TILE_BY_ID } from '../data/map';
 
 export type ReasonTag = 'attack' | 'survival' | 'fatigue' | 'element' | 'healing' | 'timeout';
@@ -117,7 +117,7 @@ export function analyzeDefeat(s: GameState, setup: BattleSetup, result: BattleRe
 
   reasons.sort((a, b) => (a.tag === 'fatigue' ? -1 : 0) - (b.tag === 'fatigue' ? -1 : 0));
   return {
-    teamPower: teamPower(s, setup.allies.map((u) => u.uid.slice(2))),
+    teamPower: effectivePower(s, encounterIdOf(setup), setup.allies.map((u) => u.uid.slice(2))),
     recommended: recommendedPower(encounterIdOf(setup)),
     nearMiss: result.enemyHpRatio <= 0.25,
     enemyHpPct: pct(result),

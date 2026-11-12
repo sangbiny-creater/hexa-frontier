@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { enterTile, newGame, reachableTiles, summon, summonUnlocked } from '../src/core/game';
+import { enterTile, levelUp, newGame, reachableTiles, setFormation, summon, summonUnlocked } from '../src/core/game';
+import { effectivePower, recommendedPower } from '../src/core/power';
+import { DEFAULT_SLOT } from '../src/data/spirits';
 import { attackMatchup, suggestTeam } from '../src/core/power';
 import { ENCOUNTERS, ENEMIES } from '../src/data/enemies';
 import { TILE_BY_ID } from '../src/data/map';
@@ -45,8 +47,48 @@ describe('튜토리얼: 조합의 중요성 (D47)', () => {
     tab = 'map';
     const win = enterTile(g, 'b1', T0);
     expect(win.type === 'battle' && win.outcome.won).toBe(true);
-    expect(at(null).finish).toBe(true);
     expect(reachableTiles(g).size).toBeGreaterThan(1);
+
+    // ── 2단계 ① 물안개 여울: 불 편성으론 지고 → 바람 결정 → 🌪️소환 → 상성 추천 편성 → 승리 ──
+    expect(at(null).target).toEqual({ kind: 'tile', id: 'c1' });
+    const l1 = enterTile(g, 'c1', T0);
+    expect(l1.type === 'battle' && l1.outcome.won).toBe(false);
+    expect(at(null).target).toEqual({ kind: 'tile', id: 'c2' });
+    enterTile(g, 'c2', T0);
+    expect(at(null).target).toEqual({ kind: 'tile', id: 'c5' });
+    enterTile(g, 'c5', T0);
+    expect(g.summonStones).toBe(10);
+    expect(at(null).target).toEqual({ kind: 'tab', tab: 'summon' });
+    tab = 'summon';
+    expect(at(null).target).toEqual({ kind: 'altar', element: 'electric' });
+    summon(g, 'electric');
+    expect(g.formation.galewing).toBeUndefined(); // 출전 3명이 꽉 차 있음
+    expect(at(null).target).toEqual({ kind: 'tab', tab: 'map' });
+    tab = 'map';
+    expect(at('c1').target).toEqual({ kind: 'suggest' });
+    const best = suggestTeam(Object.keys(g.spirits), 'mist_ford', 3);
+    for (const k of Object.keys(g.formation)) setFormation(g, k, null);
+    for (const k of best) setFormation(g, k, DEFAULT_SLOT[k]);
+    expect(g.formation.galewing).toBeDefined();
+    const w1 = enterTile(g, 'c1', T0);
+    expect(w1.type === 'battle' && w1.outcome.won).toBe(true);
+
+    // ── 2단계 ② 바위엄니 떼: 지고 → 레벨업 → 승리 ──
+    expect(at(null).target).toEqual({ kind: 'tile', id: 'c4' });
+    const l2 = enterTile(g, 'c4', T0);
+    expect(l2.type === 'battle' && l2.outcome.won).toBe(false);
+    expect(at(null).target).toEqual({ kind: 'tab', tab: 'spirit' });
+    tab = 'spirit';
+    expect(at(null).target).toEqual({ kind: 'levelUp' });
+    for (let i = 0; i < 300 && effectivePower(g, 'boar_herd') < recommendedPower('boar_herd'); i++) {
+      const id = Object.keys(g.formation).sort((a, b) => g.spirits[a].level - g.spirits[b].level)[0];
+      if (levelUp(g, id)) break;
+    }
+    expect(effectivePower(g, 'boar_herd')).toBeGreaterThanOrEqual(recommendedPower('boar_herd'));
+    tab = 'map';
+    const w2 = enterTile(g, 'c4', T0);
+    expect(w2.type === 'battle' && w2.outcome.won).toBe(true);
+    expect(at(null).finish).toBe(true);
   });
 
   it('시작 팀은 레벨을 올려도(Lv.7) 첫 보스를 못 이긴다 — 상성이 핵심', async () => {

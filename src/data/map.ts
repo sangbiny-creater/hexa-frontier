@@ -34,9 +34,9 @@ const RAW: Raw[] = [
   // ── 고목 골렘 너머: 여러 갈래 ──
   { id: 'c1', col: 1, row: 7, kind: 'battle', name: '물안개 여울', encounterId: 'mist_ford' },
   { id: 'c2', col: 2, row: 7, kind: 'resource', name: '버려진 야영지', resource: 'gold' },
-  { id: 'c3', col: 1, row: 8, kind: 'resource', name: '바람의 결정', resource: 'summon' },
+  { id: 'c3', col: 1, row: 8, kind: 'resource', name: '이끼 동굴', resource: 'stones' },
   { id: 'c4', col: 2, row: 8, kind: 'battle', name: '바위엄니 떼', encounterId: 'boar_herd' },
-  { id: 'c5', col: 3, row: 8, kind: 'resource', name: '이끼 동굴', resource: 'stones' },
+  { id: 'c5', col: 3, row: 8, kind: 'resource', name: '바람의 결정', resource: 'summon' },
   { id: 'c6', col: 0, row: 9, kind: 'elite', name: '정예: 폭풍 둥지', encounterId: 'storm_ridge' },
   { id: 'c7', col: 1, row: 9, kind: 'battle', name: '돌풍 언덕', encounterId: 'beetle_field' },
   { id: 'c8', col: 2, row: 9, kind: 'battle', name: '깊은 숲', encounterId: 'deep_woods' },

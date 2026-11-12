@@ -67,9 +67,9 @@ export const ENCOUNTERS: Record<string, Encounter> = {
   creek: { id: 'creek', name: '개울가', enemies: [e('thorn_boar', 3, 1), e('moss_slime', 3, 3), e('moss_slime', 3, 5)], firstClear: { gold: 60, stones: 2 } },
   boss_treant: { id: 'boss_treant', name: '고목 골렘', bossKind: 'normal', enemies: [e('elder_treant', 4, 1), e('moss_slime', 3, 3)], firstClear: { gold: 200, stones: 10 } },
   // 고목 골렘 이후 지역
-  mist_ford: { id: 'mist_ford', name: '물안개 여울', enemies: [e('mist_newt', 7, 4), e('mist_newt', 7, 7), e('thorn_boar', 7, 1)], firstClear: { gold: 90, stones: 3 } },
+  mist_ford: { id: 'mist_ford', name: '물안개 여울', enemies: [e('mist_newt', 6, 1), e('mist_newt', 7, 5)], firstClear: { gold: 90, stones: 3 } },
   beetle_field: { id: 'beetle_field', name: '딱정벌레 들판', enemies: [e('spark_beetle', 8, 3), e('spark_beetle', 8, 5), e('thorn_boar', 8, 1)], firstClear: { gold: 100, stones: 3 } },
-  boar_herd: { id: 'boar_herd', name: '멧돼지 떼', enemies: [e('thorn_boar', 10, 0), e('thorn_boar', 10, 1), e('thorn_boar', 10, 2)], firstClear: { gold: 110, stones: 4 } },
+  boar_herd: { id: 'boar_herd', name: '바위엄니 떼', enemies: [e('thorn_boar', 6, 0), e('thorn_boar', 6, 1), e('thorn_boar', 6, 2)], firstClear: { gold: 110, stones: 4 } },
   mixed_camp: { id: 'mixed_camp', name: '야생 무리', enemies: [e('thorn_boar', 12, 1), e('mist_newt', 12, 4), e('spark_beetle', 12, 7)], firstClear: { gold: 130, stones: 4 } },
   storm_ridge: { id: 'storm_ridge', name: '폭풍 둥지', enemies: [e('spark_beetle', 13, 3), e('spark_beetle', 13, 4), e('spark_beetle', 13, 5)], firstClear: { gold: 200, stones: 15, summon: 10 } },
   giant_gate: { id: 'giant_gate', name: '거인의 문턱', enemies: [e('thorn_boar', 12, 0), e('thorn_boar', 12, 2), e('mist_newt', 12, 4), e('spark_beetle', 12, 7)], firstClear: { gold: 180, stones: 6 } },

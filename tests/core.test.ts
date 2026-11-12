@@ -20,7 +20,7 @@ import {
   type GameState,
 } from '../src/core/game';
 import { grantXp, levelUpCost, xpMultiplier } from '../src/core/growth';
-import { recommendedPower, teamPower } from '../src/core/power';
+import { effectivePower, recommendedPower, teamPower } from '../src/core/power';
 import { deserialize, serialize } from '../src/core/save';
 import { BALANCE } from '../src/data/balance';
 import { TILE_BY_ID, TILES } from '../src/data/map';
@@ -184,13 +184,13 @@ describe('골드 레벨업·전투력 (D32)', () => {
     summon(g, 'fire');
     expect(g.spirits.igni.level).toBe(8);
   });
-  it('권장 전투력보다 15% 이상 높으면 실제로 거의 이긴다', () => {
+  it('상성 보정 전투력이 권장보다 20% 이상 높으면 실제로 거의 이긴다', () => {
     const g = newGame(T0);
     g.spirits = { tideshell: spirit('tideshell', 1), igni: spirit('igni', 1), sylphy: spirit('sylphy', 1) };
     g.formation = { tideshell: 1, igni: 7, sylphy: 6 };
     for (const enc of ['slimes_b', 'boss_treant', 'mixed_camp', 'boss_giant']) {
       const rec = recommendedPower(enc);
-      while (teamPower(g) < rec * 1.15) for (const sp of Object.values(g.spirits)) sp.level++;
+      while (effectivePower(g, enc) < rec * 1.2) for (const sp of Object.values(g.spirits)) sp.level++;
       let wins = 0;
       for (let i = 0; i < 10; i++) if (simulateBattle(buildSetup(g, enc, 500 + i, T0)).outcome === 'win') wins++;
       expect(wins).toBeGreaterThanOrEqual(8);
@@ -231,12 +231,12 @@ describe('활동·보상 중복 방지 (기획서 13장 8)', () => {
   function ready() {
     const s = stateWith([spirit('tideshell', 5), spirit('igni', 5)], { tideshell: 1 });
     s.unlocked = { training: true, gathering: true, rest: true };
-    s.nodes = ['c5'];
+    s.nodes = ['c3'];
     return s;
   }
   it('수령은 한 번만 된다', () => {
     const s = ready();
-    expect(startActivity(s, 'gathering', 'igni', T0, 'c5')).toBeNull();
+    expect(startActivity(s, 'gathering', 'igni', T0, 'c3')).toBeNull();
     const id = s.activities[0].id;
     expect(claimActivity(s, id, T0 + HOUR)).toBeNull(); // 아직 미완료
     const first = claimActivity(s, id, T0 + 2 * HOUR);
@@ -247,7 +247,7 @@ describe('활동·보상 중복 방지 (기획서 13장 8)', () => {
   });
   it('중단 보상은 경과 시간 비례, 이후 수령 불가', () => {
     const s = ready();
-    startActivity(s, 'gathering', 'igni', T0, 'c5');
+    startActivity(s, 'gathering', 'igni', T0, 'c3');
     const id = s.activities[0].id;
     const r = cancelActivity(s, id, T0 + HOUR);
     expect(r?.stones).toBe(Math.floor(BALANCE.activity.gatheringReward.stones / 2));

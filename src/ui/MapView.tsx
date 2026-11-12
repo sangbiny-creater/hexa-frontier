@@ -5,9 +5,9 @@
 import { useEffect, useRef } from 'react';
 import { reachableTiles, visibleTiles, type GameState } from '../core/game';
 import { axialNeighbors, hexCorners } from '../core/hex';
-import { difficulty, recommendedPower, teamPower } from '../core/power';
+import { difficulty, effectivePower, recommendedPower } from '../core/power';
 import { ENCOUNTERS, ENEMIES } from '../data/enemies';
-import { TILES, type TileDef } from '../data/map';
+import { TILES, TUTORIAL_LAST_ROW, type TileDef } from '../data/map';
 import { asset, ELEMENT_ICON, enemyStage, sprite } from './art';
 
 const SIZE = 38; // 헥스 반지름 (viewBox 단위)
@@ -59,7 +59,6 @@ export function MapView({
 }) {
   const visible = visibleTiles(state);
   const reach = reachableTiles(state);
-  const tp = teamPower(state);
   const shown = TILES.filter((t) => visible.has(t.id));
   const pts = shown.map((t) => ({ t, ...pos(t) }));
 
@@ -71,6 +70,8 @@ export function MapView({
       if (r < 0 || c < -1 || c > 5 || ring.has(key)) continue;
       const real = CELL.get(key);
       if (real && visible.has(real.id)) continue;
+      // 튜토리얼 구간(고목 골렘까지)에는 바위를 두지 않는다 (D52)
+      if (!real && r <= TUTORIAL_LAST_ROW) continue;
       ring.set(key, { col: c, row: r, kind: real ? 'fog' : 'rock' });
     }
   }
@@ -146,7 +147,7 @@ export function MapView({
             const art = tileArt(t, cleared);
             const w = W * art.scale * 1.08;
             const rec = t.encounterId ? recommendedPower(t.encounterId) : 0;
-            const diff = rec ? difficulty(tp, rec) : null;
+            const diff = rec ? difficulty(effectivePower(state, t.encounterId!), rec) : null;
             const showPower = rec > 0 && (!cleared || t.kind !== 'boss');
             const mainEl = t.encounterId ? ENEMIES[(ENCOUNTERS[t.encounterId].enemies.find((e) => ENEMIES[e.enemyId].isBoss) ?? ENCOUNTERS[t.encounterId].enemies[0]).enemyId].element : null;
             return (

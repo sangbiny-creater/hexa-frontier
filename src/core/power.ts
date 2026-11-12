@@ -70,3 +70,10 @@ export function suggestTeam(owned: string[], encounterId: string, max: number): 
   const role = (id: string) => (SPIRITS[id].role === 'tank' || SPIRITS[id].role === 'healer' ? 0.5 : 0);
   return [...owned].sort((a, b) => score(b) + role(b) - (score(a) + role(a))).slice(0, max);
 }
+
+const MATCH_FACTOR: Record<Matchup, number> = { adv: 1.25, even: 1, dis: 0.5 };
+
+/** 상성 보정 전투력: 출전 스피릿마다 이 전투의 적에 대한 상성(▲×1.25 / ▼×0.5)을 곱한 합 */
+export function effectivePower(s: GameState, encounterId: string, ids: string[] = Object.keys(s.formation)): number {
+  return Math.round(ids.reduce((a, id) => a + spiritPower(s, id) * MATCH_FACTOR[attackMatchup(id, encounterId)], 0));
+}

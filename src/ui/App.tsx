@@ -17,7 +17,7 @@ import {
   type BattleOutcome,
   type GameState,
 } from '../core/game';
-import { attackMatchup, difficulty, DIFFICULTY_LABEL, recommendedPower, suggestTeam, teamPower } from '../core/power';
+import { attackMatchup, difficulty, DIFFICULTY_LABEL, effectivePower, recommendedPower, suggestTeam, teamPower } from '../core/power';
 import { BALANCE } from '../data/balance';
 import { ENCOUNTERS, ENEMIES } from '../data/enemies';
 import { REGION_NAME, TILE_BY_ID } from '../data/map';
@@ -49,8 +49,9 @@ export function App() {
   const tut = state.tutorial;
   const tutActive = tut.introSeen && !tut.done;
   const elemIntroDue = tut.introSeen && !tut.done && !tut.elementIntro && !!state.bossAttempts['b1'] && !battle && !joined;
+  const windIntroDue = !elemIntroDue && tut.introSeen && !tut.done && !tut.windIntro && !!state.attempts['c1'] && !state.cleared.includes('c1') && !battle && !joined;
   const [summoned, setSummoned] = useState(false);
-  const guide = battle || joined || evolve || elemOpen || elemIntroDue ? null : computeGuide(state, { selected, tab });
+  const guide = battle || joined || evolve || elemOpen || elemIntroDue || windIntroDue ? null : computeGuide(state, { selected, tab });
   const objTile = objectiveTile(state);
   const mapTarget = guide ? (guide.target?.kind === 'tile' ? guide.target.id : null) : objTile;
   const markTut = (f: (t: GameState['tutorial']) => void) => act((s) => f(s.tutorial));
@@ -153,6 +154,8 @@ export function App() {
           <button onClick={() => dev.advance(HOUR)}>+1시간</button>
           <button onClick={() => dev.advance(8 * HOUR)}>+8시간</button>
           <button onClick={() => act((s) => (s.gold += 1000))}>{GOLD}+1000</button>
+          <button onClick={() => act((s) => (s.summonStones += 10))}>🔮+10</button>
+          <button onClick={() => act((s) => (s.stones += 50))}>{STONE}+50</button>
           <button onClick={() => setHelp(true)}>게임 방법</button>
           <button
             className="danger"
@@ -243,6 +246,7 @@ export function App() {
           now={now}
           power={power}
           focus={guide?.target?.kind === 'tileAction'}
+          focusSuggest={guide?.target?.kind === 'suggest'}
           onGo={() => enter(tile.id)}
           onClose={() => setSelected(null)}
           onToggle={(sid) => {
@@ -308,6 +312,24 @@ export function App() {
             <h2>{SPIRITS[evolve.id].stages?.[evolve.stage - 1]}</h2>
             <div className="muted">모습이 바뀌고 더 강해졌어요!</div>
             <button className="cta">멋져!</button>
+          </div>
+        </div>
+      )}
+
+      {windIntroDue && (
+        <div className="modal">
+          <div className="reveal elem-modal">
+            <div className="reveal-tag">상성 다시 보기</div>
+            <ElementChart highlight={['electric', 'water']} />
+            <p className="elem-rule">
+              <b>왜 졌을까?</b> 💧물은 🔥불에 강해서 엠버윙의 공격이 반토막(▼)나고, 오히려 더 아프게 맞았어.
+            </p>
+            <p className="elem-rule">
+              화살표를 봐: <b>🌪️바람 → 💧물</b>. 바람 속성 스피릿을 소환해서 엠버윙 대신 출전시키면 이길 수 있어!
+            </p>
+            <button className="cta" onClick={() => markTut((t) => (t.windIntro = true))}>
+              바람 스피릿을 찾으러 가자!
+            </button>
           </div>
         </div>
       )}
@@ -382,6 +404,7 @@ function TileSheet({
   now,
   power,
   focus,
+  focusSuggest,
   onGo,
   onClose,
   onToggle,
@@ -392,6 +415,7 @@ function TileSheet({
   now: number;
   power: number;
   focus: boolean;
+  focusSuggest?: boolean;
   onGo: () => void;
   onClose: () => void;
   onToggle: (spiritId: string) => void;
@@ -403,7 +427,8 @@ function TileSheet({
   const canGo = reachable || (cleared && !!t.encounterId);
   const enc = t.encounterId ? ENCOUNTERS[t.encounterId] : null;
   const rec = enc ? recommendedPower(enc.id) : 0;
-  const diff = rec ? difficulty(power, rec) : null;
+  const eff = enc ? effectivePower(state, enc.id) : power;
+  const diff = rec ? difficulty(eff, rec) : null;
   const gold = enc
     ? enc.enemies.reduce((a, e) => a + Math.round(ENEMIES[e.enemyId].gold * (1 + BALANCE.enemy.goldPerLevel * (e.level - 1))), 0) + (cleared ? 0 : enc.firstClear.gold)
     : 0;
@@ -440,13 +465,13 @@ function TileSheet({
             </div>
             <div className="power-compare">
               <div className="pc-row">
-                <span>내 전투력</span>
+                <span>내 전투력 {power} → 상성 보정</span>
                 <b>
-                  {POWER} {power}
+                  {POWER} {eff}
                 </b>
               </div>
               <div className="pc-track">
-                <div className="pc-me" style={{ width: `${Math.min(100, (power / (rec * 1.4)) * 100)}%`, background: diff ? DIFF_COLOR[diff] : '#aaa' }} />
+                <div className="pc-me" style={{ width: `${Math.min(100, (eff / (rec * 1.4)) * 100)}%`, background: diff ? DIFF_COLOR[diff] : '#aaa' }} />
                 <div className="pc-rec" style={{ left: `${(1 / 1.4) * 100}%` }} />
               </div>
               <div className="pc-row">
@@ -494,7 +519,7 @@ function TileSheet({
                 return same ? (
                   <div className="muted small">상성이 좋은 동료로 출전 중이에요.</div>
                 ) : (
-                  <button className="suggest" onClick={() => onSuggest(best)}>
+                  <button className={`suggest ${focusSuggest ? 'pulse' : ''}`} onClick={() => onSuggest(best)}>
                     ✨ 상성 추천 편성으로 바꾸기
                   </button>
                 );

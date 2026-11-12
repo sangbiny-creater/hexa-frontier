@@ -227,7 +227,7 @@ function Result({ outcome, onClose, onAction, tips }: { outcome: BattleOutcome; 
       <div className="muted">적 체력 {analysis.enemyHpPct}% 남음</div>
       <div className="compare">
         <div>
-          <small>내 전투력</small>
+          <small>내 전투력(상성 보정)</small>
           <b className={analysis.teamPower >= analysis.recommended ? 'good' : 'bad'}>
             {POWER} {analysis.teamPower}
           </b>

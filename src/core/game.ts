@@ -10,11 +10,11 @@ import { HOUR } from './clock';
 import { conditionDelta, conditionMultiplier } from './condition';
 import { grantXp, levelUpCost, rankUpCost, trainingXp, xpMultiplier } from './growth';
 import { axialNeighbors } from './hex';
-import { recommendedPower, teamPower } from './power';
+import { effectivePower, recommendedPower } from './power';
 import { createRng, hashSeed } from './rng';
 import type { ActivityRun, ActivityType, Element, OwnedSpirit } from './types';
 
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 /** 튜토리얼 진행 (저장 v2) */
 export interface TutorialState {
@@ -26,6 +26,7 @@ export interface TutorialState {
   trainingTip: boolean; // 훈련을 한 번 맡겨 봤는가
   levelTip?: boolean; // 골드 레벨업을 해 봤는가 (D32)
   elementIntro?: boolean; // 속성표 설명을 봤는가 (D42)
+  windIntro?: boolean; // 두 번째 속성 설명(바람→물)을 봤는가 (D52)
 }
 
 export function newTutorial(): TutorialState {
@@ -51,6 +52,7 @@ export interface GameState {
   activityCounter: number;
   lastTile: string;
   bossAttempts: Record<string, number>;
+  attempts: Record<string, number>; // 칸별 전투 도전 횟수 (튜토리얼 판단용)
   messages: string[];
   tutorial: TutorialState;
 }
@@ -75,6 +77,7 @@ export function newGame(now: number): GameState {
     activityCounter: 0,
     lastTile: 'start',
     bossAttempts: {},
+    attempts: {},
     messages: [],
     tutorial: newTutorial(),
   };
@@ -267,6 +270,7 @@ function fight(s: GameState, tile: TileDef, now: number): EnterResult {
   const firstClear = won && !s.cleared.includes(tile.id);
   const isBoss = !!enc.bossKind;
   if (isBoss) s.bossAttempts[tile.id] = (s.bossAttempts[tile.id] ?? 0) + 1;
+  s.attempts[tile.id] = (s.attempts[tile.id] ?? 0) + 1;
 
   const rewards: BattleOutcome['rewards'] = { gold: 0, stones: 0, xp: {}, levelUps: {} };
   const rng = createRng(seed ^ 0x9e3779b9);
@@ -358,13 +362,12 @@ export function fatigueWarning(s: GameState, now: number): { names: string[]; wo
 
 /** 골드 벌기 좋은 칸: 클리어한 일반 전투 칸 중 '쉬움'인 가장 높은 칸 (없으면 가장 쉬운 칸) */
 export function bestFarmTile(s: GameState): string | null {
-  const tp = teamPower(s);
   const farm = s.cleared
     .map((id) => TILE_BY_ID[id])
     .filter((t) => t.kind === 'battle' && t.encounterId)
     .map((t) => ({ t, rec: recommendedPower(t.encounterId!) }));
   if (!farm.length) return null;
-  const ok = farm.filter((f) => tp >= f.rec * BALANCE.power.easyAt).sort((a, b) => b.rec - a.rec);
+  const ok = farm.filter((f) => effectivePower(s, f.t.encounterId!) >= f.rec * BALANCE.power.easyAt).sort((a, b) => b.rec - a.rec);
   return (ok[0] ?? farm.sort((a, b) => a.rec - b.rec)[0]).t.id;
 }
 
@@ -564,6 +567,8 @@ export const TUTORIAL_PATH = ['a1', 'a2', 'a3', 's1', 's2', 'b1'];
 export function objectiveTile(s: GameState): string | null {
   const next = TUTORIAL_PATH.find((id) => !s.cleared.includes(id));
   if (next) return next;
+  const t2 = tutorialPhase2Target(s);
+  if (t2 !== undefined) return t2;
   if (s.cleared.includes('b2')) return null;
   const reach = reachableTiles(s);
   if (reach.has('b2')) return 'b2';
@@ -571,6 +576,22 @@ export function objectiveTile(s: GameState): string | null {
   const cand = [...reach].map((id) => TILE_BY_ID[id]).filter((t) => t.kind !== 'gate');
   cand.sort((a, b) => b.row - a.row || (a.kind === 'battle' ? -1 : 1));
   return cand[0]?.id ?? null;
+}
+
+/**
+ * 튜토리얼 2단계(고목 골렘 이후): ① 물안개 여울에 지고 → 바람의 결정 → 🌪️소환 → 상성 편성 → 승리
+ * ② 바위엄니 떼에 지고 → 레벨업 → 승리 (D52). 튜토리얼이 끝났으면 undefined.
+ */
+export function tutorialPhase2Target(s: GameState): string | null | undefined {
+  if (s.tutorial.done || !s.cleared.includes('b1')) return undefined;
+  const c = (id: string) => s.cleared.includes(id);
+  if (!c('c1')) {
+    if (s.attempts['c1'] && !s.spirits.galewing && s.summonStones < BALANCE.summon.cost) return !c('c2') ? 'c2' : !c('c5') ? 'c5' : null;
+    if (s.attempts['c1'] && !s.spirits.galewing) return null; // 소환하러 갈 차례
+    return 'c1';
+  }
+  if (!c('c4')) return 'c4';
+  return undefined;
 }
 
 /** 지금 '강화'(레벨업)를 쓸 수 있는가: 첫 보스에 도전한 뒤 열린다 */
@@ -620,6 +641,14 @@ export function currentObjective(s: GameState): string {
     b1: !s.bossAttempts['b1'] ? '숲을 지키는 고목 골렘에 도전하세요' : !s.spirits.igni ? '✨소환에서 🔥불 스피릿을 불러 골렘(🌿)을 공략!' : '🔥엠버윙과 함께 고목 골렘에 재도전!',
   };
   if (next) return texts[next];
+  if (!s.tutorial.done && s.cleared.includes('b1')) {
+    const c = (id: string) => s.cleared.includes(id);
+    if (!c('c1') && !s.attempts['c1']) return '💧물안개 여울에 도전하세요';
+    if (!c('c1') && !s.spirits.galewing) return s.summonStones >= BALANCE.summon.cost ? '✨소환에서 🌪️바람 스피릿을 부르세요' : '💧물에 강한 🌪️바람! 바람의 결정을 찾으세요';
+    if (!c('c1')) return '🌪️게일윙을 출전시켜 물안개 여울 재도전!';
+    if (!c('c4') && !s.attempts['c4']) return '⛰️바위엄니 떼에 도전하세요';
+    if (!c('c4')) return '🐾스피릿에서 레벨업해 전투력을 올리고 재도전!';
+  }
   if (!s.cleared.includes('b2')) return '길을 골라 숲 끝의 테라스톤을 쓰러뜨리세요';
   return '이끼 숲 돌파! 다음 지역은 준비 중';
 }
