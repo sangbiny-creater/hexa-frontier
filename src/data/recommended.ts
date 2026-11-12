@@ -6,7 +6,7 @@ export const RECOMMENDED_POWER: Record<string, number> = {
   "north_path": 270,
   "north_grove": 440,
   "creek": 440,
-  "boss_treant": 740,
+  "boss_treant": 630,
   "mist_ford": 830,
   "beetle_field": 850,
   "boar_herd": 850,

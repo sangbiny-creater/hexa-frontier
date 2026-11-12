@@ -85,7 +85,7 @@ export interface Encounter {
   name: string;
   enemies: EncounterEnemy[];
   bossKind?: 'normal' | 'region';
-  firstClear: { gold: number; stones: number; xp?: number };
+  firstClear: { gold: number; stones: number; xp?: number; summon?: number };
 }
 
 export interface OwnedSpirit {

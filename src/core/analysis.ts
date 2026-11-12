@@ -5,12 +5,13 @@ import { SPIRITS } from '../data/spirits';
 import { elementMultiplier, ELEMENT_LABEL } from './board';
 import { simulateBattle, type BattleResult, type BattleSetup, type BattleUnitInput } from './battle';
 import type { GameState } from './game';
-import { affordableLevelUps, bestFarmTile, canRankUp, isBusy, objectiveTile, reachableSpiritTile } from './game';
+import { affordableLevelUps, bestFarmTile, canRankUp, isBusy, objectiveTile, reachableSpiritTile, SUMMON_POOL, summonUnlocked } from './game';
+import type { Element } from './types';
 import { recommendedPower, teamPower } from './power';
 import { TILE_BY_ID } from '../data/map';
 
 export type ReasonTag = 'attack' | 'survival' | 'fatigue' | 'element' | 'healing' | 'timeout';
-export type ActionId = 'farm' | 'rankup' | 'levelup' | 'recruit' | 'formation' | 'train' | 'gather' | 'rest' | 'explore';
+export type ActionId = 'farm' | 'rankup' | 'levelup' | 'recruit' | 'formation' | 'summon' | 'train' | 'gather' | 'rest' | 'explore';
 
 export interface DefeatAnalysis {
   nearMiss: boolean;
@@ -89,6 +90,16 @@ export function analyzeDefeat(s: GameState, setup: BattleSetup, result: BattleRe
 
   // 행동 경로: 누르면 바로 실행되는 것만 (D32)
   const actions: DefeatAnalysis['actions'] = [];
+  // 상성 좋은 스피릿을 소환할 수 있으면 가장 먼저 (D47)
+  if (summonUnlocked(s) && s.summonStones >= BALANCE.summon.cost) {
+    const counter = (Object.entries(SUMMON_POOL) as [string, string | null][]).find(
+      ([el, id]) => id && !s.spirits[id] && elementMultiplier(el as Element, boss.def.element) > 1,
+    );
+    if (counter) {
+      const [el, id] = counter;
+      actions.push({ id: 'summon', label: `${ELEMENT_LABEL[el as Element]} 속성 스피릿 소환하기`, why: `${boss.def.name}은(는) ${ELEMENT_LABEL[boss.def.element]} 속성! ${ELEMENT_LABEL[el as Element]} 속성 ${SPIRITS[id!].stages?.[0]}이(가) 강해요.` });
+    }
+  }
   const ownedIds = Object.keys(s.spirits);
   const recruit = reachableSpiritTile(s);
   const objective = objectiveTile(s);

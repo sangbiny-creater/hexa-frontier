@@ -12,9 +12,9 @@ import { grantXp, levelUpCost, rankUpCost, trainingXp, xpMultiplier } from './gr
 import { axialNeighbors } from './hex';
 import { recommendedPower, teamPower } from './power';
 import { createRng, hashSeed } from './rng';
-import type { ActivityRun, ActivityType, OwnedSpirit } from './types';
+import type { ActivityRun, ActivityType, Element, OwnedSpirit } from './types';
 
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
 /** 튜토리얼 진행 (저장 v2) */
 export interface TutorialState {
@@ -39,6 +39,7 @@ export interface GameState {
   lastIdleClaimAt: number;
   gold: number;
   stones: number;
+  summonStones: number; // 🔮 소환석 (D47)
   spirits: Record<string, OwnedSpirit>;
   formation: Record<string, number>; // spiritId -> slot
   maxDeploy: number;
@@ -62,6 +63,7 @@ export function newGame(now: number): GameState {
     lastIdleClaimAt: now,
     gold: 0,
     stones: 0,
+    summonStones: 0,
     spirits: {},
     formation: {},
     maxDeploy: BALANCE.deploy.initialMax,
@@ -76,7 +78,9 @@ export function newGame(now: number): GameState {
     messages: [],
     tutorial: newTutorial(),
   };
+  // 시작 스피릿: 💧쉘나이트(탱커) + 🌿블루멜(회복) (D47)
   addSpirit(s, 'tideshell');
+  addSpirit(s, 'sylphy');
   return s;
 }
 
@@ -177,7 +181,7 @@ export interface BattleOutcome {
   result: BattleResult;
   won: boolean;
   firstClear: boolean;
-  rewards: { gold: number; stones: number; xp: Record<string, number>; levelUps: Record<string, number> };
+  rewards: { gold: number; stones: number; summon?: number; xp: Record<string, number>; levelUps: Record<string, number> };
   conditionChanges: Record<string, number>;
   newInjuries: string[];
   unlockedText: string[];
@@ -216,7 +220,7 @@ export function buildSetup(s: GameState, encounterId: string, seed: number, now:
 
 export type EnterResult =
   | { type: 'spirit'; spiritId: string }
-  | { type: 'resource'; resource: 'stones' | 'gold'; bonus: { gold: number; stones: number } }
+  | { type: 'resource'; resource: 'stones' | 'gold' | 'summon'; bonus: { gold: number; stones: number; summon: number } }
   | { type: 'gate' }
   | { type: 'battle'; outcome: BattleOutcome }
   | { type: 'error'; message: string };
@@ -240,9 +244,11 @@ export function enterTile(s: GameState, tileId: string, now: number): EnterResul
   }
   if (tile.kind === 'resource' && tile.resource) {
     s.nodes.push(tileId);
-    const bonus = tile.resource === 'stones' ? { gold: 0, stones: 10 } : { gold: 250, stones: 0 };
+    const bonus =
+      tile.resource === 'stones' ? { gold: 0, stones: 10, summon: 0 } : tile.resource === 'summon' ? { gold: 0, stones: 0, summon: BALANCE.summon.cost } : { gold: 250, stones: 0, summon: 0 };
     s.gold += bonus.gold;
     s.stones += bonus.stones;
+    s.summonStones += bonus.summon;
     msg(s, `보물 상자: ${tile.name}`);
     return { type: 'resource', resource: tile.resource, bonus };
   }
@@ -275,6 +281,8 @@ function fight(s: GameState, tile: TileDef, now: number): EnterResult {
     if (firstClear) {
       rewards.gold += enc.firstClear.gold;
       rewards.stones += enc.firstClear.stones;
+      rewards.summon = enc.firstClear.summon ?? 0;
+      s.summonStones += rewards.summon;
     }
   }
   // P0 단순화(D32): 레벨은 골드로 올린다. 전투 경험치는 지급하지 않음 (패배 시에도 골드 30%).
@@ -570,6 +578,32 @@ export function upgradeUnlocked(s: GameState): boolean {
   return !!s.bossAttempts['b1'] || s.cleared.includes('b1');
 }
 
+/** 소환은 첫 보스에 도전(패배)한 뒤 열린다 (D47) */
+export function summonUnlocked(s: GameState): boolean {
+  return upgradeUnlocked(s);
+}
+
+/** 속성별 소환 제단: 그 속성의 스피릿 1종이 나온다 (예측 가능한 소환, 가챠 아님) */
+export const SUMMON_POOL: Record<Element, string | null> = {
+  water: 'tideshell',
+  fire: 'igni',
+  forest: 'sylphy',
+  electric: 'galewing',
+  earth: null, // 준비 중
+};
+
+export function summon(s: GameState, element: Element): { spiritId: string } | { error: string } {
+  if (!summonUnlocked(s)) return { error: '아직 열리지 않았어요' };
+  const id = SUMMON_POOL[element];
+  if (!id) return { error: '이 제단은 준비 중이에요' };
+  if (s.spirits[id]) return { error: '이미 함께하는 스피릿이에요' };
+  if (s.summonStones < BALANCE.summon.cost) return { error: `🔮소환석이 ${BALANCE.summon.cost}개 필요해요` };
+  s.summonStones -= BALANCE.summon.cost;
+  addSpirit(s, id);
+  msg(s, `소환: ${SPIRITS[id].name}`);
+  return { spiritId: id };
+}
+
 /** 자동 사냥(방치 보상)은 첫 보스 돌파 후 열린다 */
 export function idleUnlocked(s: GameState): boolean {
   return s.cleared.includes('b1');
@@ -583,7 +617,7 @@ export function currentObjective(s: GameState): string {
     a3: '🌿숲 잎새 강아지 떼를 🔥엠버윙으로 물리치세요',
     s1: '💧물결 여우 개울을 지나가세요 (불이 불리!)',
     s2: '꽃피는 샘에서 치유사를 데려오세요',
-    b1: s.bossAttempts['b1'] ? '강화로 전투력을 올리고 고목 골렘에 재도전!' : '숲을 지키는 고목 골렘에 도전하세요',
+    b1: !s.bossAttempts['b1'] ? '숲을 지키는 고목 골렘에 도전하세요' : !s.spirits.igni ? '✨소환에서 🔥불 스피릿을 불러 골렘(🌿)을 공략!' : '🔥엠버윙과 함께 고목 골렘에 재도전!',
   };
   if (next) return texts[next];
   if (!s.cleared.includes('b2')) return '길을 골라 숲 끝의 테라스톤을 쓰러뜨리세요';

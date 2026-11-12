@@ -14,7 +14,7 @@ export interface TileDef {
   name: string;
   encounterId?: string;
   spiritId?: string;
-  resource?: 'stones' | 'gold';
+  resource?: 'stones' | 'gold' | 'summon';
   hint?: string;
 }
 
@@ -26,15 +26,15 @@ const RAW: Raw[] = [
   // ── 튜토리얼: 한 줄 길 ──
   { id: 'start', col: 2, row: 0, kind: 'start', name: '숲 입구', hint: '여기서 모험이 시작됐다' },
   { id: 'a1', col: 2, row: 1, kind: 'battle', name: '잎새 강아지 무리', encounterId: 'slimes_a' },
-  { id: 'a2', col: 2, row: 2, kind: 'spirit', name: '불씨 둥지', spiritId: 'igni' },
-  { id: 'a3', col: 2, row: 3, kind: 'battle', name: '잎새 강아지 떼', encounterId: 'slimes_b' },
-  { id: 's1', col: 2, row: 4, kind: 'battle', name: '물결 여우 개울', encounterId: 'boar_den' },
-  { id: 's2', col: 2, row: 5, kind: 'spirit', name: '꽃피는 샘', spiritId: 'sylphy' },
+  { id: 'a2', col: 2, row: 2, kind: 'battle', name: '물결 여우 개울', encounterId: 'boar_den' },
+  { id: 'a3', col: 2, row: 3, kind: 'resource', name: '신비한 결정', resource: 'summon' },
+  { id: 's1', col: 2, row: 4, kind: 'battle', name: '잎새 강아지 떼', encounterId: 'slimes_b' },
+  { id: 's2', col: 2, row: 5, kind: 'resource', name: '버섯 수풀', resource: 'gold' },
   { id: 'b1', col: 2, row: 6, kind: 'boss', name: '고목 골렘', encounterId: 'boss_treant' },
   // ── 고목 골렘 너머: 여러 갈래 ──
   { id: 'c1', col: 1, row: 7, kind: 'battle', name: '물안개 여울', encounterId: 'mist_ford' },
   { id: 'c2', col: 2, row: 7, kind: 'resource', name: '버려진 야영지', resource: 'gold' },
-  { id: 'c3', col: 1, row: 8, kind: 'spirit', name: '바람의 둥지', spiritId: 'galewing' },
+  { id: 'c3', col: 1, row: 8, kind: 'resource', name: '바람의 결정', resource: 'summon' },
   { id: 'c4', col: 2, row: 8, kind: 'battle', name: '바위엄니 떼', encounterId: 'boar_herd' },
   { id: 'c5', col: 3, row: 8, kind: 'resource', name: '이끼 동굴', resource: 'stones' },
   { id: 'c6', col: 0, row: 9, kind: 'elite', name: '정예: 폭풍 둥지', encounterId: 'storm_ridge' },

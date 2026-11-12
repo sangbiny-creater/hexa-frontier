@@ -103,6 +103,9 @@ export const BALANCE = {
     easyAt: 1.15,
     fairAt: 0.95,
   },
+  summon: {
+    cost: 10, // 🔮 소환석 1회 비용
+  },
   deploy: {
     initialMax: 3, // [결정 D11]
   },

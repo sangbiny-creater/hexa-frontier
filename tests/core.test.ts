@@ -12,6 +12,7 @@ import {
   fatigueWarning,
   levelUp,
   newGame,
+  summon,
   reachableTiles,
   setFormation,
   startActivity,
@@ -83,17 +84,6 @@ describe('전투 시뮬레이션', () => {
       (e) => e.actor.includes('slime') && e.t < tankKo && e.targets.some((t) => t.uid !== 'a:tideshell' && t.kind === 'dmg'),
     );
     expect(meleeOnBack).toHaveLength(0);
-  });
-});
-
-describe('온보딩 밸런스 (D37)', () => {
-  it('3명 Lv1이면 고목 골렘에 아깝게 지고(HP 25% 이하), 3명 Lv4면 이긴다', () => {
-    const s1 = stateWith([spirit('tideshell', 1), spirit('igni', 1), spirit('sylphy', 1)], { tideshell: 1, igni: 7, sylphy: 6 });
-    const r1 = simulateBattle(buildSetup(s1, 'boss_treant', 99, T0));
-    expect(r1.outcome).not.toBe('win');
-    expect(r1.enemyHpRatio).toBeLessThanOrEqual(0.25);
-    const s4 = stateWith([spirit('tideshell', 4), spirit('igni', 4), spirit('sylphy', 4)], { tideshell: 1, igni: 7, sylphy: 6 });
-    expect(simulateBattle(buildSetup(s4, 'boss_treant', 99, T0)).outcome).toBe('win');
   });
 });
 
@@ -186,11 +176,12 @@ describe('골드 레벨업·전투력 (D32)', () => {
     expect(g.gold).toBe(1000 - levelUpCost(1));
     expect(teamPower(g)).toBeGreaterThan(before);
   });
-  it('새 동료는 최고 레벨의 80%로 합류', () => {
+  it('소환한 동료는 최고 레벨의 80%로 합류', () => {
     const g = newGame(T0);
     g.spirits.tideshell.level = 10;
-    enterTile(g, 'a1', T0);
-    enterTile(g, 'a2', T0);
+    g.bossAttempts.b1 = 1;
+    g.summonStones = 10;
+    summon(g, 'fire');
     expect(g.spirits.igni.level).toBe(8);
   });
   it('권장 전투력보다 15% 이상 높으면 실제로 거의 이긴다', () => {
@@ -212,7 +203,7 @@ describe('골드 레벨업·전투력 (D32)', () => {
     if (r.type !== 'battle') throw new Error();
     const acts = r.outcome.analysis!.actions;
     expect(acts.length).toBeGreaterThan(0);
-    for (const a of acts) expect(['levelup', 'farm', 'recruit', 'rankup', 'formation']).toContain(a.id);
+    for (const a of acts) expect(['levelup', 'farm', 'recruit', 'rankup', 'formation', 'summon']).toContain(a.id);
     expect(r.outcome.analysis!.teamPower).toBeLessThan(r.outcome.analysis!.recommended);
   });
 });

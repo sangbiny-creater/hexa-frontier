@@ -11,6 +11,8 @@ import {
   objectiveTile,
   reachableTiles,
   setFormation,
+  summon,
+  summonUnlocked,
   upgradeUnlocked,
   type BattleOutcome,
   type GameState,
@@ -24,11 +26,12 @@ import { asset, ELEMENT_ICON, ElementChart, ElementTag, enemyStage, GOLD, portra
 import { ELEMENT_LABEL } from '../core/board';
 import { DEFAULT_SLOT } from '../data/spirits';
 import { BattleView } from './BattleView';
-import { IdleView } from './IdleView';
+import { CampView } from './CampView';
+import { SpiritView } from './SpiritView';
+import { SummonView } from './SummonView';
 import { DIFF_COLOR, MapView } from './MapView';
 import { useGame } from './store';
 import { computeGuide, GuideBar, Intro, type Tab } from './tutorial';
-import { UpgradeView } from './UpgradeView';
 
 export function App() {
   const { state, now, act, dev, notice, clearNotice } = useGame();
@@ -45,7 +48,8 @@ export function App() {
 
   const tut = state.tutorial;
   const tutActive = tut.introSeen && !tut.done;
-  const elemIntroDue = tut.introSeen && !tut.done && !tut.elementIntro && !!state.spirits.igni && !joined;
+  const elemIntroDue = tut.introSeen && !tut.done && !tut.elementIntro && !!state.bossAttempts['b1'] && !battle && !joined;
+  const [summoned, setSummoned] = useState(false);
   const guide = battle || joined || evolve || elemOpen || elemIntroDue ? null : computeGuide(state, { selected, tab });
   const objTile = objectiveTile(state);
   const mapTarget = guide ? (guide.target?.kind === 'tile' ? guide.target.id : null) : objTile;
@@ -53,6 +57,7 @@ export function App() {
   const power = teamPower(state);
   const canUpgrade = upgradeUnlocked(state);
   const canIdle = idleUnlocked(state);
+  const canSummon = summonUnlocked(state);
   const ups = canUpgrade ? affordableLevelUps(state) : 0;
   const idle = idlePreview(state, now);
 
@@ -78,7 +83,7 @@ export function App() {
     setSelected(null);
     if (r.type === 'battle') setBattle(r.outcome);
     else if (r.type === 'spirit') setJoined(r.spiritId);
-    else if (r.type === 'resource') toast(`보물 상자! ${r.bonus.gold ? `${GOLD} +${r.bonus.gold}` : ''}${r.bonus.stones ? `${STONE} +${r.bonus.stones}` : ''}`);
+    else if (r.type === 'resource') toast(r.bonus.summon ? `🔮 소환석 +${r.bonus.summon}! 소환에 쓸 수 있어요` : `보물 상자! ${r.bonus.gold ? `${GOLD} +${r.bonus.gold}` : ''}${r.bonus.stones ? `${STONE} +${r.bonus.stones}` : ''}`);
     else if (r.type === 'gate') toast('다음 지역은 준비 중이에요.');
     else if (r.type === 'error') toast(r.message);
   };
@@ -92,10 +97,10 @@ export function App() {
   };
 
   const goTab = (t: Tab) => {
-    if (t === 'upgrade' && !canUpgrade) return toast('🔒 첫 보스(고목 골렘)에 도전하면 열려요');
-    if (t === 'idle' && !canIdle) return toast('🔒 고목 골렘을 쓰러뜨리면 열려요');
+    void canIdle;
     if (tutActive && guide?.target?.kind === 'tab' && guide.target.tab !== t) return toast('반짝이는 탭을 눌러 줘!');
-    if (tutActive && guide?.target?.kind === 'levelUp' && t !== 'upgrade') return toast('먼저 레벨업을 해 보자!');
+    if (tutActive && guide?.target?.kind === 'levelUp' && t !== 'spirit') return toast('먼저 레벨업을 해 보자!');
+    if (tutActive && guide?.target?.kind === 'altar' && t !== 'summon') return toast('먼저 소환을 해 보자!');
     setSelected(null);
     setTab(t);
   };
@@ -106,7 +111,11 @@ export function App() {
       setTab('map');
       enter(tileId);
     } else {
-      setTab('upgrade');
+      if (id === 'summon') {
+        setTab('summon');
+        return;
+      }
+      setTab('spirit');
       setFocusLevel(true);
     }
   };
@@ -128,7 +137,7 @@ export function App() {
             {GOLD} {state.gold.toLocaleString()}
           </span>
           <span>
-            {STONE} {state.stones}
+            {STONE} {state.stones} 🔮 {state.summonStones}
           </span>
         </div>
         <button className="icon-btn elem-btn" onClick={() => setElemOpen(true)} aria-label="속성표">
@@ -178,8 +187,8 @@ export function App() {
             <MapView state={state} selected={selected} target={mapTarget} onTap={tapTile} />
           </>
         )}
-        {tab === 'upgrade' && (
-          <UpgradeView
+        {tab === 'spirit' && (
+          <SpiritView
             state={state}
             act={act}
             toast={toast}
@@ -192,7 +201,19 @@ export function App() {
             onEvolve={(id, stage) => setEvolve({ id, stage })}
           />
         )}
-        {tab === 'idle' && <IdleView state={state} now={now} act={act} toast={toast} />}
+        {tab === 'summon' && (
+          <SummonView
+            state={state}
+            focus={guide?.target?.kind === 'altar' ? guide.target.element : null}
+            onSummon={(el) => {
+              const r = act((s) => summon(s, el));
+              if ('error' in r) return toast(r.error);
+              setSummoned(true);
+              setJoined(r.spiritId);
+            }}
+          />
+        )}
+        {tab === 'camp' && <CampView state={state} now={now} act={act} toast={toast} />}
       </main>
 
       {guide && <GuideBar guide={guide} onFinish={() => markTut((t) => (t.done = true))} onSkip={() => markTut((t) => (t.done = true))} />}
@@ -201,15 +222,16 @@ export function App() {
         <button className={`${tab === 'map' ? 'on' : ''} ${guide?.target?.kind === 'tab' && guide.target.tab === 'map' ? 'pulse' : ''}`} onClick={() => goTab('map')}>
           <span>🗺</span>탐험
         </button>
-        <button
-          className={`${tab === 'upgrade' ? 'on' : ''} ${!canUpgrade ? 'locked' : ''} ${guide?.target?.kind === 'tab' && guide.target.tab === 'upgrade' ? 'pulse' : ''}`}
-          onClick={() => goTab('upgrade')}
-        >
-          <span>{canUpgrade ? '⬆' : '🔒'}</span>강화
+        <button className={`${tab === 'spirit' ? 'on' : ''} ${guide?.target?.kind === 'tab' && guide.target.tab === 'spirit' ? 'pulse' : ''}`} onClick={() => goTab('spirit')}>
+          <span>🐾</span>스피릿
           {ups > 0 && <i className="badge">{ups}</i>}
         </button>
-        <button className={`${tab === 'idle' ? 'on' : ''} ${!canIdle ? 'locked' : ''}`} onClick={() => goTab('idle')}>
-          <span>{canIdle ? '🏕' : '🔒'}</span>자동 사냥
+        <button className={`${tab === 'summon' ? 'on' : ''} ${!canSummon ? 'locked' : ''} ${guide?.target?.kind === 'tab' && guide.target.tab === 'summon' ? 'pulse' : ''}`} onClick={() => goTab('summon')}>
+          <span>{canSummon ? '✨' : '🔒'}</span>소환
+          {canSummon && state.summonStones >= BALANCE.summon.cost && <i className="badge">!</i>}
+        </button>
+        <button className={`${tab === 'camp' ? 'on' : ''}`} onClick={() => goTab('camp')}>
+          <span>🏕</span>캠프
           {canIdle && idle.gold > 0 && <i className="badge">!</i>}
         </button>
       </nav>
@@ -254,9 +276,9 @@ export function App() {
       )}
 
       {joined && (
-        <div className="modal" onClick={() => setJoined(null)}>
+        <div className="modal" onClick={() => (setJoined(null), setSummoned(false))}>
           <div className="reveal">
-            <div className="reveal-tag">새로운 동료!</div>
+            <div className="reveal-tag">{summoned ? '✨ 소환 성공!' : '새로운 동료!'}</div>
             <img className="reveal-art" src={portrait(SPIRITS[joined], 1)} alt="" />
             <h2>{SPIRITS[joined].stages?.[0] ?? SPIRITS[joined].name}</h2>
             <div className="muted">{SPIRITS[joined].title}</div>
@@ -295,6 +317,7 @@ export function App() {
           <div className="reveal elem-modal" onClick={(e) => e.stopPropagation()}>
             <div className="reveal-tag">속성 상성</div>
             <ElementChart highlight={elemIntroDue ? ['fire', 'forest'] : undefined} />
+            {elemIntroDue && <p className="elem-rule"><b>왜 졌을까?</b> 골렘은 🌿숲. 우리 팀 💧물·🌿숲은 숲을 상대로 <b>보통</b>이라 피해가 약했어.</p>}
             <p className="elem-rule">
               <b>화살표 방향으로 강해요.</b> 유리한 상대에게는 피해 <b className="adv">×1.3</b>, 불리한 상대에게는 <b className="dis">×0.75</b>.
             </p>
@@ -303,7 +326,7 @@ export function App() {
             </div>
             {elemIntroDue && (
               <p className="elem-rule">
-                방금 온 <b>엠버윙은 🔥불</b>! 다음 적 <b>잎새 강아지는 🌿숲</b>이라 엠버윙이 아주 강해요. 반대로 💧물 적을 만나면 약해져요.
+                화살표를 봐: <b>🔥불 → 🌿숲</b>. 불 속성 스피릿을 데려오면 골렘에게 피해가 1.3배! ✨소환이 열렸어요.
               </p>
             )}
             <p className="muted small">칸을 누르면 어떤 동료가 유리한지 ▲▼로 보여 줘요. 위쪽 🔥💧 버튼으로 언제든 다시 볼 수 있어요.</p>
@@ -385,7 +408,7 @@ function TileSheet({
     ? enc.enemies.reduce((a, e) => a + Math.round(ENEMIES[e.enemyId].gold * (1 + BALANCE.enemy.goldPerLevel * (e.level - 1))), 0) + (cleared ? 0 : enc.firstClear.gold)
     : 0;
   const team = availableTeam(state, now);
-  const label = enc ? (cleared ? '다시 싸우기 (골드 벌기)' : t.kind === 'boss' ? '보스 도전' : '전투 시작') : t.kind === 'spirit' ? '동료 만나기' : t.kind === 'resource' ? '상자 열기' : '확인';
+  const label = enc ? (cleared ? '다시 싸우기 (골드 벌기)' : t.kind === 'boss' ? '보스 도전' : '전투 시작') : t.kind === 'resource' ? (t.resource === 'summon' ? '결정 줍기' : '상자 열기') : '확인';
 
   return (
     <div className="sheet-wrap" onClick={onClose}>
@@ -491,8 +514,12 @@ function TileSheet({
         )}
         {t.kind === 'resource' && !cleared && (
           <div className="spirit-preview">
-            <img src={asset('tile-treasure')} alt="" />
-            <div className="small">보물 상자예요. 열면 {t.resource === 'stones' ? `${STONE} 성장석 (승급에 사용)` : `${GOLD} 골드`}을 얻어요.</div>
+            <img src={asset(t.resource === 'summon' ? 'tile-crystal' : 'tile-treasure')} alt="" />
+            <div className="small">
+              {t.resource === 'summon'
+                ? `🔮 소환석 ${BALANCE.summon.cost}개를 얻어요. ✨소환 탭에서 원하는 속성의 스피릿을 부를 수 있어요.`
+                : `보물 상자예요. 열면 ${t.resource === 'stones' ? `${STONE} 성장석 (승급에 사용)` : `${GOLD} 골드`}을 얻어요.`}
+            </div>
           </div>
         )}
         {t.kind === 'start' && <div className="muted">{t.hint}</div>}

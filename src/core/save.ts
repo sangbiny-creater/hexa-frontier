@@ -20,7 +20,7 @@ export function deserialize(text: string): GameState | null {
 export function migrate(raw: any): GameState | null {
   if (!raw || typeof raw !== 'object' || typeof raw.version !== 'number') return null;
   if (raw.version > SAVE_VERSION) return null;
-  // v3: 맵이 세로형으로 바뀜, v4: 스테이지·동료 재구성 → 이전 저장은 새 게임으로 시작
-  if (raw.version < 4) return null;
+  // v3: 세로 맵, v4: 스테이지 재구성, v5: 소환·시작 스피릿 → 이전 저장은 새 게임으로 시작
+  if (raw.version < 5) return null;
   return raw as GameState;
 }

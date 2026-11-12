@@ -37,7 +37,7 @@ export const ENEMIES: Record<string, EnemyDef> = {
   },
   elder_treant: {
     id: 'elder_treant', name: '고목 골렘', art: 'grovegolem', fixedStage: 2, element: 'forest', role: 'tank', range: 'melee', isBoss: true,
-    base: { hp: 1500, atk: 20, def: 10, spd: 38 }, xp: 60, gold: 90, stoneChance: 1,
+    base: { hp: 1180, atk: 20, def: 10, spd: 38 }, xp: 60, gold: 90, stoneChance: 1,
     skills: [
       { id: 'et_basic', name: '가지 휘두르기', kind: 'basic', cooldown: 0, target: 'enemyDefault', effects: [{ type: 'damage', coef: 1 }], condition: { type: 'none' }, desc: '' },
       { id: 'et_roots', name: '뿌리 조이기', kind: 'active', cooldown: 8, target: 'enemyAll', effects: [{ type: 'damage', coef: 0.75 }], condition: { type: 'none' }, desc: '' },
@@ -71,9 +71,9 @@ export const ENCOUNTERS: Record<string, Encounter> = {
   beetle_field: { id: 'beetle_field', name: '딱정벌레 들판', enemies: [e('spark_beetle', 8, 3), e('spark_beetle', 8, 5), e('thorn_boar', 8, 1)], firstClear: { gold: 100, stones: 3 } },
   boar_herd: { id: 'boar_herd', name: '멧돼지 떼', enemies: [e('thorn_boar', 10, 0), e('thorn_boar', 10, 1), e('thorn_boar', 10, 2)], firstClear: { gold: 110, stones: 4 } },
   mixed_camp: { id: 'mixed_camp', name: '야생 무리', enemies: [e('thorn_boar', 12, 1), e('mist_newt', 12, 4), e('spark_beetle', 12, 7)], firstClear: { gold: 130, stones: 4 } },
-  storm_ridge: { id: 'storm_ridge', name: '폭풍 둥지', enemies: [e('spark_beetle', 13, 3), e('spark_beetle', 13, 4), e('spark_beetle', 13, 5)], firstClear: { gold: 200, stones: 15 } },
+  storm_ridge: { id: 'storm_ridge', name: '폭풍 둥지', enemies: [e('spark_beetle', 13, 3), e('spark_beetle', 13, 4), e('spark_beetle', 13, 5)], firstClear: { gold: 200, stones: 15, summon: 10 } },
   giant_gate: { id: 'giant_gate', name: '거인의 문턱', enemies: [e('thorn_boar', 12, 0), e('thorn_boar', 12, 2), e('mist_newt', 12, 4), e('spark_beetle', 12, 7)], firstClear: { gold: 180, stones: 6 } },
   deep_woods: { id: 'deep_woods', name: '깊은 숲', enemies: [e('moss_slime', 13, 0), e('moss_slime', 13, 1), e('moss_slime', 13, 2), e('mist_newt', 13, 7)], firstClear: { gold: 150, stones: 5 } },
-  elite_tusk: { id: 'elite_tusk', name: '고대 바위엄니', enemies: [e('thorn_boar', 14, 0), e('thorn_boar', 14, 2), e('mist_newt', 13, 7)], firstClear: { gold: 220, stones: 15 } },
+  elite_tusk: { id: 'elite_tusk', name: '고대 바위엄니', enemies: [e('thorn_boar', 14, 0), e('thorn_boar', 14, 2), e('mist_newt', 13, 7)], firstClear: { gold: 220, stones: 15, summon: 10 } },
   boss_giant: { id: 'boss_giant', name: '테라스톤', bossKind: 'region', enemies: [e('stone_giant', 12, 1), e('spark_beetle', 10, 6), e('mist_newt', 10, 8)], firstClear: { gold: 1000, stones: 30 } },
 };
