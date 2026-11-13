@@ -65,7 +65,7 @@ export interface GameState {
   /** 이긴 칸이 다시 열리는 시각 (D59) */
   respawnAt: Record<string, number>;
   summonCounter: number;
-  settings: { skipBattle: boolean };
+  settings: { skipBattle: boolean; autoUlt?: boolean };
 }
 
 export function newGame(now: number): GameState {
@@ -140,6 +140,24 @@ export function reachableTiles(s: GameState): Set<string> {
     for (const n of neighborsOf(t)) if (!s.cleared.includes(n.id)) out.add(n.id);
   }
   return out;
+}
+
+/** 지도에서 주인공이 걸어갈 길: 지금 칸 → 목표 칸 (클리어한 칸만 밟는다) */
+export function walkPath(s: GameState, to: string): string[] {
+  const from = TILE_BY_ID[s.lastTile]?.map === s.map ? s.lastTile : MAPS[s.map].startId;
+  if (from === to) return [to];
+  const ok = (id: string) => s.cleared.includes(id) || id === to;
+  const prev = new Map<string, string>([[from, '']]);
+  const q = [from];
+  while (q.length) {
+    const cur = q.shift()!;
+    if (cur === to) break;
+    for (const n of neighborsOf(TILE_BY_ID[cur])) if (!prev.has(n.id) && ok(n.id)) (prev.set(n.id, cur), q.push(n.id));
+  }
+  if (!prev.has(to)) return [to];
+  const path: string[] = [];
+  for (let c = to; c; c = prev.get(c)!) path.unshift(c);
+  return path;
 }
 
 /** P01은 튜토리얼(바위엄니 떼)을 끝내면 열린다 */
@@ -295,11 +313,7 @@ export function enterTile(s: GameState, tileId: string, now: number): EnterResul
     msg(s, `${next} ${MAPS[next].name}에 들어섰다!`);
     return { type: 'travel', map: next };
   }
-  if (tile.encounterId) {
-    const left = cleared ? respawnLeft(s, tileId, now) : 0;
-    if (left > 0) return { type: 'error', message: `몬스터가 다시 나타나기까지 ${Math.ceil(left / 60_000)}분 남았어요.` };
-    return fight(s, tile, now);
-  }
+  if (tile.encounterId) return fight(s, tile, now);
   if (cleared) return { type: 'error', message: '이미 탐험한 칸입니다.' };
 
   s.cleared.push(tileId);
@@ -329,13 +343,33 @@ export function enterTile(s: GameState, tileId: string, now: number): EnterResul
 }
 
 function fight(s: GameState, tile: TileDef, now: number): EnterResult {
+  const p = prepareBattle(s, tile.id, now);
+  if ('error' in p) return { type: 'error', message: p.error };
+  return { type: 'battle', outcome: applyBattle(s, tile.id, p.setup, simulateBattle(p.setup), now) };
+}
+
+/** 실시간 전투 시작 전: 들어갈 수 있는지 확인하고 전투 구성을 만든다 (D69) */
+export function prepareBattle(s: GameState, tileId: string, now: number): { setup: BattleSetup } | { error: string } {
+  tick(s, now);
+  const tile = TILE_BY_ID[tileId];
+  if (!tile?.encounterId) return { error: '전투 칸이 아닙니다.' };
+  const cleared = s.cleared.includes(tileId);
+  if (!cleared && !reachableTiles(s).has(tileId)) return { error: '아직 갈 수 없는 칸입니다.' };
+  const left = cleared ? respawnLeft(s, tileId, now) : 0;
+  if (left > 0) return { error: `몬스터가 다시 나타나기까지 ${Math.ceil(left / 60_000)}분 남았어요.` };
   const team = availableTeam(s, now);
-  if (team.length === 0) return { type: 'error', message: '출전 가능한 스피릿이 없습니다. 편성을 확인하거나 활동을 중단하세요.' };
-  const enc = ENCOUNTERS[tile.encounterId!];
+  if (team.length === 0) return { error: '출전 가능한 스피릿이 없습니다. 편성을 확인하세요.' };
   s.battleCounter++;
   const seed = hashSeed('battle', s.createdAt, s.battleCounter, tile.id);
-  const setup = buildSetup(s, enc.id, seed, now);
-  const result = simulateBattle(setup);
+  return { setup: buildSetup(s, tile.encounterId, seed, now) };
+}
+
+/** 전투가 끝난 뒤 결과(보상·클리어·패배 분석)를 반영한다 */
+export function applyBattle(s: GameState, tileId: string, setup: BattleSetup, result: BattleResult, now: number): BattleOutcome {
+  const tile = TILE_BY_ID[tileId];
+  const enc = ENCOUNTERS[tile.encounterId!];
+  const seed = setup.seed;
+  const team = setup.allies.map((u) => u.uid.slice(2));
   const won = result.outcome === 'win';
   const firstClear = won && !s.cleared.includes(tile.id);
   const isBoss = !!enc.bossKind;
@@ -416,10 +450,7 @@ function fight(s: GameState, tile: TileDef, now: number): EnterResult {
   msg(s, `${stageCode(tile) ?? enc.name}: ${won ? '승리' : '패배'}`);
 
   const analysis = won ? null : analyzeDefeat(s, setup, result, now);
-  return {
-    type: 'battle',
-    outcome: { tileId: tile.id, encounterId: enc.id, setup, result, won, firstClear, rewards, conditionChanges, newInjuries, unlockedText, analysis },
-  };
+  return { tileId: tile.id, encounterId: enc.id, setup, result, won, firstClear, rewards, conditionChanges, newInjuries, unlockedText, analysis };
 }
 
 /** 전투 전 피로 경고: 출전 예정 스피릿 중 컨디션 '최상' 미만 또는 경상 */

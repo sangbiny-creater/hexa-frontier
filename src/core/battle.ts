@@ -155,7 +155,22 @@ export function computeStats(input: BattleUnitInput, team: BattleUnitInput[]) {
   };
 }
 
-export function simulateBattle(setup: BattleSetup): BattleResult {
+/**
+ * 실시간 전투 (D69): 한 틱씩 진행할 수 있는 전투 상태.
+ * - autoUlt=false면 아군 필살기는 자동으로 쓰지 않고, 플레이어가 castUlt로 직접 터뜨린다 (에너지 100).
+ * - 적은 항상 자동. simulateBattle은 autoUlt=true로 끝까지 돌린 것과 같다.
+ */
+export interface LiveBattle {
+  setup: BattleSetup;
+  rng: Rng;
+  units: RUnit[];
+  t: number;
+  events: BattleEvent[];
+  outcome: BattleResult['outcome'] | null;
+  autoUlt: boolean;
+}
+
+export function createLive(setup: BattleSetup, autoUlt = true): LiveBattle {
   const rng = createRng(setup.seed);
   const units: RUnit[] = [];
   const build = (input: BattleUnitInput, team: BattleUnitInput[]) => {
@@ -187,7 +202,7 @@ export function simulateBattle(setup: BattleSetup): BattleResult {
       baseDef: s.def,
       baseRes: s.res,
       gauge: rng() * 30,
-      energy: 0,
+      energy: input.side === 'ally' ? BALANCE.battle.allyStartEnergy : 0,
       cds: Object.fromEntries(input.def.skills.map((k) => [k.id, k.kind === 'active' ? k.cooldown * 0.5 : 0])),
       shield: 0,
       shieldT: 0,
@@ -200,34 +215,82 @@ export function simulateBattle(setup: BattleSetup): BattleResult {
   for (const a of setup.allies) build(a, setup.allies);
   for (const e of setup.enemies) build(e, setup.enemies);
 
-  const events: BattleEvent[] = [];
-  let t = 0;
-  let outcome: BattleResult['outcome'] = 'timeout';
+  return { setup, rng, units, t: 0, events: [], outcome: null, autoUlt };
+}
 
-  const alive = (side: Side) => units.filter((u) => u.snap.side === side && u.hp > 0);
+function liveAlive(b: LiveBattle, side: Side) {
+  return b.units.filter((u) => u.snap.side === side && u.hp > 0);
+}
 
-  while (t < B.maxTime - 1e-9) {
-    t = Math.round((t + B.tick) * 1000) / 1000;
-    for (const u of units) {
-      if (u.hp <= 0) continue;
-      tickTimers(u);
-      u.gauge += u.snap.spd * B.tick;
-      if (u.gauge < B.gaugeMax) continue;
-      u.gauge -= B.gaugeMax;
-      const ev = act(u, units, rng, t);
-      if (ev) events.push(ev);
-      if (alive('enemy').length === 0) {
-        outcome = 'win';
-        break;
-      }
-      if (alive('ally').length === 0) {
-        outcome = 'lose';
-        break;
-      }
-    }
-    if (outcome !== 'timeout') break;
+function checkEnd(b: LiveBattle) {
+  if (liveAlive(b, 'enemy').length === 0) b.outcome = 'win';
+  else if (liveAlive(b, 'ally').length === 0) b.outcome = 'lose';
+}
+
+/** 한 틱 진행 (B.tick초). 끝나면 outcome이 정해진다. */
+export function stepLive(b: LiveBattle): BattleEvent[] {
+  const out: BattleEvent[] = [];
+  if (b.outcome) return out;
+  if (b.t >= B.maxTime - 1e-9) {
+    b.outcome = 'timeout';
+    return out;
   }
+  b.t = Math.round((b.t + B.tick) * 1000) / 1000;
+  for (const u of b.units) {
+    if (u.hp <= 0) continue;
+    tickTimers(u);
+    u.gauge += u.snap.spd * B.tick;
+    if (u.gauge < B.gaugeMax) continue;
+    u.gauge -= B.gaugeMax;
+    const manual = u.snap.side === 'ally' && !b.autoUlt;
+    const ev = act(u, b.units, b.rng, b.t, manual);
+    if (ev) (b.events.push(ev), out.push(ev));
+    checkEnd(b);
+    if (b.outcome) break;
+  }
+  if (!b.outcome && b.t >= B.maxTime - 1e-9) b.outcome = 'timeout';
+  return out;
+}
 
+/** 필살기 준비됨 (에너지 100) */
+export function ultReady(b: LiveBattle, uid: string): boolean {
+  const u = b.units.find((x) => x.snap.uid === uid);
+  return !!u && u.hp > 0 && u.energy >= 100 && !b.outcome && !!u.def.skills.find((s) => s.kind === 'ultimate');
+}
+
+export function unitEnergy(b: LiveBattle, uid: string): number {
+  return b.units.find((x) => x.snap.uid === uid)?.energy ?? 0;
+}
+
+export function unitHp(b: LiveBattle, uid: string): { hp: number; max: number; shield: number } {
+  const u = b.units.find((x) => x.snap.uid === uid)!;
+  return { hp: Math.max(0, u.hp), max: u.snap.maxHp, shield: u.shield };
+}
+
+/** 플레이어가 필살기를 터뜨린다: 게이지와 상관없이 바로 시전 */
+export function castUlt(b: LiveBattle, uid: string): BattleEvent | null {
+  if (!ultReady(b, uid)) return null;
+  const u = b.units.find((x) => x.snap.uid === uid)!;
+  const ult = u.def.skills.find((s) => s.kind === 'ultimate')!;
+  const ev = perform(u, ult, b.units, b.rng, b.t);
+  if (ev) b.events.push(ev);
+  checkEnd(b);
+  return ev;
+}
+
+/** 지금 써 볼 만한 필살기인가 (AUTO·튜토리얼 안내용): 원래 자동 조건과 같다 */
+export function ultSensible(b: LiveBattle, uid: string): boolean {
+  const u = b.units.find((x) => x.snap.uid === uid);
+  if (!u || !ultReady(b, uid)) return false;
+  const ult = u.def.skills.find((s) => s.kind === 'ultimate')!;
+  return conditionOk(ult, u, b.units);
+}
+
+export function finishLive(b: LiveBattle): BattleResult {
+  const units = b.units;
+  const t = b.t;
+  const events = b.events;
+  const outcome = b.outcome ?? 'timeout';
   const enemies = units.filter((u) => u.snap.side === 'enemy');
   const enemyHpRatio = sum(enemies.map((u) => Math.max(0, u.hp))) / sum(enemies.map((u) => u.snap.maxHp));
   const boss = enemies.find((u) => u.snap.isBoss);
@@ -237,7 +300,7 @@ export function simulateBattle(setup: BattleSetup): BattleResult {
     reports[u.snap.uid] = u.report;
   }
   return {
-    seed: setup.seed,
+    seed: b.setup.seed,
     outcome,
     duration: t,
     units: units.map((u) => u.snap),
@@ -246,6 +309,13 @@ export function simulateBattle(setup: BattleSetup): BattleResult {
     enemyHpRatio,
     bossHpRatio: boss ? Math.max(0, boss.hp) / boss.snap.maxHp : null,
   };
+}
+
+
+export function simulateBattle(setup: BattleSetup): BattleResult {
+  const b = createLive(setup, true);
+  while (!b.outcome) stepLive(b);
+  return finishLive(b);
 }
 
 function tickTimers(u: RUnit) {
@@ -275,10 +345,10 @@ function conditionOk(skill: SkillDef, u: RUnit, units: RUnit[]): boolean {
   }
 }
 
-function chooseSkill(u: RUnit, units: RUnit[]): SkillDef {
+function chooseSkill(u: RUnit, units: RUnit[], manualUlt = false): SkillDef {
   const skills = u.def.skills;
   const ult = skills.find((s) => s.kind === 'ultimate');
-  if (ult && u.energy >= 100 && conditionOk(ult, u, units)) return ult;
+  if (!manualUlt && ult && u.energy >= 100 && conditionOk(ult, u, units)) return ult;
   for (const s of skills) {
     if (s.kind === 'active' && u.cds[s.id] <= 0 && conditionOk(s, u, units)) return s;
   }
@@ -319,8 +389,11 @@ function resolveTargets(skill: SkillDef, u: RUnit, units: RUnit[]): RUnit[] {
   }
 }
 
-function act(u: RUnit, units: RUnit[], rng: Rng, t: number): BattleEvent | null {
-  const skill = chooseSkill(u, units);
+function act(u: RUnit, units: RUnit[], rng: Rng, t: number, manualUlt = false): BattleEvent | null {
+  return perform(u, chooseSkill(u, units, manualUlt), units, rng, t);
+}
+
+function perform(u: RUnit, skill: SkillDef, units: RUnit[], rng: Rng, t: number): BattleEvent | null {
   const targets = resolveTargets(skill, u, units);
   if (targets.length === 0) return null;
   if (skill.kind === 'ultimate') u.energy = 0;

@@ -416,3 +416,36 @@ describe('저장', () => {
     expect(deserialize('not json')).toBeNull();
   });
 });
+
+describe('실시간 전투 (D69: 필살기 직접 누르기)', () => {
+  it('AUTO가 꺼져 있으면 아군 필살기는 저절로 나가지 않고, castUlt로 쓴다', async () => {
+    const { createLive, stepLive, castUlt, ultReady } = await import('../src/core/battle');
+    const { buildSetup, newGame: ng } = await import('../src/core/game');
+    const g = ng(T0);
+    for (const sp of Object.values(g.spirits)) sp.level = 10;
+    const b = createLive(buildSetup(g, 'boss_treant', 5, T0), false);
+    let readySeen = false;
+    for (let i = 0; i < 900 && !b.outcome; i++) {
+      stepLive(b);
+      const allyUlts = b.events.filter((e) => e.actor.startsWith('a:') && e.skillKind === 'ultimate');
+      expect(allyUlts).toHaveLength(readySeen ? allyUlts.length : 0);
+      const ready = b.units.find((u) => u.snap.side === 'ally' && ultReady(b, u.snap.uid));
+      if (ready && !readySeen) {
+        readySeen = true;
+        const ev = castUlt(b, ready.snap.uid);
+        expect(ev?.skillKind).toBe('ultimate');
+        expect(ultReady(b, ready.snap.uid)).toBe(false); // 게이지가 비워짐
+      }
+    }
+    expect(readySeen).toBe(true);
+  });
+  it('AUTO 실시간 전투 = 바로 결과 보기(simulateBattle)와 같은 결과', async () => {
+    const { createLive, stepLive, finishLive, simulateBattle } = await import('../src/core/battle');
+    const { buildSetup, newGame: ng } = await import('../src/core/game');
+    const g = ng(T0);
+    const setup = buildSetup(g, 'slimes_b', 9, T0);
+    const b = createLive(setup, true);
+    while (!b.outcome) stepLive(b);
+    expect(JSON.stringify(finishLive(b))).toBe(JSON.stringify(simulateBattle(setup)));
+  });
+});

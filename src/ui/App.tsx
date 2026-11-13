@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import type { ActionId } from '../core/analysis';
 import { HOUR } from '../core/clock';
 import {
+  applyBattle,
+  prepareBattle,
+  walkPath,
   affordableLevelUps,
   currentObjective,
   enterTile,
@@ -28,6 +31,8 @@ import { asset, ELEMENT_ICON, ElementChart, ElementTag, GOLD, portrait, POWER, R
 import { elementMultiplier, ELEMENT_LABEL } from '../core/board';
 import { BattlePrep } from './BattlePrep';
 import { BattleView } from './BattleView';
+import { LiveBattleView } from './LiveBattle';
+import type { BattleSetup } from '../core/battle';
 import { CampView } from './CampView';
 import { SpiritView } from './SpiritView';
 import { SummonView } from './SummonView';
@@ -40,6 +45,9 @@ export function App() {
   const [tab, setTab] = useState<Tab>('map');
   const [selected, setSelected] = useState<string | null>(null);
   const [battle, setBattle] = useState<BattleOutcome | null>(null);
+  const [live, setLive] = useState<{ tileId: string; setup: BattleSetup } | null>(null);
+  const [walk, setWalk] = useState<string | null>(null);
+  const walkTimer = useRef<number | null>(null);
   const [joined, setJoined] = useState<string | null>(null);
   const [evolve, setEvolve] = useState<{ id: string; stage: number } | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -96,6 +104,15 @@ export function App() {
   };
 
   const enter = (id: string) => {
+    // 전투 칸: '바로 결과 보기'가 아니면 실시간 전투 (D69)
+    const tt = TILE_BY_ID[id];
+    if (tt.encounterId && !state.settings.skipBattle) {
+      const p = act((s, t) => prepareBattle(s, id, t));
+      setSelected(null);
+      if ('error' in p) return toast(p.error);
+      setLive({ tileId: id, setup: p.setup });
+      return;
+    }
     const r = act((s, t) => enterTile(s, id, t));
     setSelected(null);
     if (r.type === 'battle') setBattle(r.outcome);
@@ -106,12 +123,34 @@ export function App() {
     else if (r.type === 'error') toast(r.message);
   };
 
+  /** 칸 누르기: 주인공이 길을 따라 한 칸씩 걸어간 뒤 칸 정보를 연다 */
   const tapTile = (id: string) => {
+    if (walk) return;
     if (tutActive && guide) {
       if (guide.target?.kind === 'tile' && id !== guide.target.id) return toast('먼저 ▼ 표시된 칸을 눌러 줘!');
       if (guide.target?.kind === 'tab' || guide.target?.kind === 'levelUp' || guide.target?.kind === 'evolve' || guide.target?.kind === 'altar') return toast('아래 안내를 먼저 따라 줘!');
     }
-    setSelected(id);
+    const cleared = state.cleared.includes(id);
+    if (!cleared && !reachableTiles(state).has(id)) return setSelected(id);
+    const path = walkPath(state, id);
+    const steps = cleared ? path.slice(1) : path.slice(1, -1); // 아직 안 간 칸은 바로 앞까지 걷는다
+    if (!steps.length) return setSelected(id);
+    if (walkTimer.current) clearInterval(walkTimer.current);
+    let i = 0;
+    setWalk(steps[0]);
+    walkTimer.current = window.setInterval(() => {
+      i++;
+      if (i >= steps.length) {
+        clearInterval(walkTimer.current!);
+        walkTimer.current = null;
+        const last = steps[steps.length - 1];
+        act((s) => void (s.lastTile = last));
+        setWalk(null);
+        setSelected(id);
+        return;
+      }
+      setWalk(steps[i]);
+    }, 170);
   };
 
   const goTab = (t: Tab) => {
@@ -228,7 +267,7 @@ export function App() {
                 </button>
               ))}
             </div>
-            <MapView key={state.map} state={state} now={now} selected={selected} target={mapTarget} onTap={tapTile} />
+            <MapView key={state.map} state={state} now={now} selected={selected} target={mapTarget} heroTile={walk} onTap={tapTile} />
           </>
         )}
         {tab === 'spirit' && (
@@ -302,10 +341,25 @@ export function App() {
         <TileSheet state={state} id={tile.id} focus={guide?.target?.kind === 'tileAction'} onGo={() => enter(tile.id)} onClose={() => setSelected(null)} />
       )}
 
+      {live && (
+        <LiveBattleView
+          tileId={live.tileId}
+          setup={live.setup}
+          autoDefault={!!state.settings.autoUlt}
+          onAuto={(on) => act((s) => (s.settings.autoUlt = on))}
+          tips={tutActive ? { note: battleNote(live.tileId), ultGuide: true } : null}
+          onDone={(result) => {
+            const outcome = act((s, t) => applyBattle(s, live.tileId, live.setup, result, t));
+            setLive(null);
+            setBattle(outcome);
+          }}
+        />
+      )}
+
       {battle && (
         <BattleView
           outcome={battle}
-          instant={state.settings.skipBattle}
+          instant
           tips={tutActive ? { battle: !tut.battleTip, win: !tut.winTip, defeat: !tut.defeatTip, note: battleNote(battle.tileId) } : null}
           onClose={() => {
             if (tutActive) markTut((t) => ((t.battleTip = true), battle.won ? (t.winTip = true) : (t.defeatTip = true)));
@@ -521,10 +575,12 @@ export function App() {
 /** 튜토리얼 전투 중 설명 한 줄 */
 function battleNote(tileId: string): string | undefined {
   const notes: Record<string, string> = {
+    a1: '동료들은 알아서 싸워요. 아래 초상화의 노란 게이지가 꽉 차면 빛나요 → 눌러서 필살기!',
+    a4: '필살기는 아껴 뒀다가 쓰면 더 좋아요. 🌿블루멜의 [숲의 축복]은 아군이 다쳤을 때 눌러야 회복이 커요.',
     a3: '적 바위엄니가 우리보다 강해. 이길 수 없으면 골드로 레벨업하면 돼!',
     a5: '💧쉘나이트가 🔥적을 때리면 주황색 "유리!" 큰 숫자! 물은 불에 강해서 피해 ×1.3.',
     a6: '🌪️바람 늑대에게 💧쉘나이트 공격은 회색 "불리" 작은 숫자. 바람은 물에 강해서 피해 ×0.75.',
-    b1: '고목 골렘은 🌿숲 속성! 🔥불 공격이 "유리!"로 가장 아파요.',
+    b1: '고목 골렘은 🌿숲! 🔥엠버윙의 [불꽃 폭풍]이 "유리!". 골렘의 큰 공격 뒤 체력이 줄면 [숲의 축복]으로 회복!',
     c2: '회색 "막힘"을 봐! 물안개가 ✨마법을 막아. ⚔️물리 공격은 잘 들어가.',
     b2: '바위엄니 대장은 단단해. 진화로 최대 레벨을 넘어서자!',
   };

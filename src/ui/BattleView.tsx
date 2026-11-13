@@ -182,7 +182,7 @@ export function BattleView({
   );
 }
 
-function Result({ outcome, onClose, onAction, tips }: { outcome: BattleOutcome; onClose: () => void; onAction: (id: ActionId, tileId?: string) => void; tips?: BattleTips | null }) {
+export function Result({ outcome, onClose, onAction, tips }: { outcome: BattleOutcome; onClose: () => void; onAction: (id: ActionId, tileId?: string) => void; tips?: BattleTips | null }) {
   const { won, rewards, analysis, unlockedText } = outcome;
   const [shown, setShown] = useState(0);
   useEffect(() => {

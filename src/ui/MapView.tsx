@@ -51,12 +51,15 @@ export function MapView({
   now,
   selected,
   target,
+  heroTile,
   onTap,
 }: {
   state: GameState;
   now: number;
   selected: string | null;
   target: string | null;
+  /** 걸어가는 중인 주인공 위치 */
+  heroTile?: string | null;
   onTap: (id: string) => void;
 }) {
   const visible = visibleTiles(state);
@@ -88,7 +91,7 @@ export function MapView({
   const width = W * (map.cols + 3);
   const height = maxY - minY;
   const scroller = useRef<HTMLDivElement>(null);
-  const hero = TILES.find((t) => t.id === state.lastTile) ?? TILES.find((t) => t.id === map.startId)!;
+  const hero = TILES.find((t) => t.id === (heroTile ?? state.lastTile)) ?? TILES.find((t) => t.id === map.startId)!;
   const hp = pos(hero);
 
   // 목표 칸(또는 주인공)이 화면 가운데쯤 오도록 스크롤 (세로·가로)

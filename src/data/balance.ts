@@ -7,6 +7,7 @@ export const BALANCE = {
     maxTime: 90, // [가설] 전투 제한 시간
     gaugeMax: 100, // 행동 게이지: 매 틱 spd*tick 만큼 차고 100에서 행동
     energyOnBasic: 12,
+    allyStartEnergy: 40, // D69: 아군 필살기 게이지 시작값 (직접 누를 기회를 빨리 준다)
     energyOnActive: 20,
     energyOnHit: 4,
     variance: 0.05, // ±5%
