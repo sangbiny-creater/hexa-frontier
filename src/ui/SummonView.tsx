@@ -24,7 +24,10 @@ export function SummonView({ state, onSummon, focus }: { state: GameState; onSum
           🔮 <b>{state.summonStones}</b>
         </div>
       </div>
-      {!open && <div className="locked-banner">🔒 첫 보스(고목 골렘)에 도전하면 열려요</div>}
+      {!open && <div className="locked-banner">🔒 숲길의 🔮신비한 결정을 주우면 열려요</div>}
+      <div className="evo-guide small">
+        <b>진화하는 법</b> ① 같은 스피릿을 한 번 더 소환 → 진화 재료(같은 카드) +1 ② 그 스피릿을 최대 레벨(Lv.10)까지 ③ 🐾스피릿 카드에서 [✨진화] → 모습이 바뀌고 더 강해지고, 최대 레벨이 25로!
+      </div>
 
       <div className="altar random-altar">
         <div className="altar-el">

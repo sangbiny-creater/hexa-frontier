@@ -116,6 +116,7 @@ export const BALANCE = {
   respawn: {
     // [결정 D59] 이긴 칸은 비었다가 시간이 지나면 몬스터가 다시 나타난다 (분)
     battleMin: 10,
+    tutorialBattleMin: 1, // P00 일반 칸 (골드 벌기 연습용, D63)
     eliteMin: 60,
     bossMin: 6 * 60, // 중간 보스
     regionBossMin: 24 * 60,

@@ -18,6 +18,8 @@ export interface TileDef {
   encounterId?: string;
   spiritId?: string;
   resource?: 'stones' | 'gold' | 'summon';
+  /** 보물 양 (없으면 기본값) */
+  amount?: number;
   hint?: string;
 }
 
@@ -34,22 +36,29 @@ export interface MapDef {
 
 export type RawTile = Omit<TileDef, 'q' | 'r' | 'map'>;
 
-// ── P00 튜토리얼: 한 줄 길 → 고목 골렘 → 짧은 갈래(상성·레벨업 연습) → P01로 가는 길 ──
+// ── P00 튜토리얼 (D63): 처음부터 끝까지 한 줄 길. 칸마다 한 가지를 배운다 ──
+// 레벨업 → 상성 유리/불리 → 골드 벌기 → 소환·상성(고목 골렘) → 자동 사냥 → 물리/마법 → 진화(바위엄니 대장)
 const P00_RAW: RawTile[] = [
   { id: 'start', col: 2, row: 0, kind: 'start', name: '숲 입구', hint: '여기서 모험이 시작됐다' },
   { id: 'a1', col: 2, row: 1, kind: 'battle', name: '잎새 강아지 무리', encounterId: 'slimes_a' },
-  { id: 'a2', col: 2, row: 2, kind: 'battle', name: '물결 여우 개울', encounterId: 'boar_den' },
-  { id: 'a3', col: 2, row: 3, kind: 'resource', name: '신비한 결정', resource: 'summon' },
-  { id: 's1', col: 2, row: 4, kind: 'battle', name: '잎새 강아지 떼', encounterId: 'slimes_b' },
-  { id: 's2', col: 2, row: 5, kind: 'resource', name: '버섯 수풀', resource: 'gold' },
-  { id: 'b1', col: 2, row: 6, kind: 'boss', name: '고목 골렘', encounterId: 'boss_treant' },
-  { id: 'c1', col: 1, row: 7, kind: 'battle', name: '물안개 여울', encounterId: 'mist_ford' },
-  { id: 'c2', col: 2, row: 7, kind: 'resource', name: '버려진 야영지', resource: 'gold' },
-  { id: 'c3', col: 1, row: 8, kind: 'resource', name: '이끼 동굴', resource: 'stones' },
-  { id: 'c4', col: 2, row: 8, kind: 'battle', name: '바위엄니 떼', encounterId: 'boar_herd' },
-  { id: 'c5', col: 3, row: 8, kind: 'resource', name: '바람의 결정', resource: 'summon' },
-  { id: 'gate', col: 2, row: 9, kind: 'gate', name: 'P01로 가는 길' },
+  { id: 'a2', col: 2, row: 2, kind: 'resource', name: '버섯 수풀', resource: 'gold', amount: 60 },
+  { id: 'a3', col: 2, row: 3, kind: 'battle', name: '어린 바위엄니', encounterId: 'slimes_b' },
+  { id: 'a4', col: 2, row: 4, kind: 'battle', name: '아기 물결 여우', encounterId: 'boar_den' },
+  { id: 'a5', col: 2, row: 5, kind: 'battle', name: '불씨 둥지', encounterId: 'ember_nest' },
+  { id: 'a6', col: 2, row: 6, kind: 'battle', name: '돌풍 언덕', encounterId: 'gust_hill' },
+  { id: 'a7', col: 2, row: 7, kind: 'battle', name: '가시 덤불', encounterId: 'thorn_bush' },
+  { id: 'a8', col: 2, row: 8, kind: 'resource', name: '신비한 결정', resource: 'summon' },
+  { id: 'b1', col: 2, row: 9, kind: 'boss', name: '고목 골렘', encounterId: 'boss_treant' },
+  { id: 'c1', col: 2, row: 10, kind: 'resource', name: '버려진 야영지', resource: 'summon', hint: '누군가 두고 간 🔮결정' },
+  { id: 'c2', col: 2, row: 11, kind: 'battle', name: '물안개 여울', encounterId: 'mist_ford' },
+  { id: 'c3', col: 2, row: 12, kind: 'battle', name: '바위엄니 떼', encounterId: 'boar_herd' },
+  { id: 'c4', col: 2, row: 13, kind: 'resource', name: '진화의 결정', resource: 'summon' },
+  { id: 'b2', col: 2, row: 14, kind: 'boss', name: '바위엄니 대장', encounterId: 'boss_boar' },
+  { id: 'gate', col: 2, row: 15, kind: 'gate', name: 'P01로 가는 길' },
 ];
+
+/** 튜토리얼을 끝내는 칸 (이기면 P01이 열린다) */
+export const TUTORIAL_END = 'b2';
 
 /** odd-r 오프셋 → axial */
 export function offsetToAxial(col: number, row: number): { q: number; r: number } {
@@ -59,7 +68,7 @@ export function offsetToAxial(col: number, row: number): { q: number; r: number 
 const build = (map: string, raw: RawTile[]): TileDef[] => raw.map((t) => ({ ...t, map, ...offsetToAxial(t.col, t.row) }));
 
 export const MAPS: Record<string, MapDef> = {
-  P00: { id: 'P00', code: 'P00', name: '튜토리얼 · 이끼 숲', cols: 5, startId: 'start', noRockUntilRow: 6, tiles: build('P00', P00_RAW) },
+  P00: { id: 'P00', code: 'P00', name: '튜토리얼 · 이끼 숲', cols: 5, startId: 'start', noRockUntilRow: 9, tiles: build('P00', P00_RAW) },
   P01: { id: 'P01', code: 'P01', name: '바람골 숲', cols: P01_COLS, startId: 'p01-start', noRockUntilRow: 0, tiles: build('P01', P01_RAW) },
 };
 

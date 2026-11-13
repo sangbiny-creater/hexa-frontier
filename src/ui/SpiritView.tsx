@@ -1,5 +1,5 @@
 // 스피릿 탭: 보유 스피릿 카드 → 상세(좌우로 넘기기), 출전 배치, 레벨업·승급. 안 열린 기능은 자물쇠로 보여 준다.
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { elementMultiplier, ELEMENT_LABEL, ROLE_LABEL, ROW_LABEL, rowName } from '../core/board';
 import { computeStats } from '../core/battle';
 import { affordableLevelUps, ALL_SUMMONABLE, canEvolve, canRankUp, evolve, evolveNeed, levelCap, levelUp, rankUp, setFormation, upgradeUnlocked, type GameState } from '../core/game';
@@ -20,6 +20,7 @@ export function SpiritView({
   act,
   toast,
   focusLevel,
+  focusSpirit,
   goal,
   onLeveled,
   onEvolve,
@@ -28,11 +29,16 @@ export function SpiritView({
   act: Act;
   toast: (m: string) => void;
   focusLevel: boolean;
+  /** 튜토리얼: 이 스피릿의 상세를 열고 레벨업·진화 버튼을 반짝인다 */
+  focusSpirit?: string | null;
   goal: number | null;
   onLeveled: () => void;
   onEvolve: (id: string, stage: number) => void;
 }) {
-  const [detail, setDetail] = useState<string | null>(null);
+  const [detail, setDetail] = useState<string | null>(focusSpirit ?? null);
+  useEffect(() => {
+    if (focusSpirit) setDetail(focusSpirit);
+  }, [focusSpirit]);
   const [picked, setPicked] = useState<string | null>(null);
   const owned = Object.keys(state.spirits);
   const canLevel = upgradeUnlocked(state);
@@ -98,7 +104,7 @@ export function SpiritView({
             <small>{ups ? `${ups}번 가능` : '골드 부족'}</small>
           </button>
         ) : (
-          <div className="lockbox">🔒 레벨업<small>첫 보스 도전 후</small></div>
+          <div className="lockbox">🔒 레벨업<small>첫 승리 후</small></div>
         )}
       </div>
 
@@ -177,7 +183,8 @@ export function SpiritView({
           onChange={setDetail}
           onClose={() => setDetail(null)}
           canLevel={canLevel}
-          focusLevel={focusLevel}
+          focusLevel={focusLevel || focusSpirit === detail}
+          focusEvolve={focusSpirit === detail}
           onLevel={levelOne}
           onRank={(id) => {
             const err = act((s) => rankUp(s, id));
@@ -187,6 +194,7 @@ export function SpiritView({
             const err = act((s) => evolve(s, id));
             if (err) return toast(err);
             onEvolve(id, state.spirits[id].stage + 1);
+            if (focusSpirit) setDetail(null); // 튜토리얼: 진화 후 다음 안내(탐험 탭)가 보이도록 닫기
           }}
         />
       )}
@@ -233,6 +241,7 @@ function SpiritDetail({
   onClose,
   canLevel,
   focusLevel,
+  focusEvolve,
   onLevel,
   onRank,
   onEvolve,
@@ -244,6 +253,7 @@ function SpiritDetail({
   onClose: () => void;
   canLevel: boolean;
   focusLevel: boolean;
+  focusEvolve?: boolean;
   onLevel: (id: string) => void;
   onRank: (id: string) => void;
   onEvolve: (id: string) => void;
@@ -303,6 +313,7 @@ function SpiritDetail({
           <div className="tags">
             <ElementTag element={def.element} /> <RoleTag role={def.role} />
             <span className="tag">{def.range === 'melee' ? '근접' : '원거리'}</span>
+            <span className={`tag ${def.dmg === 'magic' ? 'magic' : 'phys'}`}>{def.dmg === 'magic' ? '✨마법 공격' : '⚔️물리 공격'}</span>
             <span className="tag">{slot !== undefined ? `출전 · ${ROW_LABEL[rowName(slot)]}` : '대기'}</span>
           </div>
           <div className="detail-power">
@@ -326,9 +337,16 @@ function SpiritDetail({
               <b>{Math.round(st.def)}</b>
             </div>
             <div>
+              <small>마법방어</small>
+              <b>{Math.round(st.res)}</b>
+            </div>
+            <div>
               <small>속도</small>
               <b>{st.spd}</b>
             </div>
+          </div>
+          <div className="small muted">
+            {def.dmg === 'magic' ? '✨마법 공격은 적의 마법방어로 막혀요. 물리 방어만 높은 적에게 강해요.' : '⚔️물리 공격은 적의 방어로 막혀요. 마법 방어만 높은 적에게 강해요.'}
           </div>
           {st.match && <div className="small good">✓ 지금 자리({ROW_LABEL[rowName(slot ?? 4)]})가 역할에 맞아 능력치 +10%</div>}
         </div>
@@ -371,10 +389,17 @@ function SpiritDetail({
             ))}
           </div>
           <div className="small">
-            등급은 없어요. <b>같은 스피릿이 다시 소환되면</b> 진화 재료가 돼요. 모은 재료 <b>{sp.copies}</b>개
+            등급은 없어요. <b>같은 스피릿이 다시 소환되면</b> 진화 재료(같은 카드)가 돼요. 모은 재료 <b>{sp.copies}</b>개
           </div>
+          {need && (
+            <div className="evo-steps small">
+              <div className={sp.copies >= need.copies ? 'done' : ''}>{sp.copies >= need.copies ? '✔' : '①'} 같은 스피릿 {need.copies}장 소환 ({sp.copies}/{need.copies}) — ✨소환 탭 {ELEMENT_ICON[def.element]}제단</div>
+              <div className={sp.level >= need.level ? 'done' : ''}>{sp.level >= need.level ? '✔' : '②'} Lv.{need.level}까지 레벨업 (지금 Lv.{sp.level})</div>
+              <div>③ [✨ 진화] → 능력치 ×{(EVO.statMul[stage] / EVO.statMul[stage - 1]).toFixed(2)}, 최대 Lv.{EVO.levelCap[stage]}</div>
+            </div>
+          )}
           {need ? (
-            <button className={`rank-btn evo-btn ${canEvolve(state, id) ? 'can pulse' : ''}`} disabled={!canEvolve(state, id)} onClick={() => onEvolve(id)}>
+            <button className={`rank-btn evo-btn ${canEvolve(state, id) ? 'can pulse' : ''} ${focusEvolve && canEvolve(state, id) ? 'focus' : ''}`} disabled={!canEvolve(state, id)} onClick={() => onEvolve(id)}>
               ✨ 진화 → {(def.stages as readonly string[] | undefined)?.[stage]}{' '}
               <small>
                 (Lv.{sp.level}/{need.level} · 같은 스피릿 {sp.copies}/{need.copies} · 능력치 ×{(EVO.statMul[stage] / EVO.statMul[stage - 1]).toFixed(2)}, 최대 Lv.{EVO.levelCap[stage]})
@@ -405,7 +430,7 @@ function SpiritDetail({
               )}
             </button>
           ) : (
-            <div className="locked-row">🔒 레벨업 — 첫 보스에 도전하면 열려요</div>
+            <div className="locked-row">🔒 레벨업 — 첫 승리 후 열려요</div>
           )}
           {rc && (
             <button className={`rank-btn ${canRankUp(state, id) ? 'can' : ''}`} disabled={!canRankUp(state, id)} onClick={() => onRank(id)}>

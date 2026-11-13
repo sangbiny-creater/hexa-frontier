@@ -9,8 +9,13 @@ export interface Stats {
   hp: number;
   atk: number;
   def: number;
+  /** 마법 방어 (없으면 방어와 같음) */
+  res?: number;
   spd: number;
 }
+
+/** 공격 방식: 물리는 방어, 마법은 마법 방어로 막는다 */
+export type DamageType = 'phys' | 'magic';
 
 export type TargetRule =
   | 'enemyDefault' // 근접: 가장 앞 열, 원거리: 아무나 (도발 우선)
@@ -59,6 +64,8 @@ export interface UnitDef {
   element: Element;
   role: Role;
   range: Range;
+  /** 공격 방식 (없으면 물리) */
+  dmg?: DamageType;
   base: Stats;
   skills: SkillDef[]; // [basic, active?, ultimate?]
 }

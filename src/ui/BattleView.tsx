@@ -146,14 +146,16 @@ export function BattleView({
             if (!txt) return null;
             const strong = tg.elementMul && tg.elementMul > 1;
             const weak = tg.kind === 'dmg' && tg.elementMul !== undefined && tg.elementMul < 1;
+            const blocked = tg.kind === 'dmg' && tg.resisted;
             return (
               <div
                 key={`${e.t}${e.actor}${i}`}
-                className={`float ${tg.kind} ${strong ? 'strong' : ''} ${weak ? 'weak' : ''}`}
+                className={`float ${tg.kind} ${strong ? 'strong' : ''} ${weak || blocked ? 'weak' : ''}`}
                 style={{ left: `${p.x + ((i % 3) - 1) * 4}%`, top: `calc(${p.y}% - ${30 + age * 40}px)`, opacity: 1 - age / 0.7 }}
               >
                 {strong && <small className="ftag">유리!</small>}
                 {weak && <small className="ftag">불리</small>}
+                {blocked && <small className="ftag">막힘</small>}
                 {txt}
               </div>
             );

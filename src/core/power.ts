@@ -63,17 +63,46 @@ export function attackMatchup(spiritId: string, encounterId: string): Matchup {
   return m > 1.05 ? 'adv' : m < 0.95 ? 'dis' : 'even';
 }
 
-/** 이 전투에서 쓰면 좋은 스피릿 순서 (유리 → 보통 → 불리) */
+export type ArmorMatch = 'good' | 'bad' | 'even';
+
+/**
+ * 공격 방식(물리/마법) 상성: 적들의 방어와 마법 방어를 비교해, 이 스피릿의 공격이
+ * 약한 쪽을 노리면 good, 단단한 쪽에 막히면 bad (D63). 보스는 가중치 3.
+ */
+export function armorMatchup(spiritId: string, encounterId: string): ArmorMatch {
+  const f = armorFactor(spiritId, encounterId);
+  return f > 1.08 ? 'good' : f < 0.85 ? 'bad' : 'even';
+}
+
+function armorFactor(spiritId: string, encounterId: string): number {
+  const enc = _ENC[encounterId];
+  const magic = SPIRITS[spiritId].dmg === 'magic';
+  let sum = 0;
+  let w = 0;
+  for (const e of enc.enemies) {
+    const b = _EN[e.enemyId].base;
+    const res = b.res ?? b.def;
+    const used = magic ? res : b.def;
+    const avg = (b.def + res) / 2;
+    const k = _EN[e.enemyId].isBoss ? 3 : 1;
+    sum += ((BALANCE.battle.defK + avg) / (BALANCE.battle.defK + used)) * k;
+    w += k;
+  }
+  return sum / w;
+}
+
+/** 이 전투에서 쓰면 좋은 스피릿 순서 (유리 → 보통 → 불리, 물리/마법도 반영) */
 export function suggestTeam(owned: string[], encounterId: string, max: number): string[] {
-  const score = (id: string) => ({ adv: 2, even: 1, dis: 0 })[attackMatchup(id, encounterId)];
+  const score = (id: string) => ({ adv: 2, even: 1, dis: 0 })[attackMatchup(id, encounterId)] + ({ good: 0.6, even: 0, bad: -1.2 })[armorMatchup(id, encounterId)];
   // 탱커·회복은 상성이 보통이어도 남긴다
   const role = (id: string) => (SPIRITS[id].role === 'tank' || SPIRITS[id].role === 'healer' ? 0.5 : 0);
   return [...owned].sort((a, b) => score(b) + role(b) - (score(a) + role(a))).slice(0, max);
 }
 
 const MATCH_FACTOR: Record<Matchup, number> = { adv: 1.25, even: 1, dis: 0.5 };
+const ARMOR_FACTOR: Record<ArmorMatch, number> = { good: 1.1, even: 1, bad: 0.55 };
 
-/** 상성 보정 전투력: 출전 스피릿마다 이 전투의 적에 대한 상성(▲×1.25 / ▼×0.5)을 곱한 합 */
+/** 상성 보정 전투력: 출전 스피릿마다 속성 상성(▲×1.25 / ▼×0.5)과 물리/마법 상성(막힘 ×0.55)을 곱한 합 */
 export function effectivePower(s: GameState, encounterId: string, ids: string[] = Object.keys(s.formation)): number {
-  return Math.round(ids.reduce((a, id) => a + spiritPower(s, id) * MATCH_FACTOR[attackMatchup(id, encounterId)], 0));
+  return Math.round(ids.reduce((a, id) => a + spiritPower(s, id) * MATCH_FACTOR[attackMatchup(id, encounterId)] * ARMOR_FACTOR[armorMatchup(id, encounterId)], 0));
 }

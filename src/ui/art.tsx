@@ -2,7 +2,7 @@
 import { ELEMENT_LABEL, ROLE_LABEL } from '../core/board';
 import type { Element, Role, UnitDef } from '../core/types';
 
-const BASE = import.meta.env.BASE_URL;
+const BASE = import.meta.env?.BASE_URL ?? '/';
 
 export function asset(name: string): string {
   return `${BASE}assets/${name}.webp`;

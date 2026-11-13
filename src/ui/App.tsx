@@ -52,10 +52,17 @@ export function App() {
 
   const tut = state.tutorial;
   const tutActive = tut.introSeen && !tut.done;
-  const elemIntroDue = tut.introSeen && !tut.done && !tut.elementIntro && !!state.bossAttempts['b1'] && !battle && !joined;
-  const windIntroDue = !elemIntroDue && tut.introSeen && !tut.done && !tut.windIntro && !!state.attempts['c1'] && !state.cleared.includes('c1') && !battle && !joined;
+  // 튜토리얼 설명 팝업 (D63): 그 칸을 이기거나 진 직후 한 번씩
+  const cl = (id: string) => state.cleared.includes(id);
+  const free = tutActive && !battle && !joined && !evolve && state.map === 'P00';
+  const elemIntroDue = free && !tut.elementIntro && cl('a5');
+  const golemLossDue = free && !elemIntroDue && !tut.golemLoss && !!state.bossAttempts['b1'] && !cl('b1');
+  const golemWinDue = free && !tut.golemWin && cl('b1');
+  const magicDue = free && !tut.magicIntro && !!state.attempts['c2'] && !cl('c2');
+  const evoDue = free && !tut.evoIntro && !!state.bossAttempts['b2'] && !cl('b2');
+  const tutModal = elemIntroDue || golemLossDue || golemWinDue || magicDue || evoDue;
   const [summoned, setSummoned] = useState(false);
-  const guide = battle || joined || evolve || elemOpen || elemFocus || elemIntroDue || windIntroDue ? null : computeGuide(state, { selected, tab });
+  const guide = battle || joined || evolve || elemOpen || elemFocus || tutModal ? null : computeGuide(state, { selected, tab, now });
   const objTile = objectiveTile(state);
   const mapTarget = guide ? (guide.target?.kind === 'tile' ? guide.target.id : null) : objTile;
   const markTut = (f: (t: GameState['tutorial']) => void) => act((s) => f(s.tutorial));
@@ -78,6 +85,11 @@ export function App() {
     return () => clearTimeout(id);
   }, [power]);
 
+  // 캠프 자동 사냥 소개: 골렘을 넘고 캠프 탭을 처음 열면 완료
+  useEffect(() => {
+    if (tutActive && tab === 'camp' && state.cleared.includes('b1') && !tut.campTip) markTut((t) => (t.campTip = true));
+  }, [tab, tutActive, state.cleared, tut.campTip]);
+
   const toast = (m: string) => {
     setToastMsg(m);
     setTimeout(() => setToastMsg((c) => (c === m ? null : c)), 2200);
@@ -97,7 +109,7 @@ export function App() {
   const tapTile = (id: string) => {
     if (tutActive && guide) {
       if (guide.target?.kind === 'tile' && id !== guide.target.id) return toast('먼저 ▼ 표시된 칸을 눌러 줘!');
-      if (guide.target?.kind === 'tab' || guide.target?.kind === 'levelUp') return toast('아래 안내를 먼저 따라 줘!');
+      if (guide.target?.kind === 'tab' || guide.target?.kind === 'levelUp' || guide.target?.kind === 'evolve' || guide.target?.kind === 'altar') return toast('아래 안내를 먼저 따라 줘!');
     }
     setSelected(id);
   };
@@ -105,24 +117,28 @@ export function App() {
   const goTab = (t: Tab) => {
     void canIdle;
     if (tutActive && guide?.target?.kind === 'tab' && guide.target.tab !== t) return toast('반짝이는 탭을 눌러 줘!');
-    if (tutActive && guide?.target?.kind === 'levelUp' && t !== 'spirit') return toast('먼저 레벨업을 해 보자!');
+    if (tutActive && (guide?.target?.kind === 'levelUp' || guide?.target?.kind === 'evolve') && t !== 'spirit') return toast('먼저 🐾스피릿 탭에서 해 보자!');
     if (tutActive && guide?.target?.kind === 'altar' && t !== 'summon') return toast('먼저 소환을 해 보자!');
     setSelected(null);
     setTab(t);
   };
 
   const onAction = (id: ActionId, tileId?: string) => {
+    const from = battle?.tileId ?? null;
     setBattle(null);
     if ((id === 'farm' || id === 'recruit') && tileId) {
       setTab('map');
       enter(tileId);
+    } else if (id === 'summon') setTab('summon');
+    else if (id === 'idle') setTab('camp');
+    else if (id === 'explore') setTab('map');
+    else if (id === 'formation' && from) {
+      // 출전 동료 바꾸기: 그 칸의 전투 시작 화면을 다시 연다
+      setTab('map');
+      setSelected(from);
     } else {
-      if (id === 'summon') {
-        setTab('summon');
-        return;
-      }
       setTab('spirit');
-      setFocusLevel(true);
+      setFocusLevel(id === 'levelup');
     }
   };
 
@@ -221,6 +237,7 @@ export function App() {
             act={act}
             toast={toast}
             focusLevel={focusLevel || guide?.target?.kind === 'levelUp'}
+            focusSpirit={guide?.target?.kind === 'evolve' ? guide.target.id : null}
             goal={nextBossGoal(state)}
             onLeveled={() => {
               setFocusLevel(false);
@@ -245,7 +262,7 @@ export function App() {
         {tab === 'camp' && <CampView state={state} now={now} act={act} toast={toast} />}
       </main>
 
-      {guide && <GuideBar guide={guide} onFinish={() => markTut((t) => (t.done = true))} onSkip={() => markTut((t) => (t.done = true))} />}
+      {guide && <GuideBar over={guide.target?.kind === 'evolve' && tab === 'spirit'} guide={guide} onFinish={() => markTut((t) => (t.done = true))} onSkip={() => markTut((t) => (t.done = true))} />}
 
       <nav className="tabbar">
         <button className={`${tab === 'map' ? 'on' : ''} ${guide?.target?.kind === 'tab' && guide.target.tab === 'map' ? 'pulse' : ''}`} onClick={() => goTab('map')}>
@@ -259,7 +276,7 @@ export function App() {
           <span>{canSummon ? '✨' : '🔒'}</span>소환
           {canSummon && state.summonStones >= BALANCE.summon.cost && <i className="badge">!</i>}
         </button>
-        <button className={`${tab === 'camp' ? 'on' : ''}`} onClick={() => goTab('camp')}>
+        <button className={`${tab === 'camp' ? 'on' : ''} ${guide?.target?.kind === 'tab' && guide.target.tab === 'camp' ? 'pulse' : ''}`} onClick={() => goTab('camp')}>
           <span>🏕</span>캠프
           {canIdle && idle.gold > 0 && <i className="badge">!</i>}
         </button>
@@ -349,19 +366,99 @@ export function App() {
         </div>
       )}
 
-      {windIntroDue && (
+      {golemLossDue && (
         <div className="modal">
           <div className="reveal elem-modal">
-            <div className="reveal-tag">상성 다시 보기</div>
-            <ElementChart highlight={['electric', 'water']} />
+            <div className="reveal-tag">왜 졌을까? — 속성 상성</div>
+            <ElementChart highlight={['fire', 'forest']} />
+            <MatchTable state={state} enemyEl="forest" enemyName="고목 골렘" />
             <p className="elem-rule">
-              <b>왜 졌을까?</b> 💧물은 🔥불에 강해서 엠버윙의 공격이 반토막(▼)나고, 오히려 더 아프게 맞았어.
+              고목 골렘은 <b>🌿숲</b>. 우리 팀 💧물·🌿숲은 숲을 상대로 <b>보통</b>이라 아무리 때려도 골렘의 체력 1180을 다 깎지 못했어.
             </p>
+            <p className="elem-rule big-rule">
+              화살표를 봐: <b>🔥불 → 🌿숲</b>. 🔥불 스피릿은 골렘에게 <b className="adv">피해 ×1.3</b>!
+            </p>
+            <p className="muted small">레벨업만으로는 안 되는 적도 있어. 그럴 땐 상성이 맞는 동료를 ✨소환해서 출전시키자.</p>
+            <button className="cta" onClick={() => markTut((t) => (t.golemLoss = true))}>
+              🔥불 스피릿을 소환하러!
+            </button>
+          </div>
+        </div>
+      )}
+
+      {golemWinDue && (
+        <div className="modal">
+          <div className="reveal elem-modal">
+            <div className="reveal-tag">상성 승리!</div>
+            <div className="evo-row">
+              <img src={portrait(SPIRITS.igni, state.spirits.igni?.stage ?? 1)} alt="" />
+              <span>▶</span>
+              <img src={asset('grovegolem-p2')} alt="" />
+            </div>
+            <p className="elem-rule big-rule">
+              🔥엠버윙의 공격은 <b className="adv">"유리!" ×1.3</b>. 아까는 못 이긴 골렘을 이겼어!
+            </p>
+            <div className="lesson-list">
+              <div>✔ 칸을 누르면 동료마다 <b className="adv">▲유리</b> / = 보통 / <b className="dis">▼불리</b>가 보여</div>
+              <div>✔ 유리하면 주는 피해 ×1.3, 불리하면 ×0.75</div>
+              <div>✔ 출전은 {state.maxDeploy}명! 적에 맞춰 <b>✨상성 추천 편성</b>으로 바꿔</div>
+            </div>
+            <button className="cta" onClick={() => markTut((t) => (t.golemWin = true))}>
+              알겠어!
+            </button>
+          </div>
+        </div>
+      )}
+
+      {magicDue && (
+        <div className="modal">
+          <div className="reveal elem-modal">
+            <div className="reveal-tag">물리 ⚔️ / 마법 ✨</div>
             <p className="elem-rule">
-              화살표를 봐: <b>🌪️바람 → 💧물</b>. 바람 속성 스피릿을 소환해서 엠버윙 대신 출전시키면 이길 수 있어!
+              <b>왜 졌을까?</b> 물안개 여우는 💧물이라 🔥엠버윙이 ▼불리하기도 하지만, 진짜 이유는 따로 있어. 물안개가 <b>✨마법을 흩어 버려</b>(마법 방어가 아주 높아).
             </p>
-            <button className="cta" onClick={() => markTut((t) => (t.windIntro = true))}>
-              바람 스피릿을 찾으러 가자!
+            <div className="lesson-list">
+              <div>⚔️ <b>물리 공격</b>은 적의 <b>방어</b>로 막혀요</div>
+              <div>✨ <b>마법 공격</b>은 적의 <b>마법 방어</b>로 막혀요</div>
+              <div>전투 중 회색 <b>"막힘"</b>이 뜨면 공격 방식이 맞지 않는 거예요</div>
+            </div>
+            <AttackTypes state={state} />
+            <p className="elem-rule big-rule">
+              여우는 물리 방어가 약해! <b>⚔️물리 공격수</b>를 데려오자. ⛰️락터스크(물리·근접)를 소환해서 엠버윙 대신 출전!
+            </p>
+            <p className="muted small">근접 동료는 전열, 원거리·회복은 후열이 좋아요. 추천 편성이 알아서 맞춰 줘요.</p>
+            <button className="cta" onClick={() => markTut((t) => (t.magicIntro = true))}>
+              물리 공격수를 부르자!
+            </button>
+          </div>
+        </div>
+      )}
+
+      {evoDue && (
+        <div className="modal">
+          <div className="reveal elem-modal">
+            <div className="reveal-tag">진화</div>
+            <div className="evo-row three">
+              {[1, 2, 3].map((st) => (
+                <span key={st} className="evo-step">
+                  {st > 1 && <span className="evo-arrow">➜</span>}
+                  <img src={portrait(SPIRITS.rocky, st)} alt="" />
+                  <small>{SPIRITS.rocky.stages?.[st - 1]}</small>
+                </span>
+              ))}
+            </div>
+            <p className="elem-rule">
+              <b>왜 졌을까?</b> 스피릿은 단계마다 <b>최대 레벨</b>이 있어. 1단계는 <b>Lv.{BALANCE.evolution.levelCap[0]}</b>까지라 레벨업만으로는 한계가 와.
+            </p>
+            <div className="lesson-list">
+              <div>① 같은 스피릿을 <b>한 번 더 소환</b> → 진화 재료 +1 (등급 없음, 같은 카드를 먹는 방식)</div>
+              <div>② 그 스피릿을 <b>Lv.{BALANCE.evolution.levelCap[0]}</b>까지 레벨업</div>
+              <div>③ 🐾스피릿 → 카드 → <b>[✨ 진화]</b>: 모습이 바뀌고 능력치 ×1.15, 최대 Lv.{BALANCE.evolution.levelCap[1]}로!</div>
+              <div className="muted">3단계 진화는 Lv.{BALANCE.evolution.levelCap[1]} + 같은 스피릿 {BALANCE.evolution.copies[1]}장</div>
+            </div>
+            <p className="elem-rule big-rule">아까 주운 🔮진화의 결정으로 ⛰️락터스크를 한 번 더 소환하자!</p>
+            <button className="cta" onClick={() => markTut((t) => (t.evoIntro = true))}>
+              진화하러 가자!
             </button>
           </div>
         </div>
@@ -371,21 +468,19 @@ export function App() {
         <div className="modal" onClick={() => (elemIntroDue ? null : (setElemOpen(false), setElemFocus(null)))}>
           <div className="reveal elem-modal" onClick={(e) => e.stopPropagation()}>
             <div className="reveal-tag">속성 상성</div>
-            <ElementChart highlight={elemIntroDue ? ['fire', 'forest'] : undefined} focus={elemIntroDue ? undefined : elemFocus ?? undefined} />
+            <ElementChart highlight={elemIntroDue ? ['water', 'fire'] : undefined} focus={elemIntroDue ? undefined : elemFocus ?? undefined} />
             {elemFocus && !elemIntroDue && <FocusLines el={elemFocus} />}
-            {elemIntroDue && <p className="elem-rule"><b>왜 졌을까?</b> 골렘은 🌿숲. 우리 팀 💧물·🌿숲은 숲을 상대로 <b>보통</b>이라 피해가 약했어.</p>}
+            {elemIntroDue && (
+              <p className="elem-rule big-rule">
+                방금 💧쉘나이트가 🔥불씨 둥지를 때릴 때 주황색 <b className="adv">"유리!"</b>가 떴지? <b>💧물 → 🔥불</b>, 물은 불에 강해!
+              </p>
+            )}
             <p className="elem-rule">
               <b>화살표 방향으로 강해요.</b> 유리한 상대에게는 피해 <b className="adv">×1.3</b>, 불리한 상대에게는 <b className="dis">×0.75</b>.
             </p>
-            <div className="elem-lines">
-              💧물 → 🔥불 → 🌿숲 → ⛰️대지 → 🌪️바람 → 💧물
-            </div>
-            {elemIntroDue && (
-              <p className="elem-rule">
-                화살표를 봐: <b>🔥불 → 🌿숲</b>. 불 속성 스피릿을 데려오면 골렘에게 피해가 1.3배! ✨소환이 열렸어요.
-              </p>
-            )}
-            <p className="muted small">칸을 누르면 어떤 동료가 유리한지 ▲▼로 보여 줘요. 위쪽 🔥💧 버튼으로 언제든 다시 볼 수 있어요.</p>
+            <div className="elem-lines">💧물 → 🔥불 → 🌿숲 → ⛰️대지 → 🌪️바람 → 💧물</div>
+            {elemIntroDue && <p className="elem-rule">반대로 화살표를 거꾸로 맞으면 불리해. 다음 돌풍 언덕엔 🌪️바람 늑대가 있어. 🌪️바람 → 💧물이니까 쉘나이트가 불리할 거야!</p>}
+            <p className="muted small">칸을 누르면 어떤 동료가 유리한지 ▲▼로 보여 줘요. 적 속성을 길게 누르거나 위쪽 🔥💧 버튼으로 언제든 다시 볼 수 있어요.</p>
             <button
               className="cta"
               onClick={() => {
@@ -423,12 +518,50 @@ export function App() {
   );
 }
 
-/** 튜토리얼 전투 중 속성 설명 한 줄 */
+/** 튜토리얼 전투 중 설명 한 줄 */
 function battleNote(tileId: string): string | undefined {
-  if (tileId === 'a3') return '엠버윙(🔥불)이 🌿숲 적을 때리면 주황색 "유리!" 큰 숫자가 떠요. 상성이 맞으면 피해가 1.3배!';
-  if (tileId === 's1') return '이번 적은 💧물. 물은 🔥불에 강해서 엠버윙 공격은 회색 "불리" 작은 숫자예요. 쉘나이트(💧)는 영향 없이 버텨요.';
-  if (tileId === 'b1') return '고목 골렘은 🌿숲 속성! 🔥엠버윙의 공격이 가장 아파요.';
-  return undefined;
+  const notes: Record<string, string> = {
+    a3: '적 바위엄니가 우리보다 강해. 이길 수 없으면 골드로 레벨업하면 돼!',
+    a5: '💧쉘나이트가 🔥적을 때리면 주황색 "유리!" 큰 숫자! 물은 불에 강해서 피해 ×1.3.',
+    a6: '🌪️바람 늑대에게 💧쉘나이트 공격은 회색 "불리" 작은 숫자. 바람은 물에 강해서 피해 ×0.75.',
+    b1: '고목 골렘은 🌿숲 속성! 🔥불 공격이 "유리!"로 가장 아파요.',
+    c2: '회색 "막힘"을 봐! 물안개가 ✨마법을 막아. ⚔️물리 공격은 잘 들어가.',
+    b2: '바위엄니 대장은 단단해. 진화로 최대 레벨을 넘어서자!',
+  };
+  return notes[tileId];
+}
+
+/** 우리 팀 각 스피릿이 이 속성의 적에게 유리/보통/불리 */
+function MatchTable({ state, enemyEl, enemyName }: { state: GameState; enemyEl: Element; enemyName: string }) {
+  return (
+    <div className="match-table">
+      {Object.keys(state.spirits).map((id) => {
+        const m = elementMultiplier(SPIRITS[id].element, enemyEl);
+        return (
+          <div key={id}>
+            <img src={portrait(SPIRITS[id], state.spirits[id].stage)} alt="" />
+            <span>{ELEMENT_ICON[SPIRITS[id].element]}</span>
+            <b className={m > 1 ? 'adv' : m < 1 ? 'dis' : ''}>{m > 1 ? '▲유리' : m < 1 ? '▼불리' : '=보통'}</b>
+          </div>
+        );
+      })}
+      <div className="muted small">vs {ELEMENT_ICON[enemyEl]} {enemyName}</div>
+    </div>
+  );
+}
+
+/** 우리 팀의 공격 방식 (물리/마법) */
+function AttackTypes({ state }: { state: GameState }) {
+  return (
+    <div className="match-table">
+      {Object.keys(state.spirits).map((id) => (
+        <div key={id}>
+          <img src={portrait(SPIRITS[id], state.spirits[id].stage)} alt="" />
+          <b className={SPIRITS[id].dmg === 'magic' ? 'dis' : 'adv'}>{SPIRITS[id].dmg === 'magic' ? '✨마법' : '⚔️물리'}</b>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 const ELEMENTS: Element[] = ['water', 'fire', 'forest', 'earth', 'electric'];
@@ -477,7 +610,7 @@ function TileSheet({ state, id, focus, onGo, onClose }: { state: GameState; id: 
             <img src={asset(t.resource === 'summon' ? 'tile-crystal' : 'tile-treasure')} alt="" />
             <div className="small">
               {t.resource === 'summon'
-                ? `🔮 소환석 ${BALANCE.summon.cost}개를 얻어요. ✨소환 탭에서 스피릿을 부를 수 있어요.`
+                ? `🔮 소환석 ${t.amount ?? BALANCE.summon.cost}개를 얻어요. ✨소환 탭에서 원하는 속성의 스피릿을 부를 수 있어요.`
                 : `보물 상자예요. 열면 ${t.resource === 'stones' ? `${STONE} 성장석 (승급에 사용)` : `${GOLD} 골드`}을 얻어요.`}
             </div>
           </div>
@@ -485,7 +618,7 @@ function TileSheet({ state, id, focus, onGo, onClose }: { state: GameState; id: 
         {t.kind === 'start' && <div className="muted">{t.hint}</div>}
         {t.kind === 'gate' && (
           <div className="muted">
-            {t.map === 'P00' ? (mapUnlocked(state, 'P01') ? '튜토리얼 끝! 본편 P01(스테이지 100개)로 출발해요.' : '바위엄니 떼를 물리치면(튜토리얼 끝) 열려요.') : '다음 지역은 준비 중이에요.'}
+            {t.map === 'P00' ? (mapUnlocked(state, 'P01') ? '튜토리얼 끝! 본편 P01(스테이지 100개)로 출발해요.' : '바위엄니 대장을 물리치면(튜토리얼 끝) 열려요.') : '다음 지역은 준비 중이에요.'}
           </div>
         )}
         {canGo && t.kind !== 'start' ? (

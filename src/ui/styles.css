@@ -408,3 +408,29 @@ img { user-select: none; -webkit-user-drag: none; }
 .spcard-evo { position: absolute; top: 30px; right: 8px; background: linear-gradient(#b48cff, #7a52d1); font-size: 10px; font-weight: 900; padding: 0 6px; border-radius: 6px; }
 .spcard-evo.dim { background: #ffffff22; }
 .evo-btn { width: 100%; margin-top: 6px; }
+
+/* ── D63 튜토리얼 확장 ── */
+.big-rule { font-size: 15px; line-height: 1.45; background: #ffffff10; border-radius: 10px; padding: 8px 10px; }
+.lesson-list { text-align: left; display: flex; flex-direction: column; gap: 4px; font-size: 13px; margin: 6px 0; background: #00000033; border-radius: 10px; padding: 8px 10px; }
+.match-table { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; margin: 6px 0; }
+.match-table > div { display: flex; flex-direction: column; align-items: center; font-size: 12px; gap: 1px; }
+.match-table img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; background: #ffffff10; }
+.match-table .adv { color: #ffb84d; }
+.match-table .dis { color: #9fb3c8; }
+.evo-steps { display: flex; flex-direction: column; gap: 3px; margin: 6px 0; background: #b48cff1a; border-radius: 8px; padding: 6px 8px; }
+.evo-steps .done { color: #58d68d; }
+.evo-guide { background: #b48cff1f; border: 1px solid #b48cff55; border-radius: 10px; padding: 8px 10px; margin: 8px 0; line-height: 1.45; }
+.evo-btn.focus { outline: 3px solid #ffe08a; }
+.tag.magic { background: #b48cff33; }
+.tag.phys { background: #ffb84d33; }
+.guard-line { margin: 2px 0 6px; padding: 5px 8px; border-radius: 8px; background: #6ab0ff1f; border: 1px solid #6ab0ff44; }
+.m-armor { position: absolute; right: 2px; top: 2px; font-size: 9px; padding: 0 3px; border-radius: 6px; background: #000c; }
+.m-armor.bad { color: #9fb3c8; }
+.m-armor.good { color: #ffb84d; }
+.evo-row.three { display: flex; justify-content: center; align-items: flex-start; gap: 2px; }
+.evo-row.three .evo-step { display: flex; align-items: center; gap: 2px; }
+.evo-row.three .evo-step img { width: 72px; height: 72px; border-radius: 12px; object-fit: cover; }
+.evo-row.three .evo-step small { display: none; }
+.evo-row.three .evo-arrow { font-size: 16px; color: #b48cff; }
+.guide.over { z-index: 45; bottom: calc(env(safe-area-inset-bottom) + 8px); }
+.detail .detail-scroll { padding-bottom: 140px; }

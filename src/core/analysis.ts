@@ -5,13 +5,14 @@ import { SPIRITS } from '../data/spirits';
 import { elementMultiplier, ELEMENT_LABEL } from './board';
 import { simulateBattle, type BattleResult, type BattleSetup, type BattleUnitInput } from './battle';
 import type { GameState } from './game';
-import { affordableLevelUps, bestFarmTile, canRankUp, isBusy, objectiveTile, reachableSpiritTile, SUMMON_POOL, summonUnlocked } from './game';
+import { affordableLevelUps, bestFarmTile, canEvolve, canRankUp, idlePreview, idleUnlocked, isBusy, objectiveTile, reachableSpiritTile, respawnLeft, SUMMON_POOL, summonUnlocked } from './game';
+import { ENCOUNTERS, ENEMIES } from '../data/enemies';
 import type { Element } from './types';
-import { effectivePower, recommendedPower } from './power';
+import { armorMatchup, effectivePower, recommendedPower, suggestTeam } from './power';
 import { TILE_BY_ID } from '../data/map';
 
-export type ReasonTag = 'attack' | 'survival' | 'fatigue' | 'element' | 'healing' | 'timeout';
-export type ActionId = 'farm' | 'rankup' | 'levelup' | 'recruit' | 'formation' | 'summon' | 'train' | 'gather' | 'rest' | 'explore';
+export type ReasonTag = 'attack' | 'survival' | 'fatigue' | 'element' | 'armor' | 'healing' | 'timeout';
+export type ActionId = 'farm' | 'rankup' | 'levelup' | 'recruit' | 'formation' | 'summon' | 'idle' | 'evolve' | 'train' | 'gather' | 'rest' | 'explore';
 
 export interface DefeatAnalysis {
   nearMiss: boolean;
@@ -29,6 +30,7 @@ const REASON_LABEL: Record<ReasonTag, string> = {
   survival: '생존 부족',
   fatigue: '피로',
   element: '상성 불리',
+  armor: '공격이 막힘',
   healing: '회복 부족',
   timeout: '시간 초과',
 };
@@ -76,6 +78,12 @@ export function analyzeDefeat(s: GameState, setup: BattleSetup, result: BattleRe
   const boss = setup.enemies.find((e) => e.isBoss) ?? setup.enemies[0];
   const avgElem = setup.allies.reduce((a, u) => a + elementMultiplier(u.def.element, boss.def.element), 0) / setup.allies.length;
   if (avgElem < 1) add('element', `${boss.def.name}(${ELEMENT_LABEL[boss.def.element]})에게 상성이 불리한 스피릿이 많습니다.`);
+  const encId = encounterIdOf(setup);
+  const blocked = setup.allies.filter((u) => armorMatchup(u.def.id, encId) === 'bad');
+  if (blocked.length) {
+    const magic = blocked[0].def.dmg === 'magic';
+    add('armor', `${blocked.map((u) => u.def.name).join(', ')}의 ${magic ? '✨마법' : '⚔️물리'} 공격이 막혔어요. 이 적은 ${magic ? '마법 방어' : '물리 방어'}가 높아요. ${magic ? '⚔️물리' : '✨마법'} 공격 동료를 쓰세요.`);
+  }
 
   // 사실 정보
   const facts: string[] = [];
@@ -99,6 +107,9 @@ export function analyzeDefeat(s: GameState, setup: BattleSetup, result: BattleRe
       const [el, ids] = counter;
       const id = ids.find((x) => !s.spirits[x])!;
       actions.push({ id: 'summon', label: `${ELEMENT_LABEL[el]} 속성 스피릿 소환하기`, why: `${boss.def.name}은(는) ${ELEMENT_LABEL[boss.def.element]} 속성! ${ELEMENT_LABEL[el]} 속성 ${SPIRITS[id].stages?.[0]}이(가) 강해요.` });
+    } else if (blocked.length) {
+      const good = (Object.entries(SUMMON_POOL) as [Element, string[]][]).flatMap(([, ids]) => ids).find((id) => !s.spirits[id] && armorMatchup(id, encId) === 'good');
+      if (good) actions.push({ id: 'summon', label: `${SPIRITS[good].dmg === 'magic' ? '✨마법' : '⚔️물리'} 공격 스피릿 소환하기`, why: `${SPIRITS[good].stages?.[0]}(${ELEMENT_LABEL[SPIRITS[good].element]})는 ${SPIRITS[good].dmg === 'magic' ? '마법' : '물리'} 공격이라 이 적에게 잘 들어요.` });
     }
   }
   const ownedIds = Object.keys(s.spirits);
@@ -110,11 +121,31 @@ export function analyzeDefeat(s: GameState, setup: BattleSetup, result: BattleRe
   }
   const ups = affordableLevelUps(s);
   if (ups > 0) actions.push({ id: 'levelup', label: `레벨업 하기 (${ups}번 가능)`, why: `지금 가진 골드로 레벨업을 ${ups}번 할 수 있어요.` });
+  if (ownedIds.some((id) => canEvolve(s, id))) actions.push({ id: 'evolve', label: '진화 하기', why: '진화 조건(최대 레벨 + 같은 스피릿)이 모였어요. 진화하면 능력치가 오르고 최대 레벨이 늘어나요.' });
   if (ownedIds.some((id) => canRankUp(s, id))) actions.push({ id: 'rankup', label: '승급 하기', why: '성장석이 모였어요. 승급하면 능력치 +12%.' });
   const farm = bestFarmTile(s, now);
-  if (farm) actions.push({ id: 'farm', label: '골드 벌러 가기', why: `쉬운 칸 "${TILE_BY_ID[farm].name}"에서 바로 싸워 골드를 법니다.`, tileId: farm });
+  if (farm) {
+    const fenc = ENCOUNTERS[TILE_BY_ID[farm].encounterId!];
+    const gain = fenc.enemies.reduce((a, e) => a + Math.round(ENEMIES[e.enemyId].gold * (1 + BALANCE.enemy.goldPerLevel * (e.level - 1))), 0);
+    actions.push({ id: 'farm', label: `골드 벌러 가기 (${TILE_BY_ID[farm].name})`, why: `이미 이긴 칸에서 다시 싸워 골드 약 ${gain}을 벌어요. 이긴 칸은 ⏳쿨타임이 지나면 몬스터가 다시 나타나요. 번 골드로 레벨업!`, tileId: farm });
+  } else {
+    const waits = s.cleared
+      .map((id) => TILE_BY_ID[id])
+      .filter((t) => t && t.map === s.map && t.kind === 'battle')
+      .map((t) => respawnLeft(s, t.id, now))
+      .filter((x) => x > 0);
+    if (waits.length) actions.push({ id: 'explore', label: `골드 벌기: ${Math.ceil(Math.min(...waits) / 60_000)}분 뒤 가능`, why: '이긴 칸이 모두 ⏳쿨타임 중이에요. 몬스터가 다시 나타나면 또 싸워서 골드를 벌 수 있어요.' });
+  }
+  if (idleUnlocked(s) && idlePreview(s, now).gold > 0) actions.push({ id: 'idle', label: `자동 사냥 보상 받기 (${idlePreview(s, now).gold})`, why: '🏕캠프에 쌓인 골드를 받아 레벨업에 써요.' });
   const benched = ownedIds.filter((id) => s.formation[id] === undefined && !isBusy(s, id, now));
-  if (benched.length) actions.push({ id: 'formation', label: '편성에 넣기', why: `${benched.map((id) => SPIRITS[id].name).join(', ')}이(가) 출전하지 않고 있어요.` });
+  const full = Object.keys(s.formation).length >= s.maxDeploy;
+  if (benched.length && !full) actions.push({ id: 'formation', label: '편성에 넣기', why: `출전 자리가 ${s.maxDeploy - Object.keys(s.formation).length}칸 비어 있어요. ${benched.map((id) => SPIRITS[id].name).join(', ')}을(를) 넣으세요.` });
+  else if (benched.length && full) {
+    // 출전이 꽉 찼으면 '추가'가 아니라 '교체'를 제안 (폭풍 둥지 버그 수정)
+    const best = suggestTeam(ownedIds, encId, s.maxDeploy);
+    const swapIn = best.filter((id) => s.formation[id] === undefined);
+    if (swapIn.length) actions.push({ id: 'formation', label: '출전 동료 바꾸기', why: `출전은 ${s.maxDeploy}명까지. ${swapIn.map((id) => SPIRITS[id].name).join(', ')}을(를) 넣고 상성이 나쁜 동료를 빼면 더 강해요.` });
+  }
 
   reasons.sort((a, b) => (a.tag === 'fatigue' ? -1 : 0) - (b.tag === 'fatigue' ? -1 : 0));
   return {

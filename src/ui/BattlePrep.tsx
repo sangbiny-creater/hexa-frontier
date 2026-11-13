@@ -4,7 +4,7 @@ import { useRef, useState } from 'react';
 import { ELEMENT_LABEL, ROLE_LABEL, ROW_LABEL, rowName } from '../core/board';
 import { availableTeam, respawnLeft, setFormation, type GameState } from '../core/game';
 import { hexCorners } from '../core/hex';
-import { attackMatchup, difficulty, DIFFICULTY_LABEL, effectivePower, recommendedPower, suggestTeam } from '../core/power';
+import { armorMatchup, attackMatchup, difficulty, DIFFICULTY_LABEL, effectivePower, recommendedPower, suggestTeam } from '../core/power';
 import type { Element } from '../core/types';
 import { BALANCE } from '../data/balance';
 import { ENCOUNTERS, ENEMIES } from '../data/enemies';
@@ -93,6 +93,16 @@ export function BattlePrep({
   const owned = Object.keys(state.spirits);
   const bySlot = Object.fromEntries(Object.entries(state.formation).map(([id, slot]) => [slot, id]));
   const elements = [...new Set(enc.enemies.map((e) => ENEMIES[e.enemyId].element))];
+  // 물리/마법 방어 특징 (D63)
+  const guards = [
+    ...new Set(
+      enc.enemies.map((e) => {
+        const b = ENEMIES[e.enemyId].base;
+        const res = b.res ?? b.def;
+        return res > b.def * 2 ? 'magic' : b.def > res * 2 ? 'phys' : null;
+      }),
+    ),
+  ].filter((x): x is 'magic' | 'phys' => !!x);
   const gold =
     enc.enemies.reduce((a, e) => a + Math.round(ENEMIES[e.enemyId].gold * (1 + BALANCE.enemy.goldPerLevel * (e.level - 1))), 0) + (cleared ? 0 : enc.firstClear.gold);
   const best = suggestTeam(owned, enc.id, state.maxDeploy);
@@ -119,7 +129,9 @@ export function BattlePrep({
   const enemyInfo = (i: number) => {
     const e = enc.enemies[i];
     const d = ENEMIES[e.enemyId];
-    toast(`${d.name} Lv.${e.level} · ${ELEMENT_ICON[d.element]}${ELEMENT_LABEL[d.element]} · ${ROLE_LABEL[d.role]} · ${d.range === 'melee' ? '근접' : '원거리'}`);
+    const res = d.base.res ?? d.base.def;
+    const guard = res > d.base.def * 2 ? ' · ✨마법에 강함(⚔️물리로!)' : d.base.def > res * 2 ? ' · ⚔️물리에 강함(✨마법으로!)' : '';
+    toast(`${d.name} Lv.${e.level} · ${ELEMENT_ICON[d.element]}${ELEMENT_LABEL[d.element]} · ${ROLE_LABEL[d.role]} · ${d.range === 'melee' ? '근접' : '원거리'} · ${d.dmg === 'magic' ? '✨마법' : '⚔️물리'} 공격 · 방어 ${d.base.def}/마법방어 ${res}${guard}`);
   };
 
   return (
@@ -147,6 +159,11 @@ export function BattlePrep({
           ))}
           <span className="muted tiny">길게 누르면 상성표</span>
         </div>
+        {guards.map((g) => (
+          <div key={g} className="guard-line small">
+            {g === 'magic' ? '🛡 이 적은 ✨마법 방어가 높아요 → ⚔️물리 공격 동료가 유리' : '🛡 이 적은 ⚔️물리 방어가 높아요 → ✨마법 공격 동료가 유리'}
+          </div>
+        ))}
 
         <svg viewBox="0 0 340 362" className="prep-board">
           <rect x={0} y={186} width={340} height={1.5} fill="#ffffff22" />
@@ -230,11 +247,13 @@ export function BattlePrep({
             const d = SPIRITS[sid];
             const on = state.formation[sid] !== undefined;
             const m = attackMatchup(sid, enc.id);
+            const am = armorMatchup(sid, enc.id);
             return (
               <button key={sid} className={`member ${on ? 'on' : ''} ${picked === sid ? 'picked' : ''}`} onClick={() => setPicked(picked === sid ? null : sid)}>
                 <img src={portrait(d, state.spirits[sid].stage)} alt="" />
                 <span className="m-el">{ELEMENT_ICON[d.element]}</span>
                 <span className={`m-match ${m}`}>{MATCH_LABEL[m]}</span>
+                {am !== 'even' && <span className={`m-armor ${am}`}>{am === 'bad' ? '🛡막힘' : '약점!'}</span>}
                 <span className="m-on">{on ? ROW_LABEL[rowName(state.formation[sid])] : '대기'}</span>
               </button>
             );

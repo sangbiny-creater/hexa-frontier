@@ -40,6 +40,8 @@ export interface TargetResult {
   shield: number;
   ko: boolean;
   elementMul?: number;
+  /** 방어(물리/마법)에 많이 막힘 */
+  resisted?: boolean;
 }
 
 export interface BattleEvent {
@@ -65,6 +67,8 @@ export interface UnitSnapshot {
   maxHp: number;
   atk: number;
   def: number;
+  res: number;
+  dmg: 'phys' | 'magic';
   spd: number;
 }
 
@@ -102,6 +106,7 @@ interface RUnit {
   hp: number;
   baseAtk: number;
   baseDef: number;
+  baseRes: number;
   gauge: number;
   energy: number;
   cds: Record<string, number>;
@@ -128,9 +133,13 @@ export function computeStats(input: BattleUnitInput, team: BattleUnitInput[]) {
   );
   let atk = input.def.base.atk * lvMul * rankMul * condMul * injuryMul;
   let def = input.def.base.def * lvMul * rankMul * condMul;
+  let res = (input.def.base.res ?? input.def.base.def) * lvMul * rankMul * condMul;
   const hp = input.def.base.hp * lvMul * rankMul;
   if (match) {
-    if (input.def.role === 'tank') def *= 1 + BALANCE.rows.roleMatchBonus;
+    if (input.def.role === 'tank') {
+      def *= 1 + BALANCE.rows.roleMatchBonus;
+      res *= 1 + BALANCE.rows.roleMatchBonus;
+    }
     else atk *= 1 + BALANCE.rows.roleMatchBonus;
   }
   if (synergy) atk *= 1 + BALANCE.element.synergyAtk;
@@ -139,6 +148,7 @@ export function computeStats(input: BattleUnitInput, team: BattleUnitInput[]) {
     hp: Math.round(hp * (m.hp ?? 1)),
     atk: atk * (m.atk ?? 1),
     def: def * (m.def ?? 1),
+    res: res * (m.def ?? 1),
     spd: input.def.base.spd,
     match,
     synergy,
@@ -164,6 +174,8 @@ export function simulateBattle(setup: BattleSetup): BattleResult {
       maxHp: s.hp,
       atk: Math.round(s.atk),
       def: Math.round(s.def),
+      res: Math.round(s.res),
+      dmg: input.def.dmg ?? 'phys',
       spd: s.spd,
     };
     units.push({
@@ -173,6 +185,7 @@ export function simulateBattle(setup: BattleSetup): BattleResult {
       hp: s.hp,
       baseAtk: s.atk,
       baseDef: s.def,
+      baseRes: s.res,
       gauge: rng() * 30,
       energy: 0,
       cds: Object.fromEntries(input.def.skills.map((k) => [k.id, k.kind === 'active' ? k.cooldown * 0.5 : 0])),
@@ -335,9 +348,12 @@ function applyEffect(eff: SkillEffect, u: RUnit, tg: RUnit, rng: Rng, t: number)
   const base = { uid: tg.snap.uid };
   switch (eff.type) {
     case 'damage': {
-      const def = tg.baseDef * Math.max(0, 1 - sum(tg.defDebuffs.map((b) => b.ratio)));
+      // 물리 공격은 방어, 마법 공격은 마법 방어로 막는다
+      const guard = u.snap.dmg === 'magic' ? tg.baseRes : tg.baseDef;
+      const def = guard * Math.max(0, 1 - sum(tg.defDebuffs.map((b) => b.ratio)));
       const elem = elementMultiplier(u.snap.element, tg.snap.element);
-      let dmg = atk * eff.coef * (B.defK / (B.defK + def)) * elem;
+      const guardMul = B.defK / (B.defK + def);
+      let dmg = atk * eff.coef * guardMul * elem;
       dmg *= 1 + (rng() * 2 - 1) * B.variance;
       if (rowName(tg.snap.slot) === 'front') dmg *= BALANCE.rows.frontDamageTaken;
       if (u.range === 'ranged' && rowName(u.snap.slot) === 'back') dmg *= 1 + BALANCE.rows.backRangedBonus;
@@ -352,7 +368,7 @@ function applyEffect(eff: SkillEffect, u: RUnit, tg: RUnit, rng: Rng, t: number)
       tg.report.minHpRatio = Math.min(tg.report.minHpRatio, tg.hp / tg.snap.maxHp);
       const ko = tg.hp <= 0;
       if (ko) tg.report.koTime = t;
-      return { ...base, kind: 'dmg', amount, hp: tg.hp, shield: tg.shield, ko, elementMul: elem };
+      return { ...base, kind: 'dmg', amount, hp: tg.hp, shield: tg.shield, ko, elementMul: elem, resisted: guardMul < 0.6 };
     }
     case 'heal': {
       let amt = atk * eff.coef * supportMul(u);

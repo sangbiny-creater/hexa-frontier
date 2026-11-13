@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "sim:boss": "tsx sim/boss-check.ts",
-    "sim:onboarding": "tsx sim/onboarding-check.ts",
+    "sim:tutorial": "tsx sim/tutorial-run.ts",
     "sim:tune": "tsx sim/tune.ts",
     "sim:power": "tsx sim/power-calibrate.ts",
     "deploy": "bash scripts/deploy.sh"

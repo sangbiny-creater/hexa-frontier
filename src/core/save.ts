@@ -1,6 +1,6 @@
 // 버전 관리되는 저장 데이터 (기획서 12장).
 import { BALANCE } from '../data/balance';
-import { TILE_BY_ID } from '../data/map';
+import { MAPS, TILE_BY_ID } from '../data/map';
 import { SAVE_VERSION, type GameState } from './game';
 
 export const SAVE_KEY = 'hexa-frontier-v2/save';
@@ -39,6 +39,17 @@ export function migrate(raw: any): GameState | null {
       sp.copies = 0;
     }
     raw.version = 7;
+  }
+  if (raw.version === 7) {
+    // v8: P00 튜토리얼을 15칸 한 줄 길로 다시 만듦 (D63). 칸 id가 바뀌었으므로
+    // 튜토리얼을 끝낸 저장(옛 끝 칸 'c4')만 이어 하고, 도중이면 새 튜토리얼로 시작한다.
+    const finished = (raw.cleared as string[]).includes('c4') || (raw.cleared as string[]).some((id) => TILE_BY_ID[id]?.map === 'P01');
+    if (!finished) return null;
+    const p00 = MAPS.P00.tiles.map((t) => t.id);
+    raw.cleared = [...p00, ...(raw.cleared as string[]).filter((id) => TILE_BY_ID[id] && TILE_BY_ID[id].map !== 'P00')];
+    if (TILE_BY_ID[raw.lastTile]?.map === 'P00') raw.lastTile = 'gate';
+    raw.tutorial = { ...raw.tutorial, introSeen: true, done: true };
+    raw.version = 8;
   }
   return raw as GameState;
 }

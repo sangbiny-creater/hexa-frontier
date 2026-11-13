@@ -54,6 +54,24 @@ export const ENEMIES: Record<string, EnemyDef> = {
       { id: 'sg_ult', name: '거인의 일격', kind: 'ultimate', cooldown: 0, target: 'enemyHighestAtk', effects: [{ type: 'damage', coef: 3.0 }], condition: { type: 'none' }, desc: '' },
     ],
   },
+  // ── P00 튜토리얼 전용 ──
+  fog_fox: {
+    id: 'fog_fox', name: '물안개 여우', art: 'tidekit', fixedStage: 2, element: 'water', role: 'dealer', range: 'ranged', dmg: 'magic',
+    // 물안개에 몸을 숨겨 마법이 잘 안 듣는다 (마법 방어↑, 물리 방어↓)
+    base: { hp: 90, atk: 19, def: 2, res: 80, spd: 46 }, xp: 16, gold: 22, stoneChance: 0.2,
+    skills: [
+      { id: 'ff_basic', name: '물안개 탄', kind: 'basic', cooldown: 0, target: 'enemyHighestAtk', effects: [{ type: 'damage', coef: 1 }], condition: { type: 'none' }, desc: '' },
+    ],
+  },
+  boar_chief: {
+    id: 'boar_chief', name: '바위엄니 대장', art: 'rocktusk', fixedStage: 3, element: 'earth', role: 'tank', range: 'melee', isBoss: true,
+    base: { hp: 900, atk: 22, def: 14, res: 10, spd: 40 }, xp: 80, gold: 120, stoneChance: 1,
+    skills: [
+      { id: 'bc_basic', name: '엄니 찌르기', kind: 'basic', cooldown: 0, target: 'enemyDefault', effects: [{ type: 'damage', coef: 1 }], condition: { type: 'none' }, desc: '' },
+      { id: 'bc_quake', name: '땅 구르기', kind: 'active', cooldown: 8, target: 'enemyAll', effects: [{ type: 'damage', coef: 0.7 }], condition: { type: 'none' }, desc: '' },
+      { id: 'bc_ult', name: '대장의 돌진', kind: 'ultimate', cooldown: 0, target: 'enemyHighestAtk', effects: [{ type: 'damage', coef: 2.6 }], condition: { type: 'none' }, desc: '' },
+    ],
+  },
   // ── P01 몬스터 (D58): 야생 스피릿 + 새 중간 보스 ──
   leaf_deer: {
     id: 'leaf_deer', name: '잎사슴', art: 'leafkit', element: 'forest', role: 'support', range: 'ranged',

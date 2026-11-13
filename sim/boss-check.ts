@@ -58,7 +58,7 @@ function run(seed: number, idleHoursPer30min = 0) {
     }
     spendAll(s);
     const reach = [...reachableTiles(s)].map((id) => TILE_BY_ID[id]);
-    const free = reach.find((t) => !t.encounterId && (t.kind !== 'gate' || s.cleared.includes('c4')));
+    const free = reach.find((t) => !t.encounterId && (t.kind !== 'gate' || s.cleared.includes('b2')));
     if (free) {
       enterTile(s, free.id, now);
       continue;
@@ -81,7 +81,7 @@ function run(seed: number, idleHoursPer30min = 0) {
     seconds += sec;
     now += sec * 1000;
     const t = TILE_BY_ID[target];
-    if (r.outcome.won && (t.kind === 'boss' || t.id === 'c4') && !at[target])
+    if (r.outcome.won && t.kind === 'boss' && !at[target])
       at[stageCode(t) ?? target] = `${battles}전 플레이${Math.round(seconds / 60)}분 경과${Math.round((now - s.createdAt) / HOUR)}h`;
   }
   return {

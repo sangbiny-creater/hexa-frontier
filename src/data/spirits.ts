@@ -11,7 +11,7 @@ export const SPIRITS: Record<string, SpiritDef> = {
     element: 'water',
     role: 'tank',
     range: 'melee',
-    base: { hp: 150, atk: 11, def: 14, spd: 40 },
+    base: { hp: 150, atk: 11, def: 14, res: 9, spd: 40 },
     skills: [
       { id: 'ts_basic', name: '박치기', kind: 'basic', cooldown: 0, target: 'enemyDefault', effects: [{ type: 'damage', coef: 1.0 }], condition: { type: 'none' }, desc: '가장 앞의 적을 들이받는다.' },
       { id: 'ts_taunt', name: '도발의 포효', kind: 'active', cooldown: 9, target: 'self', effects: [{ type: 'taunt', duration: 4 }, { type: 'shield', maxHpRatio: 0.12, duration: 4 }], condition: { type: 'none' }, desc: '4초간 적의 공격을 끌어모으고 최대 HP 12% 보호막을 얻는다.' },
@@ -27,7 +27,8 @@ export const SPIRITS: Record<string, SpiritDef> = {
     element: 'fire',
     role: 'dealer',
     range: 'ranged',
-    base: { hp: 80, atk: 19, def: 6, spd: 50 },
+    dmg: 'magic',
+    base: { hp: 80, atk: 19, def: 6, res: 9, spd: 50 },
     skills: [
       { id: 'ig_basic', name: '불씨', kind: 'basic', cooldown: 0, target: 'enemyDefault', effects: [{ type: 'damage', coef: 1.0 }], condition: { type: 'none' }, desc: '적 하나에게 불씨를 날린다.' },
       { id: 'ig_bolt', name: '화염탄', kind: 'active', cooldown: 6, target: 'enemyLowestHp', effects: [{ type: 'damage', coef: 1.9 }], condition: { type: 'none' }, desc: 'HP가 가장 낮은 적에게 190% 피해.' },
@@ -43,7 +44,8 @@ export const SPIRITS: Record<string, SpiritDef> = {
     element: 'forest',
     role: 'healer',
     range: 'ranged',
-    base: { hp: 90, atk: 13, def: 7, spd: 46 },
+    dmg: 'magic',
+    base: { hp: 90, atk: 13, def: 7, res: 11, spd: 46 },
     skills: [
       { id: 'mr_basic', name: '꽃가루', kind: 'basic', cooldown: 0, target: 'enemyDefault', effects: [{ type: 'damage', coef: 0.8 }], condition: { type: 'none' }, desc: '적 하나에게 꽃가루를 날린다.' },
       { id: 'mr_heal', name: '새싹의 숨결', kind: 'active', cooldown: 6, target: 'allyLowestHp', effects: [{ type: 'heal', coef: 2.2 }], condition: { type: 'allyHpBelow', ratio: 0.75 }, desc: 'HP가 75% 아래인 아군이 있으면 가장 다친 아군을 회복.' },
@@ -59,7 +61,7 @@ export const SPIRITS: Record<string, SpiritDef> = {
     element: 'electric',
     role: 'dealer',
     range: 'ranged',
-    base: { hp: 82, atk: 18, def: 6, spd: 56 },
+    base: { hp: 82, atk: 18, def: 6, res: 7, spd: 56 },
     skills: [
       { id: 'gw_basic', name: '바람 깃털', kind: 'basic', cooldown: 0, target: 'enemyDefault', effects: [{ type: 'damage', coef: 1.0 }], condition: { type: 'none' }, desc: '적 하나에게 깃털을 날린다.' },
       { id: 'gw_shot', name: '돌풍 화살', kind: 'active', cooldown: 6, target: 'enemyHighestAtk', effects: [{ type: 'damage', coef: 1.7 }], condition: { type: 'none' }, desc: '공격력이 가장 높은 적에게 170% 피해.' },
@@ -75,7 +77,7 @@ export const SPIRITS: Record<string, SpiritDef> = {
     element: 'earth',
     role: 'dealer',
     range: 'melee',
-    base: { hp: 120, atk: 17, def: 10, spd: 44 },
+    base: { hp: 120, atk: 17, def: 10, res: 6, spd: 44 },
     skills: [
       { id: 'rk_basic', name: '들이받기', kind: 'basic', cooldown: 0, target: 'enemyDefault', effects: [{ type: 'damage', coef: 1.0 }], condition: { type: 'none' }, desc: '가장 앞의 적을 들이받는다.' },
       { id: 'rk_charge', name: '바위 돌진', kind: 'active', cooldown: 7, target: 'enemyDefault', effects: [{ type: 'damage', coef: 1.8 }], condition: { type: 'none' }, desc: '앞의 적에게 180% 피해.' },

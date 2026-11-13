@@ -2,7 +2,7 @@
 // 시간은 항상 인자로 받는다 (Clock 교체 가능, 시뮬레이션 가능).
 import { BALANCE } from '../data/balance';
 import { ENCOUNTERS, ENEMIES } from '../data/enemies';
-import { MAPS, TILE_BY_ID, TILES, stageCode, type TileDef } from '../data/map';
+import { MAPS, TILE_BY_ID, TILES, TUTORIAL_END, stageCode, type TileDef } from '../data/map';
 import { DEFAULT_SLOT, SPIRITS } from '../data/spirits';
 import { analyzeDefeat, type DefeatAnalysis } from './analysis';
 import { simulateBattle, type BattleResult, type BattleSetup, type BattleUnitInput } from './battle';
@@ -14,7 +14,7 @@ import { effectivePower, recommendedPower } from './power';
 import { createRng, hashSeed } from './rng';
 import type { ActivityRun, ActivityType, Element, OwnedSpirit } from './types';
 
-export const SAVE_VERSION = 7;
+export const SAVE_VERSION = 8;
 
 /** 튜토리얼 진행 (저장 v2) */
 export interface TutorialState {
@@ -26,7 +26,12 @@ export interface TutorialState {
   trainingTip: boolean; // 훈련을 한 번 맡겨 봤는가
   levelTip?: boolean; // 골드 레벨업을 해 봤는가 (D32)
   elementIntro?: boolean; // 속성표 설명을 봤는가 (D42)
-  windIntro?: boolean; // 두 번째 속성 설명(바람→물)을 봤는가 (D52)
+  windIntro?: boolean; // (구) 바람→물 설명
+  golemLoss?: boolean; // 고목 골렘 패배 후 상성 강조를 봤는가 (D63)
+  golemWin?: boolean; // 고목 골렘 승리 후 상성 정리를 봤는가 (D63)
+  campTip?: boolean; // 캠프 자동 사냥을 열어 봤는가
+  magicIntro?: boolean; // 물리/마법 설명을 봤는가
+  evoIntro?: boolean; // 진화 설명을 봤는가
 }
 
 export function newTutorial(): TutorialState {
@@ -140,7 +145,7 @@ export function reachableTiles(s: GameState): Set<string> {
 /** P01은 튜토리얼(바위엄니 떼)을 끝내면 열린다 */
 export function mapUnlocked(s: GameState, mapId: string): boolean {
   if (mapId === 'P00') return true;
-  if (mapId === 'P01') return s.cleared.includes('c4');
+  if (mapId === 'P01') return s.cleared.includes(TUTORIAL_END);
   return false;
 }
 
@@ -160,7 +165,9 @@ export function travel(s: GameState, mapId: string): string | null {
 export function respawnMs(tile: TileDef): number {
   const R = BALANCE.respawn;
   const enc = tile.encounterId ? ENCOUNTERS[tile.encounterId] : null;
-  const min = enc?.bossKind === 'region' ? R.regionBossMin : enc?.bossKind ? R.bossMin : tile.kind === 'elite' ? R.eliteMin : R.battleMin;
+  // 튜토리얼(P00) 일반 칸은 골드 벌기를 배울 수 있게 짧게 (D63)
+  const normal = tile.map === 'P00' ? R.tutorialBattleMin : R.battleMin;
+  const min = enc?.bossKind === 'region' ? R.regionBossMin : enc?.bossKind ? R.bossMin : tile.kind === 'elite' ? R.eliteMin : normal;
   return min * 60_000;
 }
 
@@ -311,7 +318,7 @@ export function enterTile(s: GameState, tileId: string, now: number): EnterResul
         ? { gold: 0, stones: main ? 3 + Math.floor(tile.row / 20) : 10, summon: 0 }
         : tile.resource === 'summon'
           ? { gold: 0, stones: 0, summon: BALANCE.summon.cost }
-          : { gold: main ? 60 + tile.row * 6 : 250, stones: 0, summon: 0 };
+          : { gold: tile.amount ?? (main ? 60 + tile.row * 6 : 250), stones: 0, summon: 0 };
     s.gold += bonus.gold;
     s.stones += bonus.stones;
     s.summonStones += bonus.summon;
@@ -396,13 +403,13 @@ function fight(s: GameState, tile: TileDef, now: number): EnterResult {
     if (tile.id === 'b1') {
       s.unlocked.training = true;
       s.unlocked.gathering = true;
-      unlockedText.push('고목 골렘 너머로 길이 여러 갈래 열렸어요!');
+      unlockedText.push('🏕캠프 자동 사냥이 열렸어요! 자리를 비워도 골드가 쌓여요.');
     }
     if (enc.unlockDeploy && enc.unlockDeploy > s.maxDeploy) {
       s.maxDeploy = enc.unlockDeploy;
       unlockedText.push(`출전 인원이 ${s.maxDeploy}명으로 늘었습니다!`);
     }
-    if (tile.id === 'c4') unlockedText.push('튜토리얼 끝! 지도 맨 위 길로 P01에 갈 수 있어요.');
+    if (tile.id === TUTORIAL_END) unlockedText.push('튜토리얼 끝! 지도 맨 위 길로 P01에 갈 수 있어요.');
     if (enc.bossKind === 'region') unlockedText.push(`${MAPS[tile.map].code} ${MAPS[tile.map].name}을(를) 돌파했습니다! 다음 지역은 준비 중이에요.`);
   }
   s.lastTile = tile.id;
@@ -656,17 +663,13 @@ export function claimIdle(s: GameState, now: number) {
 
 // ───────── 목표 안내 (온보딩) ─────────
 
-/** 튜토리얼 한 줄 길 순서 */
-export const TUTORIAL_PATH = ['a1', 'a2', 'a3', 's1', 's2', 'b1'];
+/** 튜토리얼 한 줄 길 순서 (시작·관문 제외 P00 전체, D63) */
+export const TUTORIAL_PATH = MAPS.P00.tiles.filter((t) => t.kind !== 'start' && t.kind !== 'gate').map((t) => t.id);
 
 /** 목표 안내가 가리키는 칸 (지도에 ▼ 표시) */
 export function objectiveTile(s: GameState): string | null {
   if (s.map !== 'P00') return mainObjectiveTile(s);
-  const next = TUTORIAL_PATH.find((id) => !s.cleared.includes(id));
-  if (next) return next;
-  const t2 = tutorialPhase2Target(s);
-  if (t2 !== undefined) return t2;
-  return s.cleared.includes('c4') ? 'gate' : 'c4';
+  return TUTORIAL_PATH.find((id) => !s.cleared.includes(id)) ?? 'gate';
 }
 
 /** 본편 지도: 갈 수 있는 칸 중 번호가 가장 작은 스테이지 */
@@ -684,30 +687,14 @@ export function stageProgress(s: GameState, mapId: string): { cleared: number; t
   return { cleared: st.filter((t) => s.cleared.includes(t.id)).length, total: st.length };
 }
 
-/**
- * 튜토리얼 2단계(고목 골렘 이후): ① 물안개 여울에 지고 → 바람의 결정 → 🌪️소환 → 상성 편성 → 승리
- * ② 바위엄니 떼에 지고 → 레벨업 → 승리 (D52). 튜토리얼이 끝났으면 undefined.
- */
-export function tutorialPhase2Target(s: GameState): string | null | undefined {
-  if (s.tutorial.done || !s.cleared.includes('b1')) return undefined;
-  const c = (id: string) => s.cleared.includes(id);
-  if (!c('c1')) {
-    if (s.attempts['c1'] && !s.spirits.galewing && s.summonStones < BALANCE.summon.cost) return !c('c2') ? 'c2' : !c('c5') ? 'c5' : null;
-    if (s.attempts['c1'] && !s.spirits.galewing) return null; // 소환하러 갈 차례
-    return 'c1';
-  }
-  if (!c('c4')) return 'c4';
-  return undefined;
-}
-
-/** 지금 '강화'(레벨업)를 쓸 수 있는가: 첫 보스에 도전한 뒤 열린다 */
+/** 레벨업은 첫 승리 뒤 열린다 (D63: 레벨업을 가장 먼저 가르친다) */
 export function upgradeUnlocked(s: GameState): boolean {
-  return !!s.bossAttempts['b1'] || s.cleared.includes('b1');
+  return s.cleared.includes('a1') || s.tutorial.done;
 }
 
-/** 소환은 첫 보스에 도전(패배)한 뒤 열린다 (D47) */
+/** 소환은 첫 🔮결정(신비한 결정)을 주우면 열린다 (D63: 소환석이 있는데 못 쓰는 일이 없도록) */
 export function summonUnlocked(s: GameState): boolean {
-  return upgradeUnlocked(s);
+  return s.cleared.includes('a8') || s.tutorial.done || s.cleared.includes(TUTORIAL_END);
 }
 
 /** 속성별 소환 풀: 그 속성의 스피릿 중 하나가 나온다. 등급은 없다 (D60) */
@@ -751,25 +738,14 @@ export function idleUnlocked(s: GameState): boolean {
 }
 
 export function currentObjective(s: GameState): string {
-  const next = s.map === 'P00' ? TUTORIAL_PATH.find((id) => !s.cleared.includes(id)) : undefined;
-  const texts: Record<string, string> = {
-    a1: '위쪽 칸의 잎새 강아지를 물리치세요',
-    a2: '불씨 둥지에서 새 동료를 만나세요',
-    a3: '🌿숲 잎새 강아지 떼를 🔥엠버윙으로 물리치세요',
-    s1: '💧물결 여우 개울을 지나가세요 (불이 불리!)',
-    s2: '꽃피는 샘에서 치유사를 데려오세요',
-    b1: !s.bossAttempts['b1'] ? '숲을 지키는 고목 골렘에 도전하세요' : !s.spirits.igni ? '✨소환에서 🔥불 스피릿을 불러 골렘(🌿)을 공략!' : '🔥엠버윙과 함께 고목 골렘에 재도전!',
-  };
-  if (next) return texts[next];
-  if (s.map === 'P00' && !s.tutorial.done && s.cleared.includes('b1')) {
-    const c = (id: string) => s.cleared.includes(id);
-    if (!c('c1') && !s.attempts['c1']) return '💧물안개 여울에 도전하세요';
-    if (!c('c1') && !s.spirits.galewing) return s.summonStones >= BALANCE.summon.cost ? '✨소환에서 🌪️바람 스피릿을 부르세요' : '💧물에 강한 🌪️바람! 바람의 결정을 찾으세요';
-    if (!c('c1')) return '🌪️게일윙을 출전시켜 물안개 여울 재도전!';
-    if (!c('c4') && !s.attempts['c4']) return '⛰️바위엄니 떼에 도전하세요';
-    if (!c('c4')) return '🐾스피릿에서 레벨업해 전투력을 올리고 재도전!';
+  if (s.map === 'P00') {
+    const next = TUTORIAL_PATH.find((id) => !s.cleared.includes(id));
+    if (!next) return '튜토리얼 끝! 맨 위 길로 P01에 가세요';
+    const t = TILE_BY_ID[next];
+    if (t.kind === 'resource') return `${t.name}에서 보물을 챙기세요`;
+    if (s.attempts[next]) return `${t.name} 재도전 준비: 아렌의 안내를 따라 해 보세요`;
+    return `${t.name}에 도전하세요`;
   }
-  if (s.map === 'P00') return s.cleared.includes('c4') ? '튜토리얼 끝! 맨 위 길로 P01에 가세요' : '바위엄니 떼를 물리치세요';
   const p = stageProgress(s, s.map);
   const obj = objectiveTile(s);
   const code = obj ? stageCode(TILE_BY_ID[obj]) : null;

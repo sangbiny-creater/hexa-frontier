@@ -11,13 +11,14 @@ import { TILES } from '../src/data/map';
 import { DEFAULT_SLOT } from '../src/data/spirits';
 
 // P00(튜토리얼)은 튜토리얼 당시의 동료 조합으로만 잰다
-const P00_COMPS = [
-  ['tideshell', 'sylphy'],
-  ['tideshell', 'sylphy', 'igni'],
-  ['tideshell', 'sylphy', 'galewing'],
-  ['tideshell', 'igni', 'galewing'],
-  ['sylphy', 'igni', 'galewing'],
-];
+// 튜토리얼은 칸마다 그 시점에 실제로 가진 동료로만 잰다 (D63)
+const ST = ['tideshell', 'sylphy'];
+const P00_COMPS: Record<string, string[][]> = {
+  boss_treant: [[...ST, 'igni']],
+  mist_ford: [[...ST, 'rocky'], [...ST, 'galewing'], ['tideshell', 'igni', 'rocky']],
+  boar_herd: [[...ST, 'rocky'], ['tideshell', 'igni', 'rocky']],
+  boss_boar: [[...ST, 'rocky']],
+};
 const ALL = ['tideshell', 'igni', 'sylphy', 'galewing', 'rocky'];
 
 function combos(arr: string[], k: number): string[][] {
@@ -64,7 +65,7 @@ const out: Record<string, number> = {};
 const MAX_LV = 45;
 for (const enc of Object.keys(ENCOUNTERS)) {
   const stage = stageOf[enc];
-  const comps = stage ? combos(ALL, deployAt(stage)) : P00_COMPS;
+  const comps = stage ? combos(ALL, deployAt(stage)) : (P00_COMPS[enc] ?? [ST]);
   let best = Infinity;
   for (const ids of comps) {
     if (!winsAt(ids, enc, MAX_LV)) continue;
