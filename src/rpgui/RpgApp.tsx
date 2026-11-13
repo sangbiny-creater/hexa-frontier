@@ -32,8 +32,7 @@ import {
   type Fx,
   type RpgState,
 } from '../rpg/game';
-import { activate, active, dist, isFloor, LAYOUT_NAME, STAGES, step, type Dir } from '../rpg/world';
-import { Joystick } from './Joystick';
+import { activate, active, dist, isFloor, LAYOUT_NAME, STAGES } from '../rpg/world';
 import { EquipPanel, Popup, ShopPanel, SpiritPanel, TreePanel, type Panel } from './Panels';
 import { useRpg } from './store';
 import { cellXY, WorldView } from './WorldView';
@@ -41,23 +40,17 @@ import { cellXY, WorldView } from './WorldView';
 const BASE = (import.meta.env?.BASE_URL ?? '/') + 'assets/';
 const img = (n: string) => `${BASE}${n}.webp`;
 const TICK_MS = 280; // 한 턴(한 걸음·한 번 공격)의 화면 속도
-const DIR_DEG: [Dir, number][] = [
-  ['E', 0],
-  ['NE', 60],
-  ['NW', 120],
-  ['W', 180],
-  ['SW', 240],
-  ['SE', 300],
-];
-/** 조이스틱 각도 → 갈 수 있는 가장 가까운 방향 (바위면 90° 안에서 비켜 간다) */
-function dirFromAngle(s: RpgState, deg: number): Dir | null {
-  const diff = (a: number) => Math.min(Math.abs(a - deg), 360 - Math.abs(a - deg));
-  for (const [d, a] of [...DIR_DEG].sort((x, y) => diff(x[1]) - diff(y[1]))) {
-    if (diff(a) > 90) break;
-    const t = step(s.pos.c, s.pos.r, d);
-    if (isFloor(t.c, t.r)) return d;
-  }
-  return null;
+/** 화면이 가로로 길면 가로 화면 배치 */
+function useLand() {
+  const get = () => typeof window !== 'undefined' && window.innerWidth > window.innerHeight * 1.05;
+  const [land, setLand] = useState(get);
+  useEffect(() => {
+    const on = () => setLand(get());
+    window.addEventListener('resize', on);
+    window.addEventListener('orientationchange', on);
+    return () => (window.removeEventListener('resize', on), window.removeEventListener('orientationchange', on));
+  }, []);
+  return land;
 }
 
 export function RpgApp() {
@@ -71,7 +64,7 @@ export function RpgApp() {
   const [toast, setToast] = useState<string | null>(null);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [goal, setGoal] = useState<{ c: number; r: number } | null>(null);
-  const joyRef = useRef<number | null>(null);
+  const land = useLand();
   const goalRef = useRef(goal);
   goalRef.current = goal;
   const stateRef = useRef(state);
@@ -118,7 +111,6 @@ export function RpgApp() {
     const id = setInterval(() => {
       if (blockedRef.current) return;
       const s = stateRef.current;
-      if (joyRef.current !== null) return joyStep();
       if (engaged(s)) {
         const r = act((x) => autoAct(x));
         if (r) show(r);
@@ -141,28 +133,14 @@ export function RpgApp() {
     return () => clearInterval(id);
   }, [started, act, show]);
 
-  // 조이스틱으로 한 걸음 (몬스터 쪽이면 공격)
-  const joyStep = () => {
+  // 주인공을 잡고 끌기: 손가락이 있는 칸이 계속 목표가 된다(손을 떼면 그 칸까지 마저 걷는다)
+  const onSteer = (cell: { c: number; r: number } | null) => {
+    if (!cell || blockedRef.current) return;
     const s = stateRef.current;
-    const deg = joyRef.current;
-    if (deg === null || blockedRef.current) return;
-    const d = dirFromAngle(s, deg);
-    if (!d) return;
-    show(act((x) => move(x, d)));
-  };
-  const lastJoy = useRef(0);
-  const onJoy = (deg: number | null) => {
-    const was = joyRef.current;
-    joyRef.current = deg;
-    if (deg !== null) {
-      setGoal(null);
-      setPan({ x: 0, y: 0 });
-      // 처음 기울이면 바로 한 걸음
-      if (was === null && Date.now() - lastJoy.current > TICK_MS) {
-        lastJoy.current = Date.now();
-        joyStep();
-      }
-    }
+    if (cell.c === s.pos.c && cell.r === s.pos.r) return setGoal(null);
+    if (!isFloor(cell.c, cell.r)) return;
+    setPan({ x: 0, y: 0 });
+    setGoal(cell);
   };
 
   // 튜토리얼
@@ -195,7 +173,7 @@ export function RpgApp() {
         </div>
         <div className="intro-sub">헥사 들판을 누비는 사냥 RPG</div>
         <ul className="intro-list">
-          <li>⬡ 헥사를 누르면 그곳까지 걸어가요. 몬스터를 누르면 가서 싸워요</li>
+          <li>⬡ 헥사를 누르면 그곳까지 걸어가요. 주인공을 잡고 끌면 손가락을 따라 걸어요</li>
           <li>⚔️ 몬스터가 붙으면 저절로 싸워요. 멈춰 있으면 시간도 멈춰요</li>
           <li>🪨 장애물을 이용해 길목에서 싸우고, 넓은 곳에선 포위 조심</li>
           <li>🌳 기술 테크트리 + ✨어떤 스피릿을 키우느냐로 성장</li>
@@ -359,8 +337,8 @@ export function RpgApp() {
   const logLines = state.log.slice(0, 3);
   const skills = hero.skills.slice(1).map((id) => skillOf(state, id)); // 기본 공격(베기)은 자동
 
-  return (
-    <div className="rpg">
+  const hud = (
+    <>
       <header className="rhud">
         <div className="rhud-face">
           <img src={img('hero-p')} alt="" />
@@ -408,6 +386,13 @@ export function RpgApp() {
         </span>
       </div>
 
+    </>
+  );
+
+  return (
+    <div className={`rpg ${land ? 'land' : ''}`}>
+      <div className="rmain">
+      {!land && hud}
       {(tut || tip) && (
         <div className="guide-strip">
           {tut ? (
@@ -431,14 +416,13 @@ export function RpgApp() {
         </div>
       )}
       <main className="rworld">
-        <WorldView state={state} fx={fx} fxKey={fxKey} heroHue={0} pan={pan} goal={goal} path={path} onPan={(dx, dy) => setPan((p) => ({ x: p.x + dx, y: p.y + dy / (cellXY(0, 1).y - cellXY(0, 0).y || -33) * -1 }))} onTap={tapCell} />
+        <WorldView state={state} fx={fx} fxKey={fxKey} heroHue={0} pan={pan} goal={goal} path={path} land={land} onSteer={onSteer} onPan={(dx, dy) => setPan((p) => ({ x: p.x + dx, y: p.y + dy / (cellXY(0, 1).y - cellXY(0, 0).y || -33) * -1 }))} onTap={tapCell} />
         <div className={`state-badge ${fight ? 'fight' : goal ? 'walk' : ''}`}>{fight ? '⚔️ 자동 전투 중' : goal ? '🚶 이동 중' : `⏸ 멈춤${state.stall >= 10 ? ` · ⚠ 머뭇거림 ${state.stall}` : ''}`}</div>
         {(Math.abs(pan.x) > 4 || Math.abs(pan.y) > 0.5) && (
           <button className="recenter" onClick={() => setPan({ x: 0, y: 0 })}>
             📍 내 위치
           </button>
         )}
-        <Joystick onAngle={onJoy} />
         <div className="battle-log">
           {logLines.map((l, i) => (
             <div key={i} style={{ opacity: 1 - i * 0.3 }}>
@@ -447,7 +431,10 @@ export function RpgApp() {
           ))}
         </div>
       </main>
+      </div>
 
+      <aside className="rside">
+      {land && hud}
       <div className="actbar">
         {skills.map((sk, j) => {
           const i = j + 1;
@@ -471,6 +458,7 @@ export function RpgApp() {
         </button>
       </div>
       {menu}
+      </aside>
 
       {panels}
       {state.stageClear && (
@@ -531,7 +519,7 @@ interface TutStep {
   done: (s: RpgState) => boolean;
 }
 const TUT: TutStep[] = [
-  { title: '이동', text: () => '가고 싶은 헥사를 누르세요. 그곳까지 한 칸씩 걸어가요 (한 칸 = 한 턴, 몬스터도 같이 움직여요).', done: (s) => s.turn >= 3 },
+  { title: '이동', text: () => '가고 싶은 헥사를 누르거나, 주인공을 잡고 끌어 보세요. 손가락을 따라 걷고, 손가락을 앞에 두고 있으면 계속 걸어요. 주인공을 톡 누르면 멈춰요 (한 칸 = 한 턴, 몬스터도 같이 움직여요).', done: (s) => s.turn >= 3 },
   { title: '둘러보기', text: () => '지도를 끌면 앞을 미리 볼 수 있어요. 맨 위 👑보스와 🚪출구, 바위 사이 길목을 확인해 보세요.', done: (s) => s.turn >= 6 },
   { title: '싸우기', text: () => '몬스터를 누르면 다가가서 싸워요. 붙어 있으면 아무것도 안 눌러도 자동 공격! 빨간 선 = 몬스터 공격, 노란 선 = 내 공격.', done: (s) => s.kills >= 2 },
   { title: '기술', text: () => '아래 기술 버튼: 🌀회오리 베기(주변 6칸 전부), 🛡️방패 강타(기절). 둘러싸였을 때 회오리가 최고!', done: (s) => s.stat.skills >= 1 },
@@ -547,7 +535,7 @@ function tipFor(s: RpgState): string | null {
   const h = s.heroes.knight;
   if (h.hp < heroStats(s).hp * 0.3) return s.potions.small + s.potions.big > 0 ? '체력이 위험해요! 💊물약을 쓰거나 물러나세요.' : '체력이 위험해요! 멀리 물러나거나 🏕야영지로.';
   const st = active().stage;
-  if (s.bossDown) return '🚪 출구가 열렸어요! 맨 위 출구 헥사를 누르세요.';
+  if (s.bossDown) return '🚪 출구가 열렸어요! 길 끝의 출구 헥사를 누르세요.';
   const ranged = s.monsters.find((m) => !m.dead && m.aggro && MONSTERS[m.def].range > 1 && dist(m, s.pos) === 2);
   if (ranged) return `${MONSTERS[ranged.def].name}은 2칸 밖에서 공격해요! 눌러서 다가가 붙으세요.`;
   if (!s.bossDown && st.bossLv - h.level >= 3 && s.pos.r > active().rows * 0.6) return `👑 보스는 Lv${st.bossLv}. 아직 버거워요 — 머뭇거리면 몰려오는 몬스터로 레벨업.`;

@@ -21,7 +21,7 @@
 .world { width: 100%; height: 100%; display: block; }
 .world .fog { fill: #060c09; stroke: #0d1812; }
 .world .boss-label { font-size: 7px; font-weight: 900; fill: #ff6b6b; }
-.world .mon-g, .world .hero-g, .world .spirit-g { transition: transform 0.14s linear; }
+.world .mon-g, .world .hero-g, .world .pet-g { transition: transform 0.27s linear; }
 .world .mon-lv { font-size: 6.5px; font-weight: 900; fill: #fff; paint-order: stroke; stroke: #000; stroke-width: 2px; }
 .world .mon-st { font-size: 8px; }
 .world .shrine-glow { animation: sglow 1.2s infinite; }
@@ -205,15 +205,30 @@
 .tn-need { color: #ff9b9b; }
 .tn-plus { color: #7be0a4; font-weight: 800; }
 
-/* ── D88: 반투명 가상 조이스틱 ── */
-.joystick { position: absolute; right: 12px; bottom: 54px; width: 124px; height: 124px; border-radius: 50%; touch-action: none; user-select: none; -webkit-user-select: none; z-index: 6; opacity: 0.5; transition: opacity 0.15s; }
-.joystick.on { opacity: 0.85; }
 .js-ring { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle, #ffffff22 0%, #ffffff10 60%, #00000033 100%); border: 2px solid #ffffff55; }
 .js-knob { position: absolute; left: 50%; top: 50%; width: 50px; height: 50px; margin: -25px 0 0 -25px; border-radius: 50%; background: #ffd257cc; border: 2px solid #fff8; box-shadow: 0 3px 10px #000a; pointer-events: none; }
-.battle-log { right: 140px; }
 
 /* D89: 안내는 지도 밖 한 줄 (출구를 가리지 않게) */
 .guide-strip { padding: 6px 10px; background: #f7efd9; color: #2b2416; font-size: 12px; line-height: 1.4; border-bottom: 2px solid #c9a95a; }
 .guide-strip .gs-btns { margin-left: 6px; white-space: nowrap; }
 .guide-strip .link { color: #8a5a00; font-weight: 800; margin-left: 6px; }
 .best-btn { width: 100%; }
+
+/* D91 이동: 주인공을 잡고 끌면 손가락을 따라 걷는다 / 가로 화면 */
+.rmain, .rside { display: contents; }
+.rpg.land { max-width: none; flex-direction: row; }
+.rpg.land .rmain { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.rpg.land .rside { display: flex; flex-direction: column; justify-content: flex-start; width: 214px; overflow-y: auto; flex: none; background: #142620; border-left: 1px solid #2f4a3e; padding-right: env(safe-area-inset-right); }
+.rpg.land .rhud { flex-wrap: wrap; padding: calc(env(safe-area-inset-top) + 6px) 8px 4px; gap: 6px; }
+.rpg.land .rhud-right { width: 100%; justify-content: space-between; }
+.rpg.land .rhud-face, .rpg.land .rhud-face img { width: 34px; height: 34px; }
+.rpg.land .rhud-right { flex-direction: row; align-items: center; gap: 6px; }
+.rpg.land .stage-progress { padding: 2px 8px 6px; font-size: 10.5px; }
+.rpg.land .guide-strip { padding: 3px 10px; font-size: 11.5px; }
+.rpg.land .actbar { flex-wrap: wrap; flex: 1; align-content: flex-end; border-top: 0; padding: 6px 8px; }
+.rpg.land .actbar .act-skill { flex: 0 0 100%; min-height: 46px; padding: 5px 8px; }
+.rpg.land .actbar .act-potion { flex: 1; height: 42px; flex-direction: row; gap: 4px; }
+.rpg.land .rmenu2 { flex-wrap: wrap; padding-bottom: calc(env(safe-area-inset-bottom) + 4px); }
+.rpg.land .rmenu2 button { flex: 0 0 50%; }
+.rpg.land .rtoast.top { top: 50px; }
+.rpg.land .battle-log { right: 8px; }
