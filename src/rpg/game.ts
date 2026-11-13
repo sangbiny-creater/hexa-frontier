@@ -108,6 +108,8 @@ export interface RpgState {
   stall: number; // 앞으로 못 간 턴 수
   potions: { small: number; big: number };
   stat: { skills: number; camps: number; equips: number; autoHits: number };
+  /** D104: 기술 자동 사용 (없으면 켜짐) */
+  autoSkill?: boolean;
   tips: string[];
   log: string[];
 }
@@ -487,6 +489,7 @@ export function autoAct(s: RpgState): Fx[] | null {
   const fx: Fx[] = [];
   const ids = HEROES[s.heroId].skills;
   for (const i of [2, 1, 0]) {
+    if (i > 0 && s.autoSkill === false) continue; // D104: 자동 끄면 기본 공격만 (기술은 직접 누름)
     const sk = skillOf(s, ids[i]);
     if ((s.cds[sk.id] ?? 0) > 0) continue;
     if (sk.shape === 'around' && i !== 0 && s.monsters.filter((m) => !m.dead && dist(m, s.pos) === 1).length < 2) continue;
