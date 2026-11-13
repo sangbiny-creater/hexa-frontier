@@ -15,13 +15,16 @@ import {
   leaveStage,
   monAt,
   move,
-  nearestTarget,
   onCamp,
   pathTo,
   sellItem,
   skillOf,
   spendSpiritPoint,
-  spiritNeed,
+  setSlot,
+  slotIds,
+  curSp,
+  spMax,
+  surroundMul,
   stageInfo,
   startStage,
   stepToward,
@@ -75,23 +78,6 @@ export function RpgApp() {
   const [goal, setGoal] = useState<{ c: number; r: number } | null>(null);
   const padRef = useRef<number | null>(null);
   const [tutSeen, setTutSeen] = useState(-1);
-  // 화면 배치 후보 (D104: 사용자가 직접 보고 고른다)
-  const [layout, setLayout] = useState<'a' | 'b' | 'c'>(() => {
-    try {
-      const v = localStorage.getItem('hexa-frontier/layout');
-      return v === 'b' || v === 'c' ? v : 'a';
-    } catch {
-      return 'a';
-    }
-  });
-  const pickLayout = (k: 'a' | 'b' | 'c') => {
-    setLayout(k);
-    try {
-      localStorage.setItem('hexa-frontier/layout', k);
-    } catch {
-      /* 저장 못 해도 괜찮다 */
-    }
-  };
   const [menuOpen, setMenuOpen] = useState(false);
   const goalRef = useRef(goal);
   goalRef.current = goal;
@@ -119,7 +105,7 @@ export function RpgApp() {
     else if (list.some((f) => f.k === 'swarm')) setToast('⚠ 머뭇거리는 사이 몬스터 무리가 몰려와요!');
     else if (down && down.k === 'petDown') setToast(`${EL_ICON[down.element]} ${SPIRITS[down.element].name} 쓰러짐 — 🏕야영지에서 부활`);
     else if (drop && drop.k === 'drop') setToast(`🎁 ${drop.item.name} 획득!`);
-    else if (list.some((f) => f.k === 'point')) setToast('✨ 스피릿 포인트 +1');
+    else if (list.some((f) => f.k === 'point')) setToast('💠 스피릿 코어(SC) +1 — ✨스피릿에게 먹여 레벨업');
     else if (list.some((f) => f.k === 'camp')) setToast('🏕 모두 회복! (15턴 뒤 다시)');
     else {
       const m = list.find((f) => f.k === 'msg');
@@ -270,6 +256,10 @@ export function RpgApp() {
             const e = act((s) => learnNode(s, id));
             if (e) setToast(e);
           }}
+          onSlot={(skill, slot) => {
+            const e = act((s) => setSlot(s, skill, slot));
+            if (e) setToast(e);
+          }}
         />
       )}
       {panel === 'spirit' && (
@@ -398,15 +388,18 @@ export function RpgApp() {
   const progress = Math.min(1, state.pos.r / (st.rows - 1));
   const path = goal && !fight ? pathTo(state, goal, 25) : [];
   const logLines = state.log.slice(0, 3);
-  const skills = hero.skills.slice(1).map((id) => skillOf(state, id)); // 기본 공격(베기)은 자동
 
   const autoOn = state.autoSkill !== false;
-  const spNeed = spiritNeed(state.spiritEarned);
+  const sp = curSp(state);
+  const spM = spMax(state);
+  const xpNeed = xpToNext(h.level);
   const pts = h.skillPts + state.spiritPoints + (better ? 1 : 0);
+  const around = state.monsters.filter((m) => !m.dead && dist(m, state.pos) === 1).length;
+  const slotSk = slotIds(state).map((id) => (id ? skillOf(state, id) : null));
   const menuBtns = (
     <>
       <button onClick={() => (setPanel('tree'), setMenuOpen(false))}>
-        <span>🌳</span>테크트리{h.skillPts > 0 && <i className="dot">{h.skillPts}</i>}
+        <span>🌳</span>기술{h.skillPts > 0 && <i className="dot">{h.skillPts}</i>}
       </button>
       <button onClick={() => (setPanel('spirit'), setMenuOpen(false))}>
         <span>✨</span>스피릿{state.spiritPoints > 0 && <i className="dot">{state.spiritPoints}</i>}
@@ -421,7 +414,7 @@ export function RpgApp() {
   );
 
   return (
-    <div className={`rpg game lay-${layout}`}>
+    <div className="rpg game">
       <main className="rworld">
         <WorldView state={state} fx={fx} fxKey={fxKey} heroHue={0} pan={pan} goal={goal} path={path} onSteer={onSteer} onPan={(dx, dy) => setPan((p) => ({ x: p.x + dx, y: p.y + dy / ROW_H }))} onTap={tapCell} />
       </main>
@@ -433,10 +426,34 @@ export function RpgApp() {
         ))}
       </div>
 
-      {/* 캐릭터 창: 프로필 · 이름 · 체력 · 스피릿 게이지 · 레벨업 현황 */}
+      {/* 맨 위 줄: 스테이지 이름 · 골드 · 안내 · 나가기 */}
+      <div className="g-top">
+        <b>
+          스테이지 {st.n} · {st.name}
+        </b>
+        <span className="gs-gold">🪙 {state.gold}</span>
+        <button className="link" onClick={() => setTutSeen(-1)} disabled={!tut}>
+          ❔
+        </button>
+        <button className="exit-btn" onClick={() => confirm('스테이지를 나갈까요? (진행은 사라져요, 얻은 경험치·장비는 남아요)') && act((s) => leaveStage(s))}>
+          ⏏ 나가기
+        </button>
+      </div>
+
+      {/* 왼쪽 가장자리: 판 진행 (아래 시작 → 위 출구) */}
+      <div className="g-progress" title={`출구까지 ${st.toExit}줄`}>
+        <i style={{ height: `${progress * 100}%` }} />
+        <em className="gp-boss" style={{ bottom: `${(st.bossRow / (st.rows - 1)) * 100}%` }}>
+          {st.bossDown ? '✓' : '👑'}
+        </em>
+        <em className="gp-exit">🚪</em>
+      </div>
+
+      {/* 캐릭터 창: 프로필 · 이름 · 체력 · SP · 경험치 */}
       <div className="g-char">
         <div className="gc-face">
           <img src={img('hero-p')} alt="" />
+          <b>{h.level}</b>
         </div>
         <div className="gc-info">
           <div className="gc-name">
@@ -446,61 +463,36 @@ export function RpgApp() {
           <div className="bar hp">
             <i style={{ width: `${(h.hp / hs.hp) * 100}%` }} />
             <span>
-              체력 {h.hp}/{hs.hp}
+              체력 {h.hp} / {hs.hp}
             </span>
           </div>
           <div className="bar sp">
-            <i style={{ width: `${(state.spiritXp / spNeed) * 100}%` }} />
+            <i style={{ width: `${(sp / spM) * 100}%` }} />
             <span>
-              스피릿 {state.spiritXp}/{spNeed}
+              SP {sp} / {spM}
             </span>
           </div>
           <div className="bar xp">
-            <i style={{ width: `${(h.xp / xpToNext(h.level)) * 100}%` }} />
-            <span>다음 레벨까지 {Math.max(0, xpToNext(h.level) - h.xp)}</span>
+            <i style={{ width: `${(h.xp / xpNeed) * 100}%` }} />
+            <span>
+              경험치 {h.xp} / {xpNeed}
+            </span>
           </div>
         </div>
       </div>
-      <div className={`state-badge ${fight ? 'fight' : goal || padRef.current !== null ? 'walk' : ''}`}>{fight ? '⚔️ 전투 중' : goal || padRef.current !== null ? '🚶 이동 중' : `⏸ 멈춤${state.stall >= 10 ? ` · ⚠ 머뭇거림 ${state.stall}` : ''}`}</div>
-
-      {/* 스테이지 창 */}
-      <div className="g-stagewin">
-        <div className="gs-title">
-          <b>
-            스테이지 {st.n} · {st.name}
-          </b>
-        </div>
-        <div className="sp-bar">
-          <i style={{ width: `${progress * 100}%` }} />
-          <em style={{ left: `${(st.bossRow / (st.rows - 1)) * 100}%` }}>👑</em>
-          <em style={{ left: '100%' }}>🚪</em>
-        </div>
-        <div className="gs-info">
-          출구까지 {st.toExit}줄 · 몬스터 {st.left}
-          {st.bossDown ? ' · 출구 열림!' : ''}
-        </div>
-        <div className="gs-btns">
-          <span className="gs-gold">🪙 {state.gold}</span>
-          <button className="link" onClick={() => setTutSeen(-1)} disabled={!tut}>
-            ❔
-          </button>
-          <button className="exit-btn" onClick={() => confirm('스테이지를 나갈까요? (진행은 사라져요, 얻은 경험치·장비는 남아요)') && act((s) => leaveStage(s))}>
-            ⏏ 나가기
-          </button>
-        </div>
+      <div className={`state-badge ${fight ? 'fight' : goal || padRef.current !== null ? 'walk' : ''}`}>
+        {fight ? '⚔️ 전투 중' : goal || padRef.current !== null ? '🚶 이동 중' : `⏸ 멈춤${state.stall >= 10 ? ` · ⚠ 머뭇거림 ${state.stall}` : ''}`}
+        {around >= 2 && <span className="surround"> · 포위! 방어 -{Math.round((1 - surroundMul(around)) * 100)}%</span>}
+        {(state.rally ?? 0) > 0 && <span> · 📯함성 {state.rally}턴</span>}
       </div>
 
-      {/* 메뉴: 배치마다 자리가 다르다 (C는 ☰ 버튼으로 펼침) */}
-      {layout === 'c' ? (
-        <div className="g-menu">
-          <button className="gm-toggle" onClick={() => setMenuOpen((o) => !o)}>
-            <span>☰</span>메뉴{pts > 0 && <i className="dot">{pts}</i>}
-          </button>
-          {menuOpen && <nav className="gm-list">{menuBtns}</nav>}
-        </div>
-      ) : (
-        <nav className="g-menu">{menuBtns}</nav>
-      )}
+      {/* 오른쪽 위: ☰ 메뉴 (기술·스피릿·장비·상점) */}
+      <div className="g-menu">
+        <button className="gm-toggle" onClick={() => setMenuOpen((o) => !o)}>
+          <span>☰</span>메뉴{pts > 0 && <i className="dot">{pts}</i>}
+        </button>
+        {menuOpen && <nav className="gm-list">{menuBtns}</nav>}
+      </div>
 
       {(Math.abs(pan.x) > 4 || Math.abs(pan.y) > 0.5) && (
         <button className="recenter" onClick={() => setPan({ x: 0, y: 0 })}>
@@ -508,7 +500,7 @@ export function RpgApp() {
         </button>
       )}
 
-      {/* 기술·물약·자동 */}
+      {/* 왼쪽 아래: 자동·물약 / 기술 칸 4개 */}
       <div className="g-bl">
         <div className="g-pots">
           <button className={`g-auto ${autoOn ? 'on' : ''}`} onClick={() => act((s) => void (s.autoSkill = !autoOn))}>
@@ -523,15 +515,21 @@ export function RpgApp() {
           </button>
         </div>
         <div className="g-skills">
-          {skills.map((sk, j) => {
-            const i = j + 1;
+          {slotSk.map((sk, j) => {
+            if (!sk)
+              return (
+                <button key={j} className="g-skill empty" onClick={() => setPanel('tree')}>
+                  <small>빈 칸</small>
+                  <small>🌳에서 배우기</small>
+                </button>
+              );
             const cd = state.cds[sk.id] ?? 0;
-            const target = sk.shape === 'around' ? state.monsters.find((m) => !m.dead && dist(m, state.pos) === 1) : nearestTarget(state, sk.range);
+            const noSp = (sk.sp ?? 0) > sp;
             return (
-              <button key={sk.id} className={`g-skill ${!target || cd ? 'off' : ''}`} onClick={() => doSkill(i)} style={{ borderColor: sk.element ? EL_COLOR[sk.element] : '#7f8c86' }}>
+              <button key={j} className={`g-skill ${cd || noSp ? 'off' : ''}`} onClick={() => doSkill(j + 1)} style={{ borderColor: sk.element ? EL_COLOR[sk.element] : '#7f8c86' }}>
                 <span className="gs-icon">{sk.icon}</span>
                 <b>{sk.name}</b>
-                <small>{cd ? `${cd}턴 뒤` : !target ? (sk.shape === 'around' ? '옆에 적 없음' : '사거리 밖') : autoOn ? '자동' : '누르면 사용'}</small>
+                <small className={noSp ? 'nosp' : ''}>{cd ? `${cd}턴 뒤` : `SP ${sk.sp}`}</small>
               </button>
             );
           })}
@@ -540,15 +538,6 @@ export function RpgApp() {
 
       {/* 이동 버튼 (이 영역은 지도가 눌리지 않음) */}
       <HexPad onDir={onPad} />
-
-      {/* 배치 고르기 (임시: 정하고 나면 뺀다) */}
-      <div className="lay-pick">
-        {(['a', 'b', 'c'] as const).map((k) => (
-          <button key={k} className={layout === k ? 'on' : ''} onClick={() => pickLayout(k)}>
-            배치 {k.toUpperCase()}
-          </button>
-        ))}
-      </div>
 
       {panels}
       {state.stageClear && (
@@ -629,13 +618,13 @@ const TUT: TutStep[] = [
   { title: '이동', text: () => '오른쪽 아래 이동 버튼을 누르고 있으면 그쪽으로 걸어요. 손가락을 미끄러뜨리면 방향이 바뀌고, 떼면 멈춰요. 가고 싶은 헥사를 톡 눌러도 그곳까지 걸어가요. (한 칸 = 한 턴, 몬스터도 같이 움직여요)', done: (s) => s.turn >= 3 },
   { title: '둘러보기', text: () => '지도를 끌면 앞을 미리 볼 수 있어요. 맨 위 👑보스와 🚪출구, 바위 사이 길목을 확인해 보세요. [📍 내 위치]로 돌아와요.', done: (s) => s.turn >= 6 },
   { title: '싸우기', text: () => '몬스터를 누르면 다가가서 싸워요. 붙어 있으면 아무것도 안 눌러도 자동 공격! 빨간 선 = 몬스터 공격, 노란 선 = 내 공격.', done: (s) => s.kills >= 2 },
-  { title: '기술', text: () => '왼쪽 아래 기술 버튼: 🌀회오리 베기(주변 6칸 전부), 🛡️방패 강타(기절). 둘러싸였을 때 회오리가 최고! 옆의 💊🧪는 물약이에요.', done: (s) => s.stat.skills >= 1 },
-  { title: '테크트리', text: () => '왼쪽 위 [🌳테크트리]에서 기술 포인트를 찍어요. 한 노드에 여러 번 찍을 수 있고, 3포인트 넣으면 아래 노드가 열려요.', done: (s) => Object.keys(s.heroes.knight.nodes).length > 0 },
+  { title: '기술 배우기', text: () => '[☰ 메뉴 → 🌳기술]에서 포인트를 찍어요. 🟦패시브는 찍으면 늘 적용, 🟧액티브는 배우면 기술 칸에 들어가요. 시작 포인트로 🌀회오리 베기를 배워 보세요.', done: (s) => Object.keys(s.heroes.knight.nodes).length > 0 },
+  { title: '기술과 SP', text: () => '왼쪽 아래 기술 칸(4칸)의 기술은 쿨타임이 끝나고 SP(파란 막대)가 있어야 써요. SP는 기본 공격으로 차고 매 턴 조금씩 차요. [자동 켜짐]이면 상황에 맞게 알아서 써요.', done: (s) => s.stat.skills >= 1 },
   { title: '스피릿', text: () => '반짝이는 제단에 가면 스피릿이 동료가 돼요. 칸을 차지하고 같이 싸워요 (속성 색 선이 스피릿 공격).', done: (s) => s.pets.length >= 1 },
-  { title: '스피릿 키우기', text: () => '사냥하면 스피릿 포인트가 쌓여요. 왼쪽 위 [✨스피릿]에서 어떤 속성을 키울지 골라요.', done: (s) => Object.values(s.spirits).reduce((a, b) => a + (b ?? 0), 0) > Object.keys(s.spirits).length },
+  { title: '스피릿 키우기', text: () => '사냥하면 💠스피릿 코어(SC)가 쌓여요. [☰ 메뉴 → ✨스피릿]에서 어떤 스피릿에게 SC를 먹여 레벨업할지 골라요.', done: (s) => Object.values(s.spirits).reduce((a, b) => a + (b ?? 0), 0) > Object.keys(s.spirits).length },
   { title: '물약·야영지', text: () => '체력이 줄면 💊물약. 🏕야영지에 가면 모두 회복(한 번 쉬면 15턴 뒤 다시). 쓰러지면 마지막 야영지에서 다시 시작해요.', done: (s) => s.stat.camps >= 1 || s.potions.small < 3 },
-  { title: '머뭇거리면', text: () => '앞으로 못 가고 한 곳에 오래 있으면 몬스터가 몰려와요. 레벨이 모자랄 땐 버티며 경험치를 벌어도 돼요.', done: (s) => s.stall >= 20 || s.kills >= 10 },
-  { title: '보스와 출구', text: () => '맨 위 👑보스를 쓰러뜨리면 🚪출구가 열려요. 출구에 들어가면 클리어 → 다음 판!', done: (s) => s.stageClear || s.cleared.length > 0 },
+  { title: '포위·머뭇거림', text: () => '몬스터에게 둘러싸이면 방어가 약해져요(2마리 -12%, 3마리 -24%…). 바위 사이 길목에서 싸우세요. 앞으로 못 가고 오래 머물면 몬스터가 몰려와요.', done: (s) => s.stall >= 20 || s.kills >= 10 },
+  { title: '보스와 출구', text: () => '맨 위 👑보스를 쓰러뜨리면 🚪출구가 열리고, 보스보다 조금 약한 몬스터가 계속 몰려와요. 버티며 경험치를 벌다가 출구로 가면 클리어!', done: (s) => s.stageClear || s.cleared.length > 0 },
 ];
 
 function tipFor(s: RpgState): string | null {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { MONSTERS, SKILLS, typeMul } from '../src/rpg/data';
-import { buy, equip, equipBest, estimateHit, heroStats, makeItem, move, newRpg, spendSpiritPoint, spiritBonus, startStage, unlockedStage, usePotion, useSkill, wait } from '../src/rpg/game';
+import { buy, curSp, setSlot, slotIds, surroundMul, learnNode, equip, equipBest, estimateHit, heroStats, makeItem, move, newRpg, spendSpiritPoint, spiritBonus, startStage, unlockedStage, usePotion, useSkill, wait } from '../src/rpg/game';
 import { active, buildStage, cellAt, COLS, dist, key, neighbors, STAGES, step } from '../src/rpg/world';
 import { runRpgBot } from '../sim/rpg-bot';
 import { runCasual } from '../sim/casual-bot';
@@ -92,8 +92,16 @@ describe('전투·성장', () => {
     const m = s.monsters.find((x) => !x.boss)!;
     s.pos = neighbors(m.c, m.r).find((n) => cellAt(n.c, n.r)?.floor)!;
     expect(dist(s.pos, m)).toBe(1);
-    useSkill(s, 2);
+    // D105: 테크트리에서 배운 액티브 기술을 칸에 넣어 쓴다 (쿨타임 + SP)
+    s.heroes.knight.nodes.k_bash = 1;
+    expect(setSlot(s, 'bash', 0)).toBeNull();
+    const sp0 = curSp(s);
+    useSkill(s, 1);
     expect(s.cds.bash).toBeGreaterThan(0);
+    expect(curSp(s)).toBeLessThan(sp0);
+    s.sp = 0;
+    s.cds = {};
+    expect(useSkill(s, 1)[0]).toMatchObject({ k: 'msg' });
     expect(estimateHit(s, SKILLS.slash, m).dmg).toBeGreaterThan(0);
     s.heroes.knight.hp = 5;
     expect(usePotion(s, 'small')).toBeNull();
@@ -125,15 +133,38 @@ describe('전투·성장', () => {
     expect(s.cleared.length).toBe(10);
   });
 
-  // D101 밸런스: 그냥 앞으로 가며 판 사이에 포인트를 찍는 보통 플레이어는 모든 판을 한 번에 깬다
-  it('보통 플레이어(판 사이에 포인트 정리)가 10판을 모두 첫 시도에 깬다', () => {
-    const { rows, firstTry } = runCasual('between');
+  // D107 밸런스: 보스 뒤 몰려오는 무리로 조금 경험치를 버는 플레이어는 10판을 거의 다 한 번에 깬다
+  it('경험치를 조금 버는 플레이어는 10판을 모두 깬다(대부분 첫 시도)', () => {
+    const { rows, firstTry } = runCasual('grind');
     expect(rows.length).toBe(10);
-    expect(rows.every((r) => r.includes('클리어 시도1'))).toBe(true);
-    expect(firstTry).toBeGreaterThanOrEqual(8);
+    expect(rows.every((r) => r.includes('클리어'))).toBe(true);
+    expect(firstTry).toBeGreaterThanOrEqual(6);
   }, 60000);
-  it('포인트를 안 찍어도 2판까지는 한 번에 깬다', () => {
+  it('포인트·장비를 전혀 안 건드리면 중간에 막힌다 (성장이 의미 있다)', () => {
     const { rows } = runCasual('lazy');
-    expect(rows[1]).toContain('클리어 시도1');
+    expect(rows[0]).toContain('클리어');
+    expect(rows.length).toBeLessThan(10);
   }, 60000);
+  it('포위되면 방어가 약해진다', () => {
+    expect(surroundMul(1)).toBe(1);
+    expect(surroundMul(3)).toBeCloseTo(0.76);
+    expect(surroundMul(9)).toBe(0.55);
+  });
+  it('보스를 쓰러뜨리면 몬스터가 계속 몰려온다', () => {
+    const s = newRpg();
+    startStage(s, 1);
+    for (const m of s.monsters) m.dead = true;
+    s.bossDown = true;
+    const n0 = s.monsters.length;
+    for (let i = 0; i < 12; i++) wait(s);
+    expect(s.monsters.length).toBeGreaterThan(n0);
+    expect(s.monsters.filter((m) => m.extra && !m.dead).every((m) => m.level >= STAGES[0].bossLv - 1)).toBe(true);
+  });
+  it('액티브 기술을 배우면 빈 칸에 들어가고, 4칸까지 고를 수 있다', () => {
+    const s = newRpg();
+    expect(learnNode(s, 'k_whirl')).toBeNull();
+    expect(slotIds(s)[0]).toBe('whirl');
+    expect(setSlot(s, 'whirl', 3)).toBeNull();
+    expect(slotIds(s)).toEqual([null, null, null, 'whirl']);
+  });
 });

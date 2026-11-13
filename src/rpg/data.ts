@@ -21,7 +21,7 @@ export const beats = (e: Element): Element => ELEMENTS[(ELEMENTS.indexOf(e) + 1)
 export const beatenBy = (e: Element): Element => ELEMENTS[(ELEMENTS.indexOf(e) + 4) % 5];
 
 // ── 기술 ──
-export type Shape = 'single' | 'around' | 'splash';
+export type Shape = 'single' | 'around' | 'splash' | 'self';
 export interface SkillDef {
   id: string;
   name: string;
@@ -31,15 +31,22 @@ export interface SkillDef {
   range: number; // 1 = 바로 옆 칸
   coef: number;
   cd: number; // 턴
-  shape: Shape; // single: 대상 하나, around: 내 주변 6칸 전부, splash: 대상 + 그 주변
-  effect?: { kind: 'stun' | 'slow' | 'poison'; turns: number };
+  sp?: number; // D105: 쓰는 데 드는 SP (기본 공격은 0)
+  heal?: number; // D105: 준 피해의 n% 회복
+  shape: Shape; // single: 대상 하나, around: 내 주변 6칸 전부, splash: 대상 + 그 주변, self: 나에게
+  effect?: { kind: 'stun' | 'slow' | 'poison' | 'rally'; turns: number };
   desc: string;
 }
 
 export const SKILLS: Record<string, SkillDef> = {
   slash: { id: 'slash', name: '베기', icon: '🗡️', dmg: 'phys', element: null, range: 1, coef: 1, cd: 0, shape: 'single', desc: '바로 옆의 적을 벤다.' },
-  whirl: { id: 'whirl', name: '회오리 베기', icon: '🌀', dmg: 'phys', element: null, range: 1, coef: 0.85, cd: 4, shape: 'around', desc: '주변 6칸의 적을 모두 벤다. 몬스터 무리에 강하다.' },
-  bash: { id: 'bash', name: '방패 강타', icon: '🛡️', dmg: 'phys', element: 'earth', range: 1, coef: 1.4, cd: 5, shape: 'single', effect: { kind: 'stun', turns: 1 }, desc: '⛰️대지 속성. 강하게 내려쳐 1턴 기절시킨다.' },
+  // D105: 검사 액티브 기술 6개 (테크트리에서 배우고, 4칸에 골라 넣는다). 쿨타임은 짧고 SP가 진짜 제한
+  whirl: { id: 'whirl', name: '회오리 베기', icon: '🌀', dmg: 'phys', element: null, range: 1, coef: 0.9, cd: 2, sp: 30, shape: 'around', desc: '주변 6칸의 적을 모두 벤다. 둘러싸였을 때 최고.' },
+  thrust: { id: 'thrust', name: '꿰뚫기', icon: '🔱', dmg: 'phys', element: null, range: 2, coef: 1.3, cd: 1, sp: 20, shape: 'single', desc: '2칸 안의 적을 찌른다. 멀리서 쏘는 몬스터에게 좋다.' },
+  drain: { id: 'drain', name: '흡혈 검', icon: '🩸', dmg: 'phys', element: null, range: 1, coef: 1.2, cd: 2, sp: 25, heal: 35, shape: 'single', desc: '벤 피해의 35%만큼 체력을 되찾는다.' },
+  bash: { id: 'bash', name: '방패 강타', icon: '🛡️', dmg: 'phys', element: 'earth', range: 1, coef: 1.4, cd: 3, sp: 25, shape: 'single', effect: { kind: 'stun', turns: 1 }, desc: '⛰️대지 속성. 강하게 내려쳐 1턴 기절시킨다.' },
+  smash: { id: 'smash', name: '거인의 일격', icon: '🔨', dmg: 'phys', element: null, range: 1, coef: 2.6, cd: 4, sp: 50, shape: 'single', desc: '한 대상에게 아주 큰 피해. 보스·대장에게.' },
+  rally: { id: 'rally', name: '전장의 함성', icon: '📯', dmg: 'phys', element: null, range: 0, coef: 0, cd: 8, sp: 40, shape: 'self', effect: { kind: 'rally', turns: 4 }, desc: '4턴 동안 내 피해 +25%, 스피릿 피해 +40%.' },
   bolt: { id: 'bolt', name: '마력탄', icon: '✨', dmg: 'magic', element: null, range: 3, coef: 0.95, cd: 0, shape: 'single', desc: '3칸 안의 가장 가까운 적에게 마력탄.' },
   fireball: { id: 'fireball', name: '화염구', icon: '🔥', dmg: 'magic', element: 'fire', range: 3, coef: 1.5, cd: 4, shape: 'splash', desc: '🔥불 속성. 맞은 적과 그 주변까지 불태운다.' },
   icespear: { id: 'icespear', name: '얼음창', icon: '❄️', dmg: 'magic', element: 'water', range: 4, coef: 1.6, cd: 4, shape: 'single', effect: { kind: 'slow', turns: 2 }, desc: '💧물 속성. 맞은 적은 2턴 동안 느려진다(한 턴 걸러 움직임).' },
@@ -155,9 +162,20 @@ export const BAL = {
   benchXp: 0.5, // 쉬고 있는 캐릭터도 경험치 50%
   heroDmg: 1.6,
   monDmg: 2.3, // (예전 값, 안 씀)
-  monDmgStart: 1.15, // D101: 몬스터 공격 배율 1판
-  monDmgStep: 0.2, // 판마다 +
+  monDmgStart: 1.2, // D101·D107: 몬스터 공격 배율 1판
+  monDmgStep: 0.26, // 판마다 +
+  monHp: 1.25, // D107: 몬스터 체력 배율 (기술·SP로 강해진 만큼)
   deathGoldLoss: 0.1,
+  // D105 SP: 기술은 쿨타임이 끝나고 SP가 있어야 쓴다. 기본 공격으로 모으고 매 턴 조금씩 찬다
+  spMax: 100,
+  spRegen: 3, // 매 턴
+  spOnHit: 7, // 기본 공격이 맞을 때마다
+  // D106 포위(다굴): 나를 둘러싼 몬스터가 1마리 늘 때마다 방어 -12% (최대 -45%)
+  surroundPer: 0.12,
+  surroundMin: 0.55,
+  // D107 보스를 쓰러뜨린 뒤 몰려오는 몬스터(경험치 벌기): n턴마다 한 무리, 살아 있는 수 상한
+  waveEvery: 5,
+  waveCap: 10,
 };
 
 // ── 기술 테크트리 (D79): 레벨업마다 기술 포인트 1. 캐릭터마다 3단계 ──
@@ -172,11 +190,17 @@ export type NodeEffect =
   | { kind: 'petAtk'; pct: number }
   | { kind: 'stunPlus'; turns: number }
   | { kind: 'poisonMul'; mul: number }
-  | { kind: 'typeBonus'; pct: number };
+  | { kind: 'typeBonus'; pct: number }
+  | { kind: 'spMax'; n: number }
+  | { kind: 'spHit'; n: number };
 export interface TreeNode {
   id: string;
   name: string;
   icon: string;
+  /** D105: passive = 찍으면 늘 적용, active = 배우면 기술 칸에 넣어 쓰는 기술 */
+  type: 'passive' | 'active';
+  skill?: string; // active일 때 그 기술
+
   tier: 1 | 2 | 3;
   level: number; // 필요 캐릭터 레벨
   maxRank: number; // 여러 번 찍을 수 있다 (D85)
@@ -187,15 +211,19 @@ export interface TreeNode {
 }
 // 기술 테크트리 (D85): 노드마다 여러 번 찍고, 윗 노드에 3포인트 넣으면 아래가 열린다
 export const TREES: Record<string, TreeNode[]> = {
+  // D105: 패시브(늘 적용)와 액티브(기술 칸에 넣어 씀). 1단계는 바로, 2단계(레벨 4)·3단계(레벨 8)는 윗 노드 3포인트
   knight: [
-    { id: 'k_slash', name: '날카로운 베기', icon: '🗡️', tier: 1, level: 1, maxRank: 10, per: [{ kind: 'skillDmg', skill: 'slash', pct: 8 }], desc: '베기(자동 공격) 피해 +8% / 랭크' },
-    { id: 'k_body', name: '단단한 몸', icon: '🛡️', tier: 1, level: 1, maxRank: 10, per: [{ kind: 'stat', stat: 'def', pct: 5 }, { kind: 'stat', stat: 'res', pct: 4 }, { kind: 'stat', stat: 'hp', pct: 2 }], desc: '방어 +5%, 마법방어 +4%, 체력 +2% / 랭크' },
-    { id: 'k_whirl', name: '회오리 숙련', icon: '🌀', tier: 2, level: 4, maxRank: 5, pre: 'k_slash', preRanks: 3, per: [{ kind: 'skillDmg', skill: 'whirl', pct: 12 }, { kind: 'skillCd', skill: 'whirl', delta: -0.4 }], desc: '회오리 베기 피해 +12%, 쿨타임 -0.4턴 / 랭크' },
-    { id: 'k_drain', name: '흡혈 검', icon: '🩸', tier: 2, level: 4, maxRank: 5, pre: 'k_body', preRanks: 3, per: [{ kind: 'lifesteal', pct: 2 }], desc: '준 피해의 2% 회복 / 랭크' },
-    { id: 'k_bash', name: '대지의 방패', icon: '⛰️', tier: 2, level: 4, maxRank: 5, pre: 'k_body', preRanks: 3, per: [{ kind: 'skillDmg', skill: 'bash', pct: 12 }, { kind: 'stunPlus', turns: 0.25 }], desc: '방패 강타 피해 +12%, 4랭크마다 기절 +1턴 / 랭크' },
-    { id: 'k_master', name: '검의 달인', icon: '⚔️', tier: 3, level: 8, maxRank: 10, pre: 'k_whirl', preRanks: 3, per: [{ kind: 'allDmg', pct: 3 }, { kind: 'crit', pct: 1 }], desc: '모든 피해 +3%, 치명타 +1% / 랭크' },
-    { id: 'k_giant', name: '거인의 체력', icon: '💪', tier: 3, level: 8, maxRank: 10, pre: 'k_drain', preRanks: 3, per: [{ kind: 'stat', stat: 'hp', pct: 5 }], desc: '최대 체력 +5% / 랭크' },
-    { id: 'k_rally', name: '전장의 함성', icon: '📯', tier: 3, level: 8, maxRank: 10, pre: 'k_bash', preRanks: 3, per: [{ kind: 'petAtk', pct: 6 }], desc: '스피릿 공격 +6% / 랭크' },
+    { id: 'k_slash', name: '날카로운 베기', icon: '🗡️', type: 'passive', tier: 1, level: 1, maxRank: 10, per: [{ kind: 'skillDmg', skill: 'slash', pct: 8 }], desc: '기본 공격(베기) 피해 +8% / 랭크' },
+    { id: 'k_whirl', name: '회오리 베기', icon: '🌀', type: 'active', skill: 'whirl', tier: 1, level: 1, maxRank: 5, per: [{ kind: 'skillDmg', skill: 'whirl', pct: 12 }], desc: '주변 6칸 공격 · SP 30 · 랭크마다 피해 +12%' },
+    { id: 'k_body', name: '단단한 몸', icon: '🛡️', type: 'passive', tier: 1, level: 1, maxRank: 10, per: [{ kind: 'stat', stat: 'def', pct: 5 }, { kind: 'stat', stat: 'res', pct: 4 }, { kind: 'stat', stat: 'hp', pct: 2 }], desc: '방어 +5%, 마법방어 +4%, 체력 +2% / 랭크' },
+    { id: 'k_thrust', name: '꿰뚫기', icon: '🔱', type: 'active', skill: 'thrust', tier: 2, level: 4, maxRank: 5, pre: 'k_slash', preRanks: 3, per: [{ kind: 'skillDmg', skill: 'thrust', pct: 12 }], desc: '2칸 찌르기 · SP 20 · 랭크마다 피해 +12%' },
+    { id: 'k_drain', name: '흡혈 검', icon: '🩸', type: 'active', skill: 'drain', tier: 2, level: 4, maxRank: 5, pre: 'k_whirl', preRanks: 3, per: [{ kind: 'skillDmg', skill: 'drain', pct: 12 }], desc: '베고 피해의 35% 회복 · SP 25 · 랭크마다 피해 +12%' },
+    { id: 'k_focus', name: '정신 집중', icon: '🧘', type: 'passive', tier: 2, level: 4, maxRank: 10, pre: 'k_whirl', preRanks: 3, per: [{ kind: 'spMax', n: 8 }, { kind: 'spHit', n: 1 }], desc: '최대 SP +8, 기본 공격마다 SP +1 / 랭크' },
+    { id: 'k_bash', name: '방패 강타', icon: '⛰️', type: 'active', skill: 'bash', tier: 2, level: 4, maxRank: 5, pre: 'k_body', preRanks: 3, per: [{ kind: 'skillDmg', skill: 'bash', pct: 12 }, { kind: 'stunPlus', turns: 0.25 }], desc: '내려쳐 기절 · SP 25 · 랭크마다 피해 +12%, 4랭크면 기절 +1턴' },
+    { id: 'k_smash', name: '거인의 일격', icon: '🔨', type: 'active', skill: 'smash', tier: 3, level: 8, maxRank: 5, pre: 'k_thrust', preRanks: 3, per: [{ kind: 'skillDmg', skill: 'smash', pct: 12 }], desc: '한 대상에 큰 피해 · SP 50 · 랭크마다 피해 +12%' },
+    { id: 'k_master', name: '검의 달인', icon: '⚔️', type: 'passive', tier: 3, level: 8, maxRank: 10, pre: 'k_drain', preRanks: 3, per: [{ kind: 'allDmg', pct: 3 }, { kind: 'crit', pct: 1 }], desc: '모든 피해 +3%, 치명타 +1% / 랭크' },
+    { id: 'k_rally', name: '전장의 함성', icon: '📯', type: 'active', skill: 'rally', tier: 3, level: 8, maxRank: 5, pre: 'k_bash', preRanks: 3, per: [{ kind: 'petAtk', pct: 6 }], desc: '4턴 동안 내 피해 +25%·스피릿 +40% · SP 40 · 랭크마다 스피릿 공격 +6%' },
+    { id: 'k_giant', name: '거인의 체력', icon: '💪', type: 'passive', tier: 3, level: 8, maxRank: 10, pre: 'k_bash', preRanks: 3, per: [{ kind: 'stat', stat: 'hp', pct: 5 }], desc: '최대 체력 +5% / 랭크' },
   ],
 };
 

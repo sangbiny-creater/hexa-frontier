@@ -1,7 +1,7 @@
 // 스피릿·기술 테크트리·장비·상점 창과 알림 팝업
 import { useState } from 'react';
-import { beats, EL_COLOR, EL_ICON, EL_NAME, ELEMENTS, HEROES, MONSTERS, RARITY_COLOR, RARITY_NAME, SLOT_NAME, SPIRIT_BONUS_PER_LV, SPIRIT_GUARD_PER_LV, SPIRIT_TREE, SPIRITS, TREES, type Element, type Item, type Slot } from '../rpg/data';
-import { buy, heroStats, itemPrice, itemScore, petStats, shopPrice, spiritNeed, type Fx, type RpgState, type ShopItem } from '../rpg/game';
+import { beats, SKILLS, EL_COLOR, EL_ICON, EL_NAME, ELEMENTS, HEROES, MONSTERS, RARITY_COLOR, RARITY_NAME, SLOT_NAME, SPIRIT_BONUS_PER_LV, SPIRIT_GUARD_PER_LV, SPIRIT_TREE, SPIRITS, TREES, type Element, type Item, type Slot } from '../rpg/data';
+import { buy, heroStats, itemPrice, itemScore, learnedActives, petStats, shopPrice, slotIds, spiritNeed, type Fx, type RpgState, type ShopItem } from '../rpg/game';
 import { active } from '../rpg/world';
 
 const BASE = (import.meta.env?.BASE_URL ?? '/') + 'assets/';
@@ -24,15 +24,42 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
   );
 }
 
-export function TreePanel({ state, onClose, onLearn }: { state: RpgState; onClose: () => void; onLearn: (id: string) => void }) {
+export function TreePanel({ state, onClose, onLearn, onSlot }: { state: RpgState; onClose: () => void; onLearn: (id: string) => void; onSlot: (skill: string, slot: number | null) => void }) {
   const h = state.heroes[state.heroId];
   const tree = TREES[state.heroId];
   const spent = Object.values(h.nodes).reduce((a, b) => a + b, 0);
+  const slots = slotIds(state);
+  const learned = learnedActives(state);
+  const [pick, setPick] = useState<string | null>(null); // 칸에 넣을 기술 고르는 중
   return (
-    <Sheet title="🌳 기술 테크트리" onClose={onClose}>
+    <Sheet title="🌳 기술" onClose={onClose}>
+      <div className="slot-box">
+        <div className="slot-title">
+          기술 칸 <span className="muted small">· 기본 공격(🗡️베기)은 늘 자동. 배운 액티브 기술 중 4개를 넣어 써요</span>
+        </div>
+        <div className="slot-row">
+          {slots.map((id, i) => {
+            const sk = id ? SKILLS[id] : null;
+            return (
+              <button key={i} className={`slot ${sk ? 'full' : ''} ${pick ? 'target' : ''}`} onClick={() => (pick ? (onSlot(pick, i), setPick(null)) : sk && onSlot(sk.id, null))}>
+                {sk ? (
+                  <>
+                    <span>{sk.icon}</span>
+                    <b>{sk.name}</b>
+                    <small>SP {sk.sp}</small>
+                  </>
+                ) : (
+                  <small className="muted">빈 칸</small>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        <div className="muted small">{pick ? `[${SKILLS[pick].name}]을 넣을 칸을 누르세요` : learned.length ? '칸을 누르면 빼요. 아래 액티브 기술의 [칸에 넣기]로 바꿔요.' : '아래에서 액티브 기술을 배우면 빈 칸에 들어가요.'}</div>
+      </div>
       <div className="tree-head">
         남은 포인트 <b className="gold">{h.skillPts}</b> · 쓴 포인트 {spent}
-        <div className="muted small">레벨업마다 1포인트. 노드를 누를 때마다 1랭크씩 올라가요(최대 5~10). 윗 노드에 3포인트를 넣으면 아래 노드가 열려요.</div>
+        <div className="muted small">레벨업마다 1포인트. 누를 때마다 1랭크씩 올라가요. 윗 노드에 3포인트를 넣으면 아래 노드가 열려요. 🟦패시브는 찍으면 늘 적용, 🟧액티브는 배우면 기술 칸에 넣어 써요.</div>
       </div>
       {[1, 2, 3].map((tier) => (
         <div key={tier} className="tree-tier">
@@ -48,8 +75,10 @@ export function TreePanel({ state, onClose, onLearn }: { state: RpgState; onClos
                 const preOk = !pre || (h.nodes[pre.id] ?? 0) >= (n.preRanks ?? 1);
                 const lvOk = h.level >= n.level;
                 const can = preOk && lvOk && rank < n.maxRank && h.skillPts > 0;
+                const inSlot = !!n.skill && slots.includes(n.skill);
                 return (
-                  <button key={n.id} className={`tnode ${rank > 0 ? 'got' : ''} ${can ? 'can' : ''} ${!preOk || !lvOk ? 'locked' : ''}`} onClick={() => onLearn(n.id)}>
+                  <div key={n.id} className={`tnode ${n.type} ${rank > 0 ? 'got' : ''} ${can ? 'can' : ''} ${!preOk || !lvOk ? 'locked' : ''}`} onClick={() => onLearn(n.id)}>
+                    <span className={`tn-type ${n.type}`}>{n.type === 'passive' ? '패시브' : '액티브'}</span>
                     <span className="tn-icon">{n.icon}</span>
                     <b>{n.name}</b>
                     <span className="tn-rank">
@@ -59,7 +88,21 @@ export function TreePanel({ state, onClose, onLearn }: { state: RpgState; onClos
                     {!preOk && pre && <small className="tn-need">🔒 {pre.name} {h.nodes[pre.id] ?? 0}/{n.preRanks}</small>}
                     {preOk && !lvOk && <small className="tn-need">🔒 레벨 {n.level}</small>}
                     {can && <small className="tn-plus">＋ 찍기</small>}
-                  </button>
+                    {n.type === 'active' && rank > 0 && n.skill && (
+                      <button
+                        className={`tn-slot ${inSlot ? 'in' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (inSlot) return onSlot(n.skill!, null);
+                          const empty = slots.indexOf(null);
+                          if (empty >= 0) onSlot(n.skill!, empty);
+                          else setPick(n.skill!);
+                        }}
+                      >
+                        {inSlot ? '✓ 칸에 있음 (빼기)' : '칸에 넣기'}
+                      </button>
+                    )}
+                  </div>
                 );
               })}
           </div>
@@ -76,12 +119,15 @@ export function SpiritPanel({ state, onClose, onSpend }: { state: RpgState; onCl
     <Sheet title="스피릿" onClose={onClose}>
       <div className="spirit-head">
         <div>
-          스피릿 포인트 <b className="gold">{state.spiritPoints}</b>
+          💠 스피릿 코어(SC) <b className="gold">{state.spiritPoints}</b>개
         </div>
         <div className="bar xp">
           <i style={{ width: `${(state.spiritXp / spiritNeed(state.spiritEarned)) * 100}%` }} />
+          <span>
+            다음 SC까지 {state.spiritXp}/{spiritNeed(state.spiritEarned)}
+          </span>
         </div>
-        <div className="muted small">몬스터를 잡으면 쌓여요. 어떤 속성 스피릿을 키울지 직접 골라요. 키운 만큼 그 스피릿이 강해지고, 그 속성이 이기는 몬스터에게 캐릭터도 강해져요.</div>
+        <div className="muted small">몬스터를 잡으면 SC가 쌓여요. 스피릿은 SC를 먹고 레벨업해요(SC 1개 = 1레벨). 어떤 속성 스피릿에게 먹일지 직접 골라요. 키운 만큼 그 스피릿이 강해지고, 그 속성이 이기는 몬스터에게 캐릭터도 강해져요.</div>
       </div>
       <div className="elem-cycle small">💧물 → 🔥불 → 🌿숲 → ⛰️대지 → 🌪️바람 → 💧물 (화살표 쪽에 강함)</div>
       {ELEMENTS.map((e) => {
@@ -112,7 +158,7 @@ export function SpiritPanel({ state, onClose, onSpend }: { state: RpgState; onCl
               </div>
               {owned && (
                 <button className="cta small-cta" disabled={state.spiritPoints <= 0} onClick={() => onSpend(e)}>
-                  ▲ 키우기
+                  💠 SC 먹이기
                 </button>
               )}
             </div>

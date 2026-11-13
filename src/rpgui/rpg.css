@@ -214,87 +214,86 @@
 .guide-strip .link { color: #8a5a00; font-weight: 800; margin-left: 6px; }
 .best-btn { width: 100%; }
 
-/* ── D104: 세로 화면 · 배치 후보 A/B/C (지도 전체 + 창들) ── */
+/* ── D108: 세로 화면 최종 배치 (배치 C 기반) ── */
 .rpg.game { display: block; --top: env(safe-area-inset-top); --bot: env(safe-area-inset-bottom); }
 .game .rworld { position: absolute; inset: 0; }
-.game .panel-box, .game .g-char, .game .g-stagewin, .game .g-menu button, .game .gm-toggle { background: #0a1411e0; border: 1px solid #ffffff1f; }
+.game .g-char, .game .gm-toggle, .game .gm-list button { background: #0a1411e0; border: 1px solid #ffffff1f; }
+/* 맨 위 줄 */
+.game .g-top { position: absolute; left: 0; right: 0; top: 0; z-index: 6; display: flex; align-items: center; gap: 8px; padding: calc(var(--top) + 5px) 8px 5px; background: #0a1411e6; border-bottom: 1px solid #ffffff1a; font-size: 11px; }
+.game .g-top b { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.game .gs-gold { font-weight: 800; color: #ffd257; }
+.game .g-top .link { font-size: 12px; padding: 0 2px; }
+.game .g-top .link:disabled { opacity: 0.3; }
+/* 왼쪽 가장자리 진행 막대 (잘 안 보이게) */
+.game .g-progress { position: absolute; left: 0; top: calc(var(--top) + 150px); bottom: calc(var(--bot) + 190px); width: 4px; z-index: 4; background: #ffffff12; border-radius: 0 3px 3px 0; pointer-events: none; }
+.game .g-progress i { position: absolute; left: 0; right: 0; bottom: 0; background: #ffd25780; border-radius: 0 3px 3px 0; }
+.game .g-progress em { position: absolute; left: 5px; font-size: 9px; font-style: normal; opacity: 0.55; transform: translateY(50%); }
+.game .g-progress .gp-exit { top: -6px; transform: none; }
 /* 캐릭터 창 */
-.game .g-char { position: absolute; left: 8px; top: calc(var(--top) + 8px); width: 208px; display: flex; gap: 7px; padding: 6px; border-radius: 14px; z-index: 5; }
-.game .gc-face img { width: 48px; height: 48px; border-radius: 12px; object-fit: cover; border: 2px solid #c9a95a; display: block; }
+.game .g-char { position: absolute; left: 8px; top: calc(var(--top) + 38px); width: 222px; display: flex; gap: 7px; padding: 6px; border-radius: 14px; z-index: 5; }
+.game .gc-face { position: relative; }
+.game .gc-face img { width: 50px; height: 50px; border-radius: 12px; object-fit: cover; border: 2px solid #c9a95a; display: block; }
+.game .gc-face b { position: absolute; left: 50%; bottom: -5px; transform: translateX(-50%); min-width: 20px; padding: 0 4px; border-radius: 8px; background: #ffd257; color: #2b2416; font-size: 10px; text-align: center; }
 .game .gc-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .game .gc-name { display: flex; align-items: baseline; justify-content: space-between; gap: 4px; font-size: 12px; }
 .game .gc-name span { font-size: 11px; font-weight: 900; color: #ffd257; white-space: nowrap; }
-.game .g-char .bar { height: 11px; }
-.game .g-char .bar span { font-size: 8.5px; line-height: 11px; }
-.game .g-char .bar.sp i { background: linear-gradient(90deg, #8a5cff, #c9a8ff); }
-.game .g-char .bar.xp { height: 9px; }
-.game .g-char .bar.xp span { line-height: 9px; font-size: 8px; }
-.game .state-badge { position: absolute; left: 8px; top: calc(var(--top) + 84px); z-index: 5; }
-/* 스테이지 창 */
-.game .g-stagewin { position: absolute; right: 8px; top: calc(var(--top) + 8px); width: calc(100% - 240px); min-width: 120px; padding: 6px 8px; border-radius: 14px; z-index: 5; display: flex; flex-direction: column; gap: 4px; font-size: 10px; color: #c9d8cf; }
-.game .gs-title b { display: block; color: #fff; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.game .g-stagewin .sp-bar { margin: 2px 8px 2px 2px; }
-.game .g-stagewin .sp-bar em { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 10px; font-style: normal; }
-.game .gs-btns { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
-.game .gs-gold { font-weight: 800; color: #ffd257; font-size: 11px; }
-.game .gs-btns .link { font-size: 12px; padding: 0 2px; }
-.game .gs-btns .link:disabled { opacity: 0.3; }
-/* 메뉴 버튼 공통 */
-.game .g-menu { z-index: 6; }
-.game .g-menu button, .game .gm-toggle { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1px; width: 58px; padding: 5px 0; border-radius: 12px; font-size: 10.5px; font-weight: 700; color: #e4efe8; }
-.game .g-menu button span, .game .gm-toggle span { font-size: 18px; line-height: 1.1; }
-.game .g-menu button.dim { opacity: 0.45; }
+.game .g-char .bar { height: 12px; }
+.game .g-char .bar span { font-size: 9px; line-height: 12px; }
+.game .g-char .bar.sp i { background: linear-gradient(90deg, #2f7ddc, #6fc3ff); }
+.game .g-char .bar.xp { height: 10px; }
+.game .g-char .bar.xp i { background: linear-gradient(90deg, #8a5cff, #c9a8ff); }
+.game .g-char .bar.xp span { line-height: 10px; font-size: 8.5px; }
+.game .state-badge { position: absolute; left: 8px; top: calc(var(--top) + 112px); z-index: 5; max-width: calc(100% - 90px); }
+.game .state-badge .surround { color: #ffb3a8; }
+.game .battle-log { position: absolute; left: 12px; right: 76px; top: calc(var(--top) + 140px); bottom: auto; z-index: 4; text-align: left; font-size: 10.5px; line-height: 1.35; text-shadow: 0 1px 2px #000, 0 0 4px #000; pointer-events: none; }
+/* ☰ 메뉴 */
+.game .g-menu { position: absolute; right: 8px; top: calc(var(--top) + 38px); z-index: 6; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.game .gm-list { display: flex; flex-direction: column; gap: 6px; }
+.game .gm-toggle, .game .gm-list button { position: relative; display: flex; flex-direction: column; align-items: center; gap: 1px; width: 58px; padding: 5px 0; border-radius: 12px; font-size: 10.5px; font-weight: 700; color: #e4efe8; }
+.game .gm-toggle span, .game .gm-list button span { font-size: 18px; line-height: 1.1; }
+.game .gm-list button.dim { opacity: 0.45; }
 .game .g-menu .dot { position: absolute; top: -4px; right: -4px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #e0583a; color: #fff; font-size: 10px; font-style: normal; line-height: 16px; }
-/* 왼쪽 아래: 자동·물약 / 기술 */
+/* 왼쪽 아래: 자동·물약 / 기술 칸 2×2 */
 .game .g-bl { position: absolute; left: 8px; bottom: calc(var(--bot) + 10px); display: flex; flex-direction: column; align-items: flex-start; gap: 6px; z-index: 5; }
-.game .g-pots, .game .g-skills { display: flex; gap: 6px; }
-.game .g-auto { width: 58px; height: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; background: #1f3329e6; border: 2px solid #5a6b62; color: #c9d8cf; line-height: 1.1; }
+.game .g-pots { display: flex; gap: 6px; }
+.game .g-skills { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.game .g-auto { width: 56px; height: 38px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 12px; background: #1f3329e6; border: 2px solid #5a6b62; color: #c9d8cf; line-height: 1.1; }
 .game .g-auto b { font-size: 12px; }
 .game .g-auto small { font-size: 9.5px; }
 .game .g-auto.on { background: #ffd257; border-color: #ffd257; color: #2b2416; }
-.game .g-skill { width: 68px; height: 68px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 16px; border: 2px solid; background: #1f3329e6; color: #fff; font-size: 10.5px; }
-.game .g-skill .gs-icon { font-size: 22px; line-height: 1; }
-.game .g-skill small { font-size: 9.5px; color: #c9d8cf; }
-.game .g-skill.off { opacity: 0.5; }
-.game .g-potion { width: 46px; height: 40px; display: flex; align-items: center; justify-content: center; gap: 3px; border-radius: 12px; background: #2a2440e6; border: 2px solid #6a5a99; font-size: 16px; }
+.game .g-skill { width: 76px; height: 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; border-radius: 14px; border: 2px solid; background: #1f3329e6; color: #fff; font-size: 10px; line-height: 1.2; }
+.game .g-skill .gs-icon { font-size: 19px; line-height: 1.1; }
+.game .g-skill small { font-size: 9.5px; color: #8fd0ff; font-weight: 800; }
+.game .g-skill small.nosp { color: #ff8f80; }
+.game .g-skill.off { opacity: 0.55; }
+.game .g-skill.empty { border: 2px dashed #ffffff33; background: #0a1411aa; }
+.game .g-skill.empty small { color: #ffffff77; font-weight: 600; }
+.game .g-potion { width: 44px; height: 38px; display: flex; align-items: center; justify-content: center; gap: 3px; border-radius: 12px; background: #2a2440e6; border: 2px solid #6a5a99; font-size: 16px; }
 .game .g-potion b { font-size: 12px; }
 .game .g-potion:disabled { opacity: 0.4; }
 /* 이동 버튼: 오른쪽 아래 영역 전체가 버튼(지도가 눌리지 않음) */
-.game .g-pad-zone { position: absolute; right: 0; bottom: 0; width: 200px; height: 200px; z-index: 6; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.game .g-pad-zone { position: absolute; right: 0; bottom: 0; width: 196px; height: 200px; z-index: 6; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
 .game .hexpad { position: absolute; right: 12px; bottom: calc(var(--bot) + 14px); width: 170px; height: 170px; border-radius: 50%; background: #0a1411b3; border: 2px solid #ffffff26; touch-action: none; cursor: pointer; }
 .game .hp-btn { position: absolute; width: 50px; height: 50px; margin: -25px 0 0 -25px; border-radius: 50%; background: #ffffff1f; border: 1px solid #ffffff33; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 900; color: #fff; pointer-events: none; }
 .game .hp-btn.on { background: #ffd257; color: #2b2416; }
 .game .hp-mid { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 10px; color: #ffffff88; pointer-events: none; }
-.game .battle-log { position: absolute; left: 8px; right: 8px; top: calc(var(--top) + 112px); bottom: auto; z-index: 4; text-align: left; font-size: 10.5px; line-height: 1.35; text-shadow: 0 1px 2px #000, 0 0 4px #000; pointer-events: none; }
 .game .recenter { position: absolute; top: 45%; right: 8px; z-index: 6; }
-.game .rtoast.top { top: 220px; }
-/* 배치 고르기 (임시) */
-.game .lay-pick { position: absolute; left: 8px; bottom: calc(var(--bot) + 134px); z-index: 7; display: flex; gap: 3px; padding: 3px; border-radius: 10px; background: #000b; }
-.game .lay-pick button { padding: 3px 7px; border-radius: 7px; font-size: 10.5px; font-weight: 800; color: #c9d8cf; }
-.game .lay-pick button.on { background: #ffd257; color: #2b2416; }
-
-/* A: 오른쪽 가장자리에 메뉴 세로 줄 */
-.lay-a .g-menu { position: absolute; right: 8px; top: calc(var(--top) + 118px); display: flex; flex-direction: column; gap: 6px; }
-.lay-a .battle-log { right: 76px; }
-
-/* B: 맨 아래 메뉴 막대 */
-.lay-b .g-menu { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: space-around; padding: 5px 6px calc(var(--bot) + 6px); background: #0a1411f2; border-top: 1px solid #ffffff1f; }
-.lay-b .g-menu button { background: none; border: 0; flex: 1; }
-.lay-b .g-bl { bottom: calc(var(--bot) + 70px); }
-.lay-b .g-pad-zone { bottom: calc(var(--bot) + 58px); }
-.lay-b .hexpad { bottom: 6px; }
-.lay-b .lay-pick { bottom: calc(var(--bot) + 194px); }
-
-/* C: 맨 위 스테이지 줄 + 오른쪽 위 ☰ 메뉴 */
-.lay-c .g-stagewin { left: 0; right: 0; top: 0; width: auto; border-radius: 0; border-width: 0 0 1px; flex-direction: row; align-items: center; gap: 8px; padding: calc(var(--top) + 5px) 8px 5px; }
-.lay-c .gs-title { max-width: 120px; }
-.lay-c .g-stagewin .sp-bar { flex: 1; }
-.lay-c .gs-info { display: none; }
-.lay-c .g-char { top: calc(var(--top) + 40px); }
-.lay-c .state-badge { top: calc(var(--top) + 116px); }
-.lay-c .battle-log { top: calc(var(--top) + 144px); }
-.lay-c .g-menu { position: absolute; right: 8px; top: calc(var(--top) + 40px); display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-.lay-c .gm-list { display: flex; flex-direction: column; gap: 6px; }
+.game .rtoast.top { top: 230px; }
+/* 기술 창: 기술 칸 + 패시브/액티브 */
+.slot-box { padding: 10px; border-radius: 14px; background: #0000000d; display: flex; flex-direction: column; gap: 6px; }
+.slot-title { font-weight: 800; }
+.slot-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.slot { min-height: 62px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 12px; border: 2px dashed #0003; background: #fff8; font-size: 11px; }
+.slot.full { border: 2px solid #c9a95a; background: #fff; color: #2b2416; }
+.slot.target { border-color: #e0583a; }
+.slot span { font-size: 20px; }
+.slot small { color: #2f7ddc; font-weight: 800; }
+.tnode { position: relative; cursor: pointer; }
+.tn-type { position: absolute; top: 4px; left: 4px; font-size: 9px; font-weight: 900; padding: 0 5px; border-radius: 6px; }
+.tn-type.passive { background: #dbe9ff; color: #2f5fa8; }
+.tn-type.active { background: #ffe2c7; color: #b05a12; }
+.tn-slot { margin-top: 4px; padding: 3px 8px; border-radius: 8px; font-size: 10.5px; font-weight: 800; background: #ffd257; color: #2b2416; }
+.tn-slot.in { background: #3f9a60; color: #fff; }
 
 .tut-card p { margin: 0; font-size: 14px; line-height: 1.55; }
 .tut-card .link { font-size: 12px; color: #8a5a00; }

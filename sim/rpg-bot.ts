@@ -69,7 +69,7 @@ export function playStage(s: RpgState, n: number, maxTurns = 4000) {
     const info = stageInfo(s);
     const shrine = [...active().cells.values()].find((x) => x.feature?.kind === 'shrine' && !s.spirits[x.feature.element]);
     const bossOk = h.level >= st.bossLv - 1 || s.bossDown;
-    const target = s.monsters.filter((m) => !m.dead && (!m.boss || bossOk) && dist(m, s.pos) <= 7).sort((a, b) => dist(a, s.pos) - dist(b, s.pos))[0];
+    const target = s.bossDown ? undefined : s.monsters.filter((m) => !m.dead && (!m.boss || bossOk) && dist(m, s.pos) <= 7).sort((a, b) => dist(a, s.pos) - dist(b, s.pos))[0];
     let d: Dir | null = null;
     if (shrine) d = bfs(s, (c, r) => c === shrine.c && r === shrine.r, true);
     else if (target) d = bfs(s, (c, r) => c === target.c && r === target.r, true);

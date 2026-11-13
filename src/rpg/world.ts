@@ -38,17 +38,18 @@ export interface StageDef {
   shrine?: Element;
 }
 
+// D107: 2판부터 몬스터 레벨을 올려, 보스 뒤 몰려오는 무리나 다시 하기로 약간의 경험치 벌기가 필요하게
 export const STAGES: StageDef[] = [
   { n: 1, name: '이끼 숲 입구', rows: 18, layout: 'pillars', monsters: ['leafpup', 'leafpup', 'leafkit'], minLv: 1, maxLv: 3, boss: 'leafpup', bossLv: 4, bossElite: true, shrine: 'fire' },
-  { n: 2, name: '덤불 미로', rows: 20, layout: 'maze', monsters: ['leafpup', 'leafkit', 'bloom'], minLv: 3, maxLv: 5, boss: 'leafkit', bossLv: 6, bossElite: true, shrine: 'water' },
-  { n: 3, name: '고목의 뜰', rows: 22, layout: 'rooms', monsters: ['leafkit', 'bloom', 'leafpup'], minLv: 5, maxLv: 7, boss: 'golem', bossLv: 8 },
-  { n: 4, name: '물안개 개울', rows: 22, layout: 'corridors', monsters: ['tidekit', 'shell', 'tidekit'], minLv: 7, maxLv: 9, boss: 'shell', bossLv: 10, bossElite: true, shrine: 'wind' },
-  { n: 5, name: '개울 동굴', rows: 24, layout: 'maze', monsters: ['tidekit', 'shell', 'bloom'], minLv: 9, maxLv: 11, boss: 'tidekit', bossLv: 12, bossElite: true },
-  { n: 6, name: '해일의 둥지', rows: 24, layout: 'open', monsters: ['tidekit', 'shell'], minLv: 11, maxLv: 13, boss: 'tidelord', bossLv: 14, shrine: 'forest' },
-  { n: 7, name: '바위엄니 고개', rows: 26, layout: 'corridors', monsters: ['boar', 'ember', 'boar'], minLv: 13, maxLv: 15, boss: 'boar', bossLv: 16, bossElite: true },
-  { n: 8, name: '테라스톤 광산', rows: 26, layout: 'rooms', monsters: ['boar', 'ember'], minLv: 15, maxLv: 18, boss: 'terra', bossLv: 19, shrine: 'earth' },
-  { n: 9, name: '폭풍 언덕', rows: 28, layout: 'pillars', monsters: ['wolf', 'ember', 'wolf'], minLv: 19, maxLv: 22, boss: 'wolf', bossLv: 24, bossElite: true },
-  { n: 10, name: '폭풍의 정상', rows: 30, layout: 'maze', monsters: ['wolf', 'shell', 'ember', 'wolf'], minLv: 23, maxLv: 26, boss: 'storm', bossLv: 28 },
+  { n: 2, name: '덤불 미로', rows: 20, layout: 'maze', monsters: ['leafpup', 'leafkit', 'bloom'], minLv: 3, maxLv: 6, boss: 'leafkit', bossLv: 7, bossElite: true, shrine: 'water' },
+  { n: 3, name: '고목의 뜰', rows: 22, layout: 'rooms', monsters: ['leafkit', 'bloom', 'leafpup'], minLv: 6, maxLv: 8, boss: 'golem', bossLv: 9 },
+  { n: 4, name: '물안개 개울', rows: 22, layout: 'corridors', monsters: ['tidekit', 'shell', 'tidekit'], minLv: 9, maxLv: 11, boss: 'shell', bossLv: 13, bossElite: true, shrine: 'wind' },
+  { n: 5, name: '개울 동굴', rows: 24, layout: 'maze', monsters: ['tidekit', 'shell', 'bloom'], minLv: 12, maxLv: 14, boss: 'tidekit', bossLv: 16, bossElite: true },
+  { n: 6, name: '해일의 둥지', rows: 24, layout: 'open', monsters: ['tidekit', 'shell'], minLv: 15, maxLv: 17, boss: 'tidelord', bossLv: 19, shrine: 'forest' },
+  { n: 7, name: '바위엄니 고개', rows: 26, layout: 'corridors', monsters: ['boar', 'ember', 'boar'], minLv: 18, maxLv: 20, boss: 'boar', bossLv: 22, bossElite: true },
+  { n: 8, name: '테라스톤 광산', rows: 26, layout: 'rooms', monsters: ['boar', 'ember'], minLv: 21, maxLv: 23, boss: 'terra', bossLv: 25, shrine: 'earth' },
+  { n: 9, name: '폭풍 언덕', rows: 28, layout: 'pillars', monsters: ['wolf', 'ember', 'wolf'], minLv: 24, maxLv: 26, boss: 'wolf', bossLv: 28, bossElite: true },
+  { n: 10, name: '폭풍의 정상', rows: 30, layout: 'maze', monsters: ['wolf', 'shell', 'ember', 'wolf'], minLv: 27, maxLv: 29, boss: 'storm', bossLv: 32 },
 ];
 
 export const key = (c: number, r: number) => `${c},${r}`;

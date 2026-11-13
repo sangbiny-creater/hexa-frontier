@@ -374,7 +374,10 @@ export function WorldView({
       </g>
       {/* 효과 */}
       <g key={fxKey}>
-        {fx.flatMap((f, i) => {
+        {(() => {
+          // 같은 칸에 숫자가 여러 개면 위로 쌓는다 (겹쳐서 '-565'처럼 보이지 않게)
+          const stack = new Map<string, number>();
+          return fx.flatMap((f, i) => {
           if (f.k === 'skill')
             return f.cells.map((c, j) => {
               const p = xy(c.c, c.r);
@@ -383,9 +386,12 @@ export function WorldView({
           if (f.k === 'dmg' || f.k === 'heal') {
             const p = xy(f.c, f.r);
             const txt = f.k === 'dmg' ? `-${f.amount}` : `+${f.amount}`;
+            const sk = `${f.c},${f.r}`;
+            const nth = stack.get(sk) ?? 0;
+            stack.set(sk, nth + 1);
             const cls = f.k === 'heal' ? 'heal' : f.onHero || f.onPet ? 'hurt' : f.eff === 'strong' ? 'strong' : f.eff === 'weak' || f.blocked ? 'weak' : '';
             return [
-              <text key={`d${i}`} x={p.x + ((i % 3) - 1) * 6} y={p.y - S * 1.3} textAnchor="middle" className={`fx-num ${cls}`}>
+              <text key={`d${i}`} x={p.x} y={p.y - S * 1.3 - nth * 10} textAnchor="middle" className={`fx-num ${cls}`}>
                 {f.k === 'dmg' && !f.onHero && !f.onPet && f.eff === 'strong' ? '유리! ' : ''}
                 {f.k === 'dmg' && f.blocked ? '막힘 ' : ''}
                 {txt}
@@ -404,7 +410,8 @@ export function WorldView({
             return [<circle key={`k${i}`} cx={p.x} cy={p.y - S * 0.5} r={S} className="fx-kill" />];
           }
           return [];
-        })}
+          });
+        })()}
       </g>
     </svg>
   );

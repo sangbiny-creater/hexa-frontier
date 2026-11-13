@@ -2,10 +2,10 @@
 // 일부러 레벨을 올리거나 돌아가지 않는다. 포인트는 'spend'면 대충 찍고, 'lazy'면 안 찍는다.
 // 실행: npx tsx sim/casual-bot.ts
 import { TREES } from '../src/rpg/data';
-import { autoAct, buy, engaged, equipBest, heroStats, learnNode, move, newRpg, spendSpiritPoint, startStage, stepToward, usePotion, useSkill, wait, type RpgState } from '../src/rpg/game';
-import { active, dist } from '../src/rpg/world';
+import { autoAct, buy, engaged, equipBest, heroStats, learnNode, move, newRpg, spendSpiritPoint, startStage, stepToward, usePotion, wait, type RpgState } from '../src/rpg/game';
+import { active, STAGES } from '../src/rpg/world';
 
-type Style = 'spend' | 'between' | 'lazy';
+type Style = 'spend' | 'between' | 'lazy' | 'grind';
 
 function spendPoints(s: RpgState) {
   for (let k = 0; k < 20 && s.heroes.knight.skillPts > 0; k++) {
@@ -31,10 +31,15 @@ export function playCasual(s: RpgState, n: number, style: Style, maxTurns = 2500
     const h = s.heroes.knight;
     const max = heroStats(s).hp;
     if (h.hp < max * 0.35) usePotion(s, 'big') && usePotion(s, 'small');
-    if (engaged(s)) {
-      const adj = s.monsters.filter((m) => !m.dead && dist(m, s.pos) === 1).length;
-      if (adj >= 2 && !useSkill(s, 1).some((f) => f.k === 'msg' && f.text.includes('턴 뒤'))) continue;
-      if (autoAct(s)) continue;
+    if (engaged(s) && autoAct(s)) continue; // 기술은 자동(D105)
+    // grind: 보스를 잡은 뒤 다음 판 몬스터 레벨이 될 때까지 몰려오는 무리와 싸운다 (체력이 바닥나고 물약이 없으면 그만)
+    if (style === 'grind' && s.bossDown && n < STAGES.length) {
+      const target = STAGES[n].minLv + 1;
+      const out = s.potions.small + s.potions.big === 0 && h.hp < max * 0.3;
+      if (h.level < target && !out) {
+        wait(s);
+        continue;
+      }
     }
     // 목표: 보스가 살아 있으면 보스, 아니면 출구
     let goal: { c: number; r: number } | null = null;
@@ -58,7 +63,7 @@ export function runCasual(style: Style, log = false) {
   let firstTry = 0;
   for (let n = 1; n <= 10; n++) {
     while (s.potions.small < 3 && !('error' in buy(s, 'small')));
-    if (style === 'between') spendPoints(s); // 판 사이에만 포인트·장비 정리
+    if (style === 'between' || style === 'grind') spendPoints(s); // 판 사이에만 포인트·장비 정리
     let r = playCasual(s, n, style);
     let tries = 1;
     if (r.ok && r.deaths === 0) firstTry++;
@@ -75,7 +80,7 @@ export function runCasual(style: Style, log = false) {
 }
 
 if (process.argv[1]?.endsWith('casual-bot.ts')) {
-  runCasual('spend', true);
   runCasual('between', true);
+  runCasual('grind', true);
   runCasual('lazy', true);
 }

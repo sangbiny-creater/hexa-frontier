@@ -71,6 +71,8 @@ export interface HeroState {
   gear: Partial<Record<Slot, Item>>;
   skillPts: number;
   nodes: Record<string, number>; // 노드 → 랭크
+  /** D105: 기술 칸 4개 (테크트리에서 배운 액티브 기술 중 고른 것) */
+  slots?: (string | null)[];
 }
 
 export interface RpgState {
@@ -110,6 +112,13 @@ export interface RpgState {
   stat: { skills: number; camps: number; equips: number; autoHits: number };
   /** D104: 기술 자동 사용 (없으면 켜짐) */
   autoSkill?: boolean;
+  /** D105: 기술을 쓰는 데 드는 SP (없으면 가득) */
+  sp?: number;
+  /** D105: 전장의 함성 남은 턴 */
+  rally?: number;
+  /** D107: 보스를 쓰러뜨린 뒤 몰려온 무리 수, 그 뒤 지난 턴 */
+  waves?: number;
+  waveT?: number;
   tips: string[];
   log: string[];
 }
@@ -199,6 +208,10 @@ export function startStage(s: RpgState, n: number): string | null {
   s.bestRow = 0;
   s.stall = 0;
   s.heroes[s.heroId].hp = heroStats(s).hp;
+  s.sp = spMax(s);
+  s.rally = 0;
+  s.waves = 0;
+  s.waveT = 0;
   s.pets = s.pets.map((p) => ({ ...p, dead: false, cd: 0, heal: 0 }));
   revivePets(s);
   reveal(s);
@@ -218,7 +231,7 @@ export function resume(s: RpgState) {
 // ───────── 테크트리 효과 ─────────
 
 export function treeMods(s: RpgState, id = s.heroId) {
-  const m = { allDmg: 0, lifesteal: 0, crit: 0, petAtk: 0, stunPlus: 0, poisonMul: 1, typeBonus: 0, stat: { hp: 0, atk: 0, def: 0, res: 0 }, skill: {} as Record<string, { dmg: number; cd: number; range: number }> };
+  const m = { spMax: 0, spHit: 0, allDmg: 0, lifesteal: 0, crit: 0, petAtk: 0, stunPlus: 0, poisonMul: 1, typeBonus: 0, stat: { hp: 0, atk: 0, def: 0, res: 0 }, skill: {} as Record<string, { dmg: number; cd: number; range: number }> };
   const sk = (k: string) => (m.skill[k] ??= { dmg: 0, cd: 0, range: 0 });
   for (const [nid, rank] of Object.entries(s.heroes[id].nodes)) {
     const node = TREES[id]?.find((n) => n.id === nid);
@@ -234,6 +247,8 @@ export function treeMods(s: RpgState, id = s.heroId) {
       if (e.kind === 'stunPlus') m.stunPlus += e.turns * rank;
       if (e.kind === 'poisonMul') m.poisonMul *= Math.pow(e.mul, rank);
       if (e.kind === 'typeBonus') m.typeBonus += e.pct * rank;
+      if (e.kind === 'spMax') m.spMax += e.n * rank;
+      if (e.kind === 'spHit') m.spHit += e.n * rank;
     }
   }
   m.stunPlus = Math.floor(m.stunPlus);
@@ -269,8 +284,47 @@ export function learnNode(s: RpgState, nodeId: string): string | null {
   h.skillPts--;
   h.nodes[nodeId] = rankOf(s, nodeId) + 1;
   h.hp = Math.min(heroStats(s).hp, h.hp);
+  // D105: 액티브 기술을 처음 배우면 빈 기술 칸에 넣는다
+  const node = TREES[s.heroId].find((n) => n.id === nodeId)!;
+  if (node.type === 'active' && node.skill) {
+    const slots = slotIds(s);
+    if (!slots.includes(node.skill)) {
+      const i = slots.indexOf(null);
+      if (i >= 0) slots[i] = node.skill;
+    }
+    h.slots = slots;
+  }
   return null;
 }
+
+/** D105: 기술 칸 4개 (배운 액티브 기술 id 또는 빈칸) */
+export function slotIds(s: RpgState): (string | null)[] {
+  const h = s.heroes[s.heroId];
+  const learned = learnedActives(s);
+  const cur = (h.slots ?? []).slice(0, 4).map((x) => (x && learned.includes(x) ? x : null));
+  while (cur.length < 4) cur.push(null);
+  // 예전 저장: 칸이 없으면 배운 기술로 채운다
+  if (!h.slots) for (const id of learned) if (!cur.includes(id) && cur.includes(null)) cur[cur.indexOf(null)] = id;
+  return cur;
+}
+/** 배운 액티브 기술 id들 */
+export function learnedActives(s: RpgState): string[] {
+  const h = s.heroes[s.heroId];
+  return TREES[s.heroId].filter((n) => n.type === 'active' && n.skill && (h.nodes[n.id] ?? 0) > 0).map((n) => n.skill!);
+}
+/** D105: 기술 칸에 넣기/빼기. slot이 null이면 빼기 */
+export function setSlot(s: RpgState, skill: string, slot: number | null): string | null {
+  if (!learnedActives(s).includes(skill)) return '아직 배우지 않은 기술이에요';
+  const slots = slotIds(s).map((x) => (x === skill ? null : x));
+  if (slot !== null) slots[slot] = skill;
+  s.heroes[s.heroId].slots = slots;
+  return null;
+}
+/** D105: 최대 SP (정신 집중으로 늘어난다) */
+export function spMax(s: RpgState): number {
+  return BAL.spMax + treeMods(s).spMax;
+}
+export const curSp = (s: RpgState) => Math.min(spMax(s), s.sp ?? spMax(s));
 
 // ───────── 능력치 ─────────
 
@@ -297,7 +351,7 @@ export function monStats(m: Mon) {
   const d = MONSTERS[m.def];
   const g = 1 + BAL.monGrowth * (m.level - 1);
   const e = m.elite ? { hp: 3.5, atk: 1.3 } : { hp: 1, atk: 1 };
-  return { hp: Math.round(d.hp * g * e.hp), atk: d.atk * g * e.atk, def: d.def * g, res: d.res * g };
+  return { hp: Math.round(d.hp * g * e.hp * BAL.monHp), atk: d.atk * g * e.atk, def: d.def * g, res: d.res * g };
 }
 
 /** 몬스터 이름 (대장이면 '대장 …') */
@@ -415,6 +469,7 @@ export function move(s: RpgState, d: Dir): Fx[] {
     const ready = s.campReady[k] ?? 0;
     if (s.turn >= ready) {
       s.heroes[s.heroId].hp = heroStats(s).hp;
+      s.sp = spMax(s);
       s.cds = {};
       revivePets(s);
       s.campReady[k] = s.turn + BAL.campCooldown;
@@ -448,10 +503,14 @@ export function move(s: RpgState, d: Dir): Fx[] {
   return fx;
 }
 
+/** D105: 기술 칸 i(1~4)의 기술을 쓴다. 0은 기본 공격 */
 export function useSkill(s: RpgState, i: number): Fx[] {
   const fx: Fx[] = [];
-  const sk = skillOf(s, HEROES[s.heroId].skills[i]);
+  const id = i === 0 ? HEROES[s.heroId].skills[0] : slotIds(s)[i - 1];
+  if (!id) return [{ k: 'msg', text: '빈 기술 칸이에요 — 🌳테크트리에서 액티브 기술을 배워 넣어요' }];
+  const sk = skillOf(s, id);
   if ((s.cds[sk.id] ?? 0) > 0) return [{ k: 'msg', text: `${sk.name}: ${s.cds[sk.id]}턴 뒤에 쓸 수 있어요` }];
+  if ((sk.sp ?? 0) > curSp(s)) return [{ k: 'msg', text: `${sk.name}: SP가 모자라요 (${curSp(s)}/${sk.sp})` }];
   if (!castSkill(s, fx, sk)) return [{ k: 'msg', text: sk.shape === 'around' ? '주변에 적이 없어요' : `사거리(${sk.range}칸) 안에 적이 없어요` }];
   if (i > 0) s.stat.skills++;
   endTurn(s, fx);
@@ -459,7 +518,12 @@ export function useSkill(s: RpgState, i: number): Fx[] {
 }
 
 function castSkill(s: RpgState, fx: Fx[], sk: SkillDef): boolean {
-  if (sk.shape === 'around') {
+  if ((sk.sp ?? 0) > curSp(s)) return false;
+  if (sk.shape === 'self') {
+    if (sk.effect?.kind === 'rally') s.rally = sk.effect.turns + 1;
+    fx.push({ k: 'skill', c: s.pos.c, r: s.pos.r, skill: sk.id, cells: [{ ...s.pos }, ...neighbors(s.pos.c, s.pos.r)], element: sk.element });
+    blog(s, `아렌 ${sk.name}! ${sk.desc}`);
+  } else if (sk.shape === 'around') {
     const targets = s.monsters.filter((m) => !m.dead && dist(m, s.pos) === 1);
     if (!targets.length) return false;
     fx.push({ k: 'skill', c: s.pos.c, r: s.pos.r, skill: sk.id, cells: neighbors(s.pos.c, s.pos.r), element: sk.element });
@@ -473,6 +537,7 @@ function castSkill(s: RpgState, fx: Fx[], sk: SkillDef): boolean {
     if (sk.shape === 'splash') for (const m of s.monsters.filter((x) => !x.dead && x !== target && dist(x, target) === 1)) hit(s, fx, sk, m, 0.5);
   }
   if (sk.cd) s.cds[sk.id] = sk.cd + 1;
+  if (sk.sp) s.sp = curSp(s) - sk.sp;
   return true;
 }
 
@@ -487,14 +552,28 @@ export function engaged(s: RpgState): boolean {
 export function autoAct(s: RpgState): Fx[] | null {
   if (!engaged(s)) return null;
   const fx: Fx[] = [];
-  const ids = HEROES[s.heroId].skills;
-  for (const i of [2, 1, 0]) {
-    if (i > 0 && s.autoSkill === false) continue; // D104: 자동 끄면 기본 공격만 (기술은 직접 누름)
-    const sk = skillOf(s, ids[i]);
-    if ((s.cds[sk.id] ?? 0) > 0) continue;
-    if (sk.shape === 'around' && i !== 0 && s.monsters.filter((m) => !m.dead && dist(m, s.pos) === 1).length < 2) continue;
+  // D105: 자동이면 기술 칸의 기술을 상황에 맞게 쓴다(쿨타임·SP가 될 때), 아니면 기본 공격
+  const ids: string[] = s.autoSkill === false ? [] : (slotIds(s).filter(Boolean) as string[]);
+  const adj = s.monsters.filter((m) => !m.dead && dist(m, s.pos) === 1);
+  const h = s.heroes[s.heroId];
+  const hpRatio = h.hp / heroStats(s).hp;
+  const want = (id: string): boolean => {
+    const t = adj[0];
+    if (id === 'whirl') return adj.length >= 2;
+    if (id === 'drain') return hpRatio < 0.8 && adj.length > 0;
+    if (id === 'bash') return adj.some((m) => m.stun <= 0);
+    if (id === 'smash') return adj.some((m) => m.boss || m.elite || m.hp > monStats(m).hp * 0.5);
+    if (id === 'thrust') return !t || adj.length === 1;
+    if (id === 'rally') return !(s.rally ?? 0) && (adj.length >= 2 || adj.some((m) => m.boss || m.elite));
+    return !!t;
+  };
+  for (const id of [...ids, HEROES[s.heroId].skills[0]]) {
+    const sk = skillOf(s, id);
+    if ((s.cds[sk.id] ?? 0) > 0 || (sk.sp ?? 0) > curSp(s)) continue;
+    if (sk.sp && !want(id)) continue;
     if (castSkill(s, fx, sk)) {
       s.stat.autoHits++;
+      if (sk.sp) s.stat.skills++;
       endTurn(s, fx);
       return fx;
     }
@@ -529,8 +608,16 @@ function hit(s: RpgState, fx: Fx[], sk: SkillDef, m: Mon, mul = 1) {
   const tm = treeMods(s);
   const critP = 0.08 + (tm.crit + (lvOf(s, 'wind') >= 6 ? 10 : 0)) / 100;
   const crit = rand(s, m.id * 7 + 1) < critP;
-  const amount = Math.max(1, Math.round(est.dmg * mul * (crit ? 1.5 : 1) * (0.9 + rand(s, m.id * 7 + 2) * 0.2)));
+  const buff = (s.rally ?? 0) > 0 ? 1.25 : 1;
+  const amount = Math.max(1, Math.round(est.dmg * mul * buff * (crit ? 1.5 : 1) * (0.9 + rand(s, m.id * 7 + 2) * 0.2)));
   m.hp -= amount;
+  // D105: 기본 공격이 맞으면 SP가 찬다
+  if (!sk.sp) s.sp = Math.min(spMax(s), curSp(s) + BAL.spOnHit + tm.spHit);
+  if (sk.heal) {
+    const h = s.heroes[s.heroId];
+    const g = Math.min(heroStats(s).hp - h.hp, Math.round((amount * sk.heal) / 100));
+    if (g > 0) (h.hp += g), fx.push({ k: 'heal', c: s.pos.c, r: s.pos.r, amount: g });
+  }
   fx.push({ k: 'hit', from: { ...s.pos }, to: { c: m.c, r: m.r }, who: 'hero', element: sk.element });
   fx.push({ k: 'dmg', c: m.c, r: m.r, amount, eff: est.type > 1 ? 'strong' : est.type < 1 ? 'weak' : null, blocked: est.blocked, crit });
   blog(s, `아렌 ${sk.name} → ${monName(m)} -${amount}${est.type > 1 ? ' (유리!)' : ''}${crit ? ' 치명타!' : ''}`);
@@ -627,6 +714,9 @@ function endTurn(s: RpgState, fx: Fx[]) {
   }
   for (const k of Object.keys(s.cds)) s.cds[k] = Math.max(0, s.cds[k] - 1);
   if (h.hp <= 0) return die(s, fx);
+  s.sp = Math.min(spMax(s), curSp(s) + BAL.spRegen);
+  if ((s.rally ?? 0) > 0) s.rally!--;
+  if (s.bossDown && s.inStage && !s.stageClear) bossWaves(s, fx);
   // 근처에 적이 없으면 조금씩 회복 (물 스피릿 Lv6이면 2배) — 스피릿도
   if (!s.monsters.some((m) => !m.dead && dist(m, s.pos) <= 2)) {
     const mul = lvOf(s, 'water') >= 6 ? 2 : 1;
@@ -642,7 +732,40 @@ function endTurn(s: RpgState, fx: Fx[]) {
 }
 
 /** 앞으로 못 가고 머뭇거리면 몬스터가 몰려온다 (낮은 판에서는 경험치 벌기 장소) */
+/** D106: 둘러싼 몬스터 수 → 방어 배율 (1마리 1, 2마리 0.88, 3마리 0.76 …, 최소 0.55) */
+export const surroundMul = (n: number) => Math.max(BAL.surroundMin, 1 - BAL.surroundPer * Math.max(0, n - 1));
+
+/** D107: 보스를 쓰러뜨린 뒤에는 보스보다 조금 약한 몬스터가 점점 더 많이 몰려온다 (출구로 가면 언제든 끝) */
+function bossWaves(s: RpgState, fx: Fx[]) {
+  s.waveT = (s.waveT ?? 0) + 1;
+  if (s.waveT % BAL.waveEvery !== 0) return;
+  const alive = s.monsters.filter((m) => m.extra && !m.dead).length;
+  if (alive >= BAL.waveCap) return;
+  const st = active().stage;
+  const waves = (s.waves = (s.waves ?? 0) + 1);
+  const spots = [...active().cells.values()].filter((x) => x.floor && !x.feature && dist(x, s.pos) >= 3 && dist(x, s.pos) <= 6 && freeCell(s, x.c, x.r));
+  if (!spots.length) return;
+  const rng = createRng(hashSeed('wave', s.turn, s.stage, waves));
+  const center = spots[Math.floor(rng() * spots.length)];
+  const size = Math.min(BAL.waveCap - alive, 1 + Math.min(3, Math.floor(waves / 2)));
+  const level = st.bossLv - 1 + Math.floor(waves / 4);
+  const pack = 2000 + s.turn;
+  const cand = [center, ...neighbors(center.c, center.r)].filter((x) => freeCell(s, x.c, x.r));
+  cand.slice(0, size).forEach((p, j) => {
+    const id = s.monsters.length;
+    const elite = waves % 5 === 0 && j === 0; // 5번째 무리마다 대장 하나
+    const m: Mon = { id, def: st.monsters[Math.floor(rng() * st.monsters.length)], level, c: p.c, r: p.r, hp: 0, home: { c: p.c, r: p.r }, pack, elite, dead: false, deadAt: 0, extra: true, ...freshMonFields, aggro: true };
+    m.hp = monStats(m).hp;
+    s.monsters.push(m);
+  });
+  if (waves === 1) {
+    fx.push({ k: 'swarm' });
+    msg(s, fx, '⚠ 보스가 쓰러지자 몬스터가 계속 몰려온다! 버티면 경험치, 🚪출구로 가면 클리어.');
+  }
+}
+
 function pressure(s: RpgState, fx: Fx[]) {
+  if (s.bossDown) return; // 보스 뒤에는 몰려오는 무리(D107)가 대신한다
   if (s.pos.r > s.bestRow) {
     s.bestRow = s.pos.r;
     s.stall = 0;
@@ -737,7 +860,7 @@ function petHit(s: RpgState, fx: Fx[], p: Pet, m: Mon, mul: number) {
   const ms = monStats(m);
   const t = typeMul(p.element, md.element);
   const roll = 0.9 + rand(s, m.id * 31 + ELEMENTS.indexOf(p.element)) * 0.2;
-  const amount = Math.max(1, Math.round(ps.atk * mul * t * (BAL.defK / (BAL.defK + (ms.def + ms.res) / 2)) * BAL.heroDmg * roll));
+  const amount = Math.max(1, Math.round(ps.atk * mul * t * (BAL.defK / (BAL.defK + (ms.def + ms.res) / 2)) * BAL.heroDmg * roll * ((s.rally ?? 0) > 0 ? 1.4 : 1)));
   m.hp -= amount;
   fx.push({ k: 'hit', from: { c: p.c, r: p.r }, to: { c: m.c, r: m.r }, who: 'pet', element: p.element });
   fx.push({ k: 'dmg', c: m.c, r: m.r, amount, eff: t > 1 ? 'strong' : t < 1 ? 'weak' : null, blocked: false, crit: false });
@@ -797,7 +920,7 @@ function monsterAct(s: RpgState, fx: Fx[], m: Mon) {
   }
 }
 
-/** 몬스터 공격 배율: 앞 판은 순하게, 뒤로 갈수록 세게 (D101: 1판 ×1.15 → 10판 ×2.6) */
+/** 몬스터 공격 배율: 앞 판은 순하게, 뒤로 갈수록 세게 (D107: 1판 ×1.2 → 10판 ×3.5) */
 const monDmgMul = (s: RpgState) => BAL.monDmgStart + BAL.monDmgStep * (s.stage - 1);
 
 function monAttack(s: RpgState, fx: Fx[], m: Mon, t: Target) {
@@ -806,7 +929,9 @@ function monAttack(s: RpgState, fx: Fx[], m: Mon, t: Target) {
   const roll = 0.85 + rand(s, m.id * 19) * 0.3;
   if (t.kind === 'hero') {
     const hs = heroStats(s);
-    const guard = d.dmg === 'phys' ? hs.def : hs.res;
+    // D106 포위: 나를 둘러싼 몬스터가 많을수록 방어가 약해진다
+    const around = s.monsters.filter((x) => !x.dead && dist(x, s.pos) === 1).length;
+    const guard = (d.dmg === 'phys' ? hs.def : hs.res) * surroundMul(around);
     const far = dist(m, s.pos) > 1 ? BAL.rangedMul : 1;
     const amount = Math.max(1, Math.round(ms.atk * (BAL.defK / (BAL.defK + guard)) * spiritBonus(s, d.element).guard * roll * monDmgMul(s) * far));
     const h = s.heroes[s.heroId];
@@ -837,6 +962,8 @@ function die(s: RpgState, fx: Fx[]) {
   s.gold -= lost;
   s.pos = { ...s.camp };
   s.heroes[s.heroId].hp = heroStats(s).hp;
+  s.sp = spMax(s);
+  s.rally = 0;
   s.cds = {};
   s.monsters = s.monsters.filter((m) => !m.extra);
   for (const m of s.monsters) if (!m.dead) Object.assign(m, { c: m.home.c, r: m.home.r, hp: monStats(m).hp, ...freshMonFields });
@@ -929,7 +1056,7 @@ export function itemScore(it: Item | undefined): number {
 }
 
 export function spendSpiritPoint(s: RpgState, el: Element): string | null {
-  if (s.spiritPoints <= 0) return '스피릿 포인트가 없어요';
+  if (s.spiritPoints <= 0) return '스피릿 코어(SC)가 없어요';
   if (!s.spirits[el]) return '아직 얻지 못한 스피릿이에요';
   s.spiritPoints--;
   s.spirits[el] = (s.spirits[el] ?? 0) + 1;
