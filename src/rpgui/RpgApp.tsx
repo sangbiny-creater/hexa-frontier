@@ -8,6 +8,7 @@ import {
   buy,
   engaged,
   equip,
+  equipBest,
   heroStats,
   itemScore,
   learnNode,
@@ -31,7 +32,8 @@ import {
   type Fx,
   type RpgState,
 } from '../rpg/game';
-import { activate, active, dist, isFloor, LAYOUT_NAME, STAGES } from '../rpg/world';
+import { activate, active, dist, isFloor, LAYOUT_NAME, STAGES, step, type Dir } from '../rpg/world';
+import { Joystick } from './Joystick';
 import { EquipPanel, Popup, ShopPanel, SpiritPanel, TreePanel, type Panel } from './Panels';
 import { useRpg } from './store';
 import { cellXY, WorldView } from './WorldView';
@@ -39,6 +41,24 @@ import { cellXY, WorldView } from './WorldView';
 const BASE = (import.meta.env?.BASE_URL ?? '/') + 'assets/';
 const img = (n: string) => `${BASE}${n}.webp`;
 const TICK_MS = 280; // 한 턴(한 걸음·한 번 공격)의 화면 속도
+const DIR_DEG: [Dir, number][] = [
+  ['E', 0],
+  ['NE', 60],
+  ['NW', 120],
+  ['W', 180],
+  ['SW', 240],
+  ['SE', 300],
+];
+/** 조이스틱 각도 → 갈 수 있는 가장 가까운 방향 (바위면 90° 안에서 비켜 간다) */
+function dirFromAngle(s: RpgState, deg: number): Dir | null {
+  const diff = (a: number) => Math.min(Math.abs(a - deg), 360 - Math.abs(a - deg));
+  for (const [d, a] of [...DIR_DEG].sort((x, y) => diff(x[1]) - diff(y[1]))) {
+    if (diff(a) > 90) break;
+    const t = step(s.pos.c, s.pos.r, d);
+    if (isFloor(t.c, t.r)) return d;
+  }
+  return null;
+}
 
 export function RpgApp() {
   const { state, act, reset, hasSave } = useRpg();
@@ -51,6 +71,7 @@ export function RpgApp() {
   const [toast, setToast] = useState<string | null>(null);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [goal, setGoal] = useState<{ c: number; r: number } | null>(null);
+  const joyRef = useRef<number | null>(null);
   const goalRef = useRef(goal);
   goalRef.current = goal;
   const stateRef = useRef(state);
@@ -97,6 +118,7 @@ export function RpgApp() {
     const id = setInterval(() => {
       if (blockedRef.current) return;
       const s = stateRef.current;
+      if (joyRef.current !== null) return joyStep();
       if (engaged(s)) {
         const r = act((x) => autoAct(x));
         if (r) show(r);
@@ -118,6 +140,30 @@ export function RpgApp() {
     }, TICK_MS);
     return () => clearInterval(id);
   }, [started, act, show]);
+
+  // 조이스틱으로 한 걸음 (몬스터 쪽이면 공격)
+  const joyStep = () => {
+    const s = stateRef.current;
+    const deg = joyRef.current;
+    if (deg === null || blockedRef.current) return;
+    const d = dirFromAngle(s, deg);
+    if (!d) return;
+    show(act((x) => move(x, d)));
+  };
+  const lastJoy = useRef(0);
+  const onJoy = (deg: number | null) => {
+    const was = joyRef.current;
+    joyRef.current = deg;
+    if (deg !== null) {
+      setGoal(null);
+      setPan({ x: 0, y: 0 });
+      // 처음 기울이면 바로 한 걸음
+      if (was === null && Date.now() - lastJoy.current > TICK_MS) {
+        lastJoy.current = Date.now();
+        joyStep();
+      }
+    }
+  };
 
   // 튜토리얼
   useEffect(() => {
@@ -200,6 +246,10 @@ export function RpgApp() {
           state={state}
           onClose={() => setPanel(null)}
           onEquip={(uid) => act((s) => equip(s, uid))}
+          onBest={() => {
+            const n = act((s) => equipBest(s));
+            setToast(n ? `✨ 장비 ${n}개를 더 좋은 것으로 바꿨어요` : '이미 가장 좋은 장비예요');
+          }}
           onUnequip={(slot) => act((s) => unequip(s, slot))}
           onSell={(uid) => {
             const g = act((s) => sellItem(s, uid));
@@ -358,33 +408,37 @@ export function RpgApp() {
         </span>
       </div>
 
-      <main className="rworld">
-        <WorldView state={state} fx={fx} fxKey={fxKey} heroHue={0} pan={pan} goal={goal} path={path} onPan={(dx, dy) => setPan((p) => ({ x: p.x + dx, y: p.y + dy / (cellXY(0, 1).y - cellXY(0, 0).y || -33) * -1 }))} onTap={tapCell} />
-        {tut && (
-          <div className="rtut">
-            <div className="rtut-head">
+      {(tut || tip) && (
+        <div className="guide-strip">
+          {tut ? (
+            <>
               <b>
-                {state.tut + 1}/{TUT.length} · {tut.title}
-              </b>
-              <span>
+                {state.tut + 1}/{TUT.length} {tut.title}
+              </b>{' '}
+              {tut.text(state)}
+              <span className="gs-btns">
                 <button className="link" onClick={() => act((s) => void (s.tut += 1))}>
                   다음
-                </button>{' '}
+                </button>
                 <button className="link" onClick={() => act((s) => void (s.tut = 99))}>
                   끄기
                 </button>
               </span>
-            </div>
-            <div>{tut.text(state)}</div>
-          </div>
-        )}
-        {tip && <div className="rtip">{tip}</div>}
+            </>
+          ) : (
+            tip
+          )}
+        </div>
+      )}
+      <main className="rworld">
+        <WorldView state={state} fx={fx} fxKey={fxKey} heroHue={0} pan={pan} goal={goal} path={path} onPan={(dx, dy) => setPan((p) => ({ x: p.x + dx, y: p.y + dy / (cellXY(0, 1).y - cellXY(0, 0).y || -33) * -1 }))} onTap={tapCell} />
         <div className={`state-badge ${fight ? 'fight' : goal ? 'walk' : ''}`}>{fight ? '⚔️ 자동 전투 중' : goal ? '🚶 이동 중' : `⏸ 멈춤${state.stall >= 10 ? ` · ⚠ 머뭇거림 ${state.stall}` : ''}`}</div>
         {(Math.abs(pan.x) > 4 || Math.abs(pan.y) > 0.5) && (
           <button className="recenter" onClick={() => setPan({ x: 0, y: 0 })}>
             📍 내 위치
           </button>
         )}
+        <Joystick onAngle={onJoy} />
         <div className="battle-log">
           {logLines.map((l, i) => (
             <div key={i} style={{ opacity: 1 - i * 0.3 }}>

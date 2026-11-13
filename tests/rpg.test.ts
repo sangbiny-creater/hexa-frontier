@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { MONSTERS, SKILLS, typeMul } from '../src/rpg/data';
-import { buy, equip, estimateHit, heroStats, makeItem, move, newRpg, spendSpiritPoint, spiritBonus, startStage, unlockedStage, usePotion, useSkill, wait } from '../src/rpg/game';
+import { buy, equip, equipBest, estimateHit, heroStats, makeItem, move, newRpg, spendSpiritPoint, spiritBonus, startStage, unlockedStage, usePotion, useSkill, wait } from '../src/rpg/game';
 import { active, buildStage, cellAt, COLS, dist, key, neighbors, STAGES, step } from '../src/rpg/world';
 import { runRpgBot } from '../sim/rpg-bot';
 
@@ -109,6 +109,15 @@ describe('전투·성장', () => {
     equip(s, it.uid);
     const b = heroStats(s);
     expect(b.atk + b.def + b.res + b.hp).toBeGreaterThan(a.atk + a.def + a.res + a.hp);
+  });
+  it('원버튼으로 부위마다 가장 좋은 장비를 착용한다', () => {
+    const s = newRpg();
+    const a = makeItem(s, 3, 'common');
+    const b = makeItem(s, 12, 'epic');
+    s.bag.push(a, b);
+    expect(equipBest(s)).toBeGreaterThan(0);
+    expect(Object.values(s.heroes.knight.gear).map((x) => x!.uid)).toContain(b.uid);
+    expect(equipBest(s)).toBe(0);
   });
   it('봇이 10판을 모두 깬다', () => {
     const { s } = runRpgBot(10);

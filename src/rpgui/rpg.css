@@ -204,3 +204,16 @@
 .tn-rank { font-size: 12px; font-weight: 900; color: var(--gold); }
 .tn-need { color: #ff9b9b; }
 .tn-plus { color: #7be0a4; font-weight: 800; }
+
+/* ── D88: 반투명 가상 조이스틱 ── */
+.joystick { position: absolute; right: 12px; bottom: 54px; width: 124px; height: 124px; border-radius: 50%; touch-action: none; user-select: none; -webkit-user-select: none; z-index: 6; opacity: 0.5; transition: opacity 0.15s; }
+.joystick.on { opacity: 0.85; }
+.js-ring { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle, #ffffff22 0%, #ffffff10 60%, #00000033 100%); border: 2px solid #ffffff55; }
+.js-knob { position: absolute; left: 50%; top: 50%; width: 50px; height: 50px; margin: -25px 0 0 -25px; border-radius: 50%; background: #ffd257cc; border: 2px solid #fff8; box-shadow: 0 3px 10px #000a; pointer-events: none; }
+.battle-log { right: 140px; }
+
+/* D89: 안내는 지도 밖 한 줄 (출구를 가리지 않게) */
+.guide-strip { padding: 6px 10px; background: #f7efd9; color: #2b2416; font-size: 12px; line-height: 1.4; border-bottom: 2px solid #c9a95a; }
+.guide-strip .gs-btns { margin-left: 6px; white-space: nowrap; }
+.guide-strip .link { color: #8a5a00; font-weight: 800; margin-left: 6px; }
+.best-btn { width: 100%; }

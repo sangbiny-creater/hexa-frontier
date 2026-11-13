@@ -62,7 +62,8 @@ export function WorldView({
   const camX = Math.max(0, Math.min(fullW - width, hero.x + pan.x - width / 2));
   // 지도 끝에서는 빈 곳이 보이지 않게
   const topRaw = -camRow * ROW_H - viewH * 0.6;
-  const top = Math.min(S * 1.3 - viewH, Math.max(-(w.rows - 1) * ROW_H - S * 2.2, topRaw));
+  // 맨 위(출구)는 화면 안쪽까지 내려오게 위에 2줄 여유
+  const top = Math.min(S * 1.3 - viewH, Math.max(-(w.rows + 1) * ROW_H - S * 2.2, topRaw));
   const visRows = Math.ceil(viewH / ROW_H) + 2;
   const rows: number[] = [];
   for (let r = Math.floor(-(top + viewH) / ROW_H) - 1; r <= Math.ceil(-top / ROW_H) + 2; r++) if (r >= 0 && r < w.rows) rows.push(r);

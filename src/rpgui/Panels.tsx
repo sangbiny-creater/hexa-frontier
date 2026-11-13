@@ -140,7 +140,7 @@ function statLine(it: Item) {
   return [it.atk && `공격 +${it.atk}`, it.def && `방어 +${it.def}`, it.res && `마법방어 +${it.res}`, it.hp && `체력 +${it.hp}`, it.vs && `${EL_ICON[it.vs.element]}${EL_NAME[it.vs.element]} 몬스터에게 +${it.vs.pct}%`].filter(Boolean).join(' · ');
 }
 
-export function EquipPanel({ state, onClose, onEquip, onUnequip, onSell }: { state: RpgState; onClose: () => void; onEquip: (uid: string) => void; onUnequip: (slot: Slot) => void; onSell: (uid: string) => void }) {
+export function EquipPanel({ state, onClose, onEquip, onUnequip, onSell, onBest }: { state: RpgState; onClose: () => void; onEquip: (uid: string) => void; onUnequip: (slot: Slot) => void; onSell: (uid: string) => void; onBest: () => void }) {
   const [slot, setSlot] = useState<Slot>('weapon');
   const [pick, setPick] = useState<string | null>(null);
   const h = state.heroes[state.heroId];
@@ -163,6 +163,9 @@ export function EquipPanel({ state, onClose, onEquip, onUnequip, onSell }: { sta
   };
   return (
     <Sheet title={`장비 · ${HEROES[state.heroId].name} Lv${h.level}`} onClose={onClose}>
+      <button className="cta best-btn" disabled={!state.bag.some((it) => itemScore(it) > itemScore(gear[it.slot]))} onClick={onBest}>
+        ✨ 가장 좋은 장비 한 번에 착용
+      </button>
       <div className="paperdoll">
         {slotBox('weapon', 'left')}
         <img className="pd-hero" src={img('hero-t')} alt="" style={{ filter: `hue-rotate(${HEROES[state.heroId].hue}deg)` }} />

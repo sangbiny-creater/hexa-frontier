@@ -1011,3 +1011,17 @@ export function pathTo(s: RpgState, goal: { c: number; r: number }, max = 30): {
   }
   return out;
 }
+
+/** 부위마다 가장 좋은 장비를 한 번에 착용 (D90). 바꾼 개수를 돌려준다 */
+export function equipBest(s: RpgState): number {
+  let n = 0;
+  for (const slot of ['weapon', 'armor', 'ring'] as Slot[]) {
+    const cur = s.heroes[s.heroId].gear[slot];
+    const best = s.bag.filter((it) => it.slot === slot).sort((a, b) => itemScore(b) - itemScore(a))[0];
+    if (best && itemScore(best) > itemScore(cur)) {
+      equip(s, best.uid);
+      n++;
+    }
+  }
+  return n;
+}
