@@ -59,7 +59,7 @@ export interface HeroDef {
   unlock: string; // 설명
 }
 export const HEROES: Record<string, HeroDef> = {
-  knight: { id: 'knight', name: '검사 아렌', title: '⚔️물리 근접 · 단단함', hue: 0, base: { hp: 130, atk: 13, def: 9, res: 4 }, skills: ['slash', 'whirl', 'bash'], unlock: '처음부터' },
+  knight: { id: 'knight', name: '검사 아렌', title: '⚔️물리 근접 · 단단함', hue: 0, base: { hp: 130, atk: 13, def: 9, res: 8 }, skills: ['slash', 'whirl', 'bash'], unlock: '처음부터' },
   mage: { id: 'mage', name: '마법사 리아', title: '✨마법 원거리 · 불·물 기술', hue: 220, base: { hp: 85, atk: 14, def: 3, res: 9 }, skills: ['bolt', 'fireball', 'icespear'], unlock: '첫 야영지' },
   archer: { id: 'archer', name: '궁수 카이', title: '⚔️물리 원거리 · 바람·숲 기술', hue: 100, base: { hp: 100, atk: 12, def: 5, res: 6 }, skills: ['arrow', 'gale', 'venom'], unlock: '첫 보스를 쓰러뜨리면' },
 };
@@ -135,11 +135,13 @@ export interface Item {
 }
 
 export const BAL = {
-  heroGrowth: 0.1, // 레벨당 능력치 +10%
-  monGrowth: 0.16,
+  heroGrowth: 0.11, // 레벨당 능력치 +11%
+  monGrowth: 0.12, // D101: 몬스터가 레벨마다 주인공보다 빨리 세지던 것(0.16) 완화
+  rangedMul: 0.7, // D101: 2칸 밖 원거리 공격은 70% 피해
   defK: 30, // 피해 = 공격 × 계수 × defK/(defK+방어)
-  xpBase: 18,
-  xpPow: 1.45,
+  xpBase: 20, // D101: 그냥 앞으로 가도 판마다 약 2레벨 오르게 (예전 18, 1.45)
+  xpPow: 1.25,
+  xpGrowth: 0.2, // 몬스터 레벨당 경험치 +20%
   spiritPointEvery: 60, // 스피릿 경험치 60마다 1포인트 (점점 증가)
   regenPct: 0.03, // 근처에 적이 없을 때 한 걸음마다 회복
   aggro: 4,
@@ -152,7 +154,9 @@ export const BAL = {
   dropChance: 0.14,
   benchXp: 0.5, // 쉬고 있는 캐릭터도 경험치 50%
   heroDmg: 1.6,
-  monDmg: 2.3,
+  monDmg: 2.3, // (예전 값, 안 씀)
+  monDmgStart: 1.15, // D101: 몬스터 공격 배율 1판
+  monDmgStep: 0.2, // 판마다 +
   deathGoldLoss: 0.1,
 };
 

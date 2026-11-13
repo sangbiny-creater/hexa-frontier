@@ -123,8 +123,7 @@ export function RpgApp() {
       if (padRef.current !== null) return; // 이동 버튼을 누르고 있는 동안은 버튼 쪽 박자로 걷는다
       if (engaged(s)) {
         const r = act((x) => autoAct(x));
-        if (r) show(r);
-        return;
+        if (r) return show(r);
       }
       const g = goalRef.current;
       if (!g) return;
@@ -586,7 +585,7 @@ function tipFor(s: RpgState): string | null {
   const st = active().stage;
   if (s.bossDown) return '🚪 출구가 열렸어요! 맨 위 출구 헥사를 누르세요.';
   const ranged = s.monsters.find((m) => !m.dead && m.aggro && MONSTERS[m.def].range > 1 && dist(m, s.pos) === 2);
-  if (ranged) return `${MONSTERS[ranged.def].name}은 2칸 밖에서 공격해요! 눌러서 다가가 붙으세요.`;
+  if (ranged) return `${MONSTERS[ranged.def].name}은 2칸 밖에서 공격해요 — 자동으로 다가가서 싸워요.`;
   if (!s.bossDown && st.bossLv - h.level >= 3 && s.pos.r > active().rows * 0.6) return `👑 보스는 레벨 ${st.bossLv}. 아직 버거워요 — 머뭇거리면 몰려오는 몬스터로 레벨업.`;
   return null;
 }

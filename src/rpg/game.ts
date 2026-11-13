@@ -477,7 +477,8 @@ function castSkill(s: RpgState, fx: Fx[], sk: SkillDef): boolean {
 /** 몬스터와 붙어 있는가 (자동 전투 조건): 바로 옆 적, 또는 쫓아오는 적이 기본 공격 사거리 안 */
 export function engaged(s: RpgState): boolean {
   const basic = skillOf(s, HEROES[s.heroId].skills[0]);
-  return s.monsters.some((m) => !m.dead && (dist(m, s.pos) === 1 || (m.aggro && dist(m, s.pos) <= basic.range)));
+  // D101: 2칸 밖에서 쏘는 몬스터도 '붙은 것'으로 본다 (다가가서 싸운다)
+  return s.monsters.some((m) => !m.dead && (dist(m, s.pos) === 1 || (m.aggro && dist(m, s.pos) <= Math.max(basic.range, MONSTERS[m.def].range))));
 }
 
 /** 자동 전투 한 턴: 쓸 수 있는 기술 → 기본 공격. 붙어 있지 않으면 null (시간이 멈춘다) */
@@ -494,6 +495,14 @@ export function autoAct(s: RpgState): Fx[] | null {
       endTurn(s, fx);
       return fx;
     }
+  }
+  // D101: 닿지 않는 곳에서 쏘는 몬스터 → 한 칸 다가간다 (다음 턴에 붙어서 싸움)
+  const shooter = s.monsters
+    .filter((m) => !m.dead && m.aggro && dist(m, s.pos) > 1 && dist(m, s.pos) <= MONSTERS[m.def].range)
+    .sort((a, b) => dist(a, s.pos) - dist(b, s.pos) || a.hp - b.hp)[0];
+  if (shooter) {
+    const d = stepToward(s, shooter);
+    if (d) return move(s, d);
   }
   return null;
 }
@@ -544,7 +553,7 @@ function kill(s: RpgState, fx: Fx[], m: Mon) {
   s.kills++;
   fx.push({ k: 'kill', c: m.c, r: m.r, name: d.name });
   const g = 1 + 0.1 * (m.level - 1);
-  const xp = Math.round(d.xp * g * (m.elite ? 4 : 1));
+  const xp = Math.round(d.xp * (1 + BAL.xpGrowth * (m.level - 1)) * (m.elite ? 4 : 1)); // D101: 경험치는 능력치와 따로 커진다
   s.gold += Math.round(d.gold * g * BAL.goldMul * (m.extra ? 0.5 : 1));
   gainXp(s, fx, xp);
   if (Object.keys(s.spirits).length) {
@@ -785,8 +794,8 @@ function monsterAct(s: RpgState, fx: Fx[], m: Mon) {
   }
 }
 
-/** 몬스터 공격 배율: 앞 판은 순하게, 뒤로 갈수록 세게 (1판 ×1.4 → 10판 ×2.3) */
-const monDmgMul = (s: RpgState) => BAL.monDmg * (1 + 0.07 * (s.stage - 1)) * 0.61;
+/** 몬스터 공격 배율: 앞 판은 순하게, 뒤로 갈수록 세게 (D101: 1판 ×1.15 → 10판 ×2.6) */
+const monDmgMul = (s: RpgState) => BAL.monDmgStart + BAL.monDmgStep * (s.stage - 1);
 
 function monAttack(s: RpgState, fx: Fx[], m: Mon, t: Target) {
   const d = MONSTERS[m.def];
@@ -795,7 +804,8 @@ function monAttack(s: RpgState, fx: Fx[], m: Mon, t: Target) {
   if (t.kind === 'hero') {
     const hs = heroStats(s);
     const guard = d.dmg === 'phys' ? hs.def : hs.res;
-    const amount = Math.max(1, Math.round(ms.atk * (BAL.defK / (BAL.defK + guard)) * spiritBonus(s, d.element).guard * roll * monDmgMul(s)));
+    const far = dist(m, s.pos) > 1 ? BAL.rangedMul : 1;
+    const amount = Math.max(1, Math.round(ms.atk * (BAL.defK / (BAL.defK + guard)) * spiritBonus(s, d.element).guard * roll * monDmgMul(s) * far));
     const h = s.heroes[s.heroId];
     h.hp = Math.max(0, h.hp - amount);
     fx.push({ k: 'hit', from: { c: m.c, r: m.r }, to: { ...s.pos }, who: 'mon', element: d.element });

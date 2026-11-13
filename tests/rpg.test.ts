@@ -3,6 +3,7 @@ import { MONSTERS, SKILLS, typeMul } from '../src/rpg/data';
 import { buy, equip, equipBest, estimateHit, heroStats, makeItem, move, newRpg, spendSpiritPoint, spiritBonus, startStage, unlockedStage, usePotion, useSkill, wait } from '../src/rpg/game';
 import { active, buildStage, cellAt, COLS, dist, key, neighbors, STAGES, step } from '../src/rpg/world';
 import { runRpgBot } from '../sim/rpg-bot';
+import { runCasual } from '../sim/casual-bot';
 
 describe('스테이지 (D82)', () => {
   it('10판, 판마다 시작 야영지에서 출구까지 이어지고 중간 야영지가 있다', () => {
@@ -123,4 +124,16 @@ describe('전투·성장', () => {
     const { s } = runRpgBot(10);
     expect(s.cleared.length).toBe(10);
   });
+
+  // D101 밸런스: 그냥 앞으로 가며 판 사이에 포인트를 찍는 보통 플레이어는 모든 판을 한 번에 깬다
+  it('보통 플레이어(판 사이에 포인트 정리)가 10판을 모두 첫 시도에 깬다', () => {
+    const { rows, firstTry } = runCasual('between');
+    expect(rows.length).toBe(10);
+    expect(rows.every((r) => r.includes('클리어 시도1'))).toBe(true);
+    expect(firstTry).toBeGreaterThanOrEqual(8);
+  }, 60000);
+  it('포인트를 안 찍어도 2판까지는 한 번에 깬다', () => {
+    const { rows } = runCasual('lazy');
+    expect(rows[1]).toContain('클리어 시도1');
+  }, 60000);
 });

@@ -1,6 +1,7 @@
 // 스테이지 지도 (D82): 10판. 판마다 크기가 정해진 세로 헥사 지도, 아래(row 0)에서 위의 출구로.
 // 판마다 장애물 배치가 달라 전략이 생긴다: 길목(한 마리씩 끊어 잡기) · 넓은 곳(둘러싸일 위험) · 방 · 기둥밭 · 통로.
 // 좌표는 odd-r 오프셋 (col, row). 화면에서는 row가 클수록 위.
+import { MONSTERS } from './data';
 import { createRng, hashSeed } from '../core/rng';
 import type { Element } from './data';
 
@@ -209,13 +210,19 @@ export function stageSpawns(w: World): Spawn[] {
     const center = floors[Math.floor(rng() * floors.length)];
     if (!center || centers.some((x) => dist(x, center) < 4)) continue;
     centers.push(center);
-    const size = st.n === 1 && center.r < 7 ? 1 + Math.floor(rng() * 2) : 2 + Math.floor(rng() * 3);
+    // D101: 무리 크기는 판이 갈수록 커진다 (1판 1~2(뒤쪽 2~3), 2~3판 2~3, 4판부터 2~4)
+    const size = st.n === 1 ? (center.r < 7 ? 1 : 2) + Math.floor(rng() * 2) : st.n <= 3 ? 2 + Math.floor(rng() * 2) : 2 + Math.floor(rng() * 3);
     const spots = [center, ...neighbors(center.c, center.r).map((nb) => w.cells.get(key(nb.c, nb.r))).filter((x): x is Cell => !!x && x.floor && !x.feature)];
     const prog = center.r / w.rows;
+    let ranged = 0;
     for (const s of spots.slice(0, size)) {
       if (used.has(key(s.c, s.r))) continue;
       used.add(key(s.c, s.r));
-      out.push({ id: st.monsters[Math.floor(rng() * st.monsters.length)], level: Math.round(st.minLv + (st.maxLv - st.minLv) * prog), c: s.c, r: s.r, pack });
+      let id = st.monsters[Math.floor(rng() * st.monsters.length)];
+      // D101: 4판까지는 한 무리에 원거리 몬스터 1마리까지 (나머지는 근접으로)
+      if (MONSTERS[id].range > 1 && st.n <= 4 && ranged >= 1) id = st.monsters.find((m) => MONSTERS[m].range <= 1) ?? id;
+      if (MONSTERS[id].range > 1) ranged++;
+      out.push({ id, level: Math.round(st.minLv + (st.maxLv - st.minLv) * prog), c: s.c, r: s.r, pack });
     }
     pack++;
   }
