@@ -1,8 +1,8 @@
 // 월드 화면: 주인공 주변의 헥사 지도. 주인공이 가운데 오도록 카메라가 따라간다.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { hexCorners } from '../core/hex';
-import { EL_COLOR, MONSTERS, SPIRITS, type Element } from '../rpg/data';
-import { monStats, type Fx, type RpgState } from '../rpg/game';
+import { EL_COLOR, EL_NAME, MONSTERS, SPIRITS } from '../rpg/data';
+import { monStats, petStats, type Fx, type RpgState } from '../rpg/game';
 import { BOSS_ROWS, COLS, key, WORLD, zoneOf } from '../rpg/world';
 
 const S = 22; // 헥스 반지름
@@ -17,7 +17,7 @@ export function cellXY(c: number, r: number) {
 const ZONE_FLOOR = ['#2f5a37', '#2a5560', '#5a4a33', '#3e3a5c'];
 const ZONE_EDGE = ['#4f8a55', '#4a8a96', '#8a7350', '#6a63a0'];
 
-export function WorldView({ state, fx, fxKey, heroHue }: { state: RpgState; fx: Fx[]; fxKey: number; heroHue: number }) {
+export function WorldView({ state, fx, fxKey, heroHue, onPointer }: { state: RpgState; fx: Fx[]; fxKey: number; heroHue: number; onPointer?: React.HTMLAttributes<SVGSVGElement> }) {
   const { pos } = state;
   const seen = useMemo(() => new Set(state.seen), [state.seen]);
   const rows: number[] = [];
@@ -37,10 +37,9 @@ export function WorldView({ state, fx, fxKey, heroHue }: { state: RpgState; fx: 
   const viewH = width * aspect;
   const top = hero.y - viewH * 0.6;
   for (let r = Math.floor(pos.r - viewH / (S * 1.5) * 0.45); r <= pos.r + Math.ceil(viewH / (S * 1.5) * 0.65); r++) if (r >= 0 && r < 64 && !rows.includes(r)) rows.push(r);
-  const owned = (Object.keys(state.spirits) as Element[]).filter((e) => state.spirits[e]);
 
   return (
-    <svg ref={box} className="world" viewBox={`0 ${top} ${width} ${viewH}`} preserveAspectRatio="xMidYMid meet">
+    <svg ref={box} className="world" viewBox={`0 ${top} ${width} ${viewH}`} preserveAspectRatio="xMidYMid meet" {...(onPointer as object)}>
       {rows.flatMap((r) =>
         Array.from({ length: COLS }, (_, c) => {
           const cell = WORLD.cells.get(key(c, r))!;
@@ -111,18 +110,29 @@ export function WorldView({ state, fx, fxKey, heroHue }: { state: RpgState; fx: 
             </g>
           );
         })}
-      {/* 따라다니는 스피릿 */}
-      {owned.map((e, i) => {
-        const a = (i / Math.max(1, owned.length)) * Math.PI - Math.PI;
-        return (
-          <g key={e} className="spirit-g" style={{ transform: `translate(${hero.x + Math.cos(a) * S * 1.05}px, ${hero.y + 6 + Math.sin(a) * -S * 0.35}px)` }}>
-            <circle r={6.5} fill={EL_COLOR[e]} stroke="#fff" strokeWidth={1} />
-            <image href={img(`${SPIRITS[e].art}-p1`)} x={-6} y={-6} width={12} height={12} clipPath="circle(48%)" />
-          </g>
-        );
-      })}
+      {/* 함께 싸우는 스피릿 (칸을 차지한다) */}
+      {state.pets
+        .filter((p) => !p.dead && rows.includes(p.r))
+        .map((p) => {
+          const xy = cellXY(p.c, p.r);
+          const lv = state.spirits[p.element] ?? 1;
+          const st = lv >= 20 ? 3 : lv >= 8 ? 2 : 1;
+          const ratio = p.hp / petStats(state, p.element).hp;
+          return (
+            <g key={`p${p.element}`} className="pet-g" style={{ transform: `translate(${xy.x}px, ${xy.y}px)` }}>
+              <polygon points={hexCorners(0, 0, S - 2)} fill="none" stroke={EL_COLOR[p.element]} strokeWidth={2} strokeDasharray="4 3" />
+              <image href={img(`${SPIRITS[p.element].art}-t${st}`)} x={-S * 0.85} y={-S * 1.6} width={S * 1.7} height={S * 1.7} preserveAspectRatio="xMidYMax meet" />
+              <rect x={-S * 0.6} y={-S * 1.65} width={S * 1.2} height={3} rx={1.5} fill="#000a" />
+              <rect x={-S * 0.6} y={-S * 1.65} width={S * 1.2 * ratio} height={3} rx={1.5} fill="#7ab8ff" />
+              <text x={0} y={S * 0.8} textAnchor="middle" className="mon-lv">
+                {EL_NAME[p.element]}Lv{lv}
+              </text>
+            </g>
+          );
+        })}
       {/* 주인공 */}
       <g className="hero-g" style={{ transform: `translate(${hero.x}px, ${hero.y}px)` }}>
+        <polygon points={hexCorners(0, 0, S - 2)} fill="none" stroke="#ffd257" strokeWidth={2} />
         <ellipse cx={0} cy={4} rx={S * 0.6} ry={4} fill="#0006" />
         <image href={img('hero-t')} x={-S * 0.8} y={-S * 1.9} width={S * 1.6} height={S * 2.2} preserveAspectRatio="xMidYMax meet" style={{ filter: `hue-rotate(${heroHue}deg) saturate(1.2)` }} />
       </g>
@@ -137,7 +147,7 @@ export function WorldView({ state, fx, fxKey, heroHue }: { state: RpgState; fx: 
           if (f.k === 'dmg' || f.k === 'heal') {
             const p = cellXY(f.c, f.r);
             const txt = f.k === 'dmg' ? `-${f.amount}` : `+${f.amount}`;
-            const cls = f.k === 'heal' ? 'heal' : f.onHero ? 'hurt' : f.eff === 'strong' ? 'strong' : f.eff === 'weak' || f.blocked ? 'weak' : '';
+            const cls = f.k === 'heal' ? 'heal' : f.onHero || (f.k === 'dmg' && f.onPet) ? 'hurt' : f.eff === 'strong' ? 'strong' : f.eff === 'weak' || f.blocked ? 'weak' : '';
             return [
               <text key={`d${i}`} x={p.x + ((i % 3) - 1) * 6} y={p.y - S * 1.3} textAnchor="middle" className={`fx-num ${cls}`} style={{ animationDelay: `${(i % 4) * 0.05}s` }}>
                 {f.k === 'dmg' && !f.onHero && f.eff === 'strong' ? '유리! ' : ''}

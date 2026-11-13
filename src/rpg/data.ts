@@ -136,7 +136,7 @@ export interface Item {
 
 export const BAL = {
   heroGrowth: 0.1, // 레벨당 능력치 +10%
-  monGrowth: 0.12,
+  monGrowth: 0.13,
   defK: 30, // 피해 = 공격 × 계수 × defK/(defK+방어)
   xpBase: 18,
   xpPow: 1.45,
@@ -147,6 +147,74 @@ export const BAL = {
   dropChance: 0.14,
   benchXp: 0.5, // 쉬고 있는 캐릭터도 경험치 50%
   heroDmg: 1.6,
-  monDmg: 1.0,
+  monDmg: 1.5,
   deathGoldLoss: 0.1,
+};
+
+// ── 기술 테크트리 (D79): 레벨업마다 기술 포인트 1. 캐릭터마다 3단계 ──
+export type NodeEffect =
+  | { kind: 'skillDmg'; skill: string; pct: number }
+  | { kind: 'skillCd'; skill: string; delta: number }
+  | { kind: 'skillRange'; skill: string; delta: number }
+  | { kind: 'stat'; stat: 'hp' | 'atk' | 'def' | 'res'; pct: number }
+  | { kind: 'allDmg'; pct: number }
+  | { kind: 'lifesteal'; pct: number }
+  | { kind: 'crit'; pct: number }
+  | { kind: 'petAtk'; pct: number }
+  | { kind: 'stunPlus'; turns: number }
+  | { kind: 'poisonMul'; mul: number }
+  | { kind: 'typeBonus'; pct: number };
+export interface TreeNode {
+  id: string;
+  name: string;
+  icon: string;
+  tier: 1 | 2 | 3;
+  level: number; // 필요 레벨
+  pre?: string;
+  effects: NodeEffect[];
+  desc: string;
+}
+const T1 = 2;
+const T2 = 5;
+const T3 = 10;
+export const TREES: Record<string, TreeNode[]> = {
+  knight: [
+    { id: 'k_slash', name: '날카로운 베기', icon: '🗡️', tier: 1, level: T1, effects: [{ kind: 'skillDmg', skill: 'slash', pct: 25 }], desc: '베기 피해 +25%' },
+    { id: 'k_body', name: '단단한 몸', icon: '🛡️', tier: 1, level: T1, effects: [{ kind: 'stat', stat: 'def', pct: 20 }, { kind: 'stat', stat: 'res', pct: 10 }], desc: '방어 +20%, 마법방어 +10%' },
+    { id: 'k_whirl', name: '회오리 숙련', icon: '🌀', tier: 2, level: T2, pre: 'k_slash', effects: [{ kind: 'skillCd', skill: 'whirl', delta: -1 }, { kind: 'skillDmg', skill: 'whirl', pct: 25 }], desc: '회오리 베기 쿨타임 -1, 피해 +25%' },
+    { id: 'k_drain', name: '흡혈 검', icon: '🩸', tier: 2, level: T2, pre: 'k_body', effects: [{ kind: 'lifesteal', pct: 8 }], desc: '준 피해의 8%만큼 체력 회복' },
+    { id: 'k_bash', name: '대지의 방패', icon: '⛰️', tier: 2, level: T2, pre: 'k_body', effects: [{ kind: 'skillDmg', skill: 'bash', pct: 30 }, { kind: 'stunPlus', turns: 1 }], desc: '방패 강타 피해 +30%, 기절 +1턴' },
+    { id: 'k_master', name: '검의 달인', icon: '⚔️', tier: 3, level: T3, pre: 'k_whirl', effects: [{ kind: 'allDmg', pct: 15 }], desc: '모든 피해 +15%' },
+    { id: 'k_giant', name: '거인의 체력', icon: '💪', tier: 3, level: T3, pre: 'k_drain', effects: [{ kind: 'stat', stat: 'hp', pct: 30 }], desc: '최대 체력 +30%' },
+    { id: 'k_rally', name: '전장의 함성', icon: '📯', tier: 3, level: T3, pre: 'k_bash', effects: [{ kind: 'petAtk', pct: 30 }], desc: '스피릿 공격 +30%' },
+  ],
+  mage: [
+    { id: 'm_bolt', name: '마력 증폭', icon: '✨', tier: 1, level: T1, effects: [{ kind: 'skillDmg', skill: 'bolt', pct: 25 }], desc: '마력탄 피해 +25%' },
+    { id: 'm_ward', name: '마나 보호막', icon: '🔮', tier: 1, level: T1, effects: [{ kind: 'stat', stat: 'res', pct: 25 }, { kind: 'stat', stat: 'hp', pct: 10 }], desc: '마법방어 +25%, 체력 +10%' },
+    { id: 'm_fire', name: '불꽃 숙련', icon: '🔥', tier: 2, level: T2, pre: 'm_bolt', effects: [{ kind: 'skillDmg', skill: 'fireball', pct: 25 }, { kind: 'skillCd', skill: 'fireball', delta: -1 }], desc: '화염구 피해 +25%, 쿨타임 -1' },
+    { id: 'm_ice', name: '얼음 숙련', icon: '❄️', tier: 2, level: T2, pre: 'm_bolt', effects: [{ kind: 'skillDmg', skill: 'icespear', pct: 20 }, { kind: 'skillRange', skill: 'icespear', delta: 1 }], desc: '얼음창 피해 +20%, 사거리 +1' },
+    { id: 'm_reso', name: '원소 공명', icon: '🌈', tier: 2, level: T2, pre: 'm_ward', effects: [{ kind: 'typeBonus', pct: 20 }], desc: '상성이 유리할 때 피해 +20% 더' },
+    { id: 'm_arch', name: '대마법사', icon: '🧙', tier: 3, level: T3, pre: 'm_fire', effects: [{ kind: 'allDmg', pct: 15 }], desc: '모든 피해 +15%' },
+    { id: 'm_life', name: '생명의 마력', icon: '💚', tier: 3, level: T3, pre: 'm_reso', effects: [{ kind: 'stat', stat: 'hp', pct: 25 }, { kind: 'lifesteal', pct: 5 }], desc: '체력 +25%, 피해의 5% 회복' },
+    { id: 'm_bond', name: '정령 교감', icon: '🧚', tier: 3, level: T3, pre: 'm_ice', effects: [{ kind: 'petAtk', pct: 35 }], desc: '스피릿 공격 +35%' },
+  ],
+  archer: [
+    { id: 'a_aim', name: '정조준', icon: '🎯', tier: 1, level: T1, effects: [{ kind: 'skillDmg', skill: 'arrow', pct: 25 }], desc: '화살 피해 +25%' },
+    { id: 'a_swift', name: '날렵함', icon: '💨', tier: 1, level: T1, effects: [{ kind: 'crit', pct: 10 }, { kind: 'stat', stat: 'def', pct: 10 }], desc: '치명타 +10%, 방어 +10%' },
+    { id: 'a_gale', name: '폭풍 숙련', icon: '🌪️', tier: 2, level: T2, pre: 'a_aim', effects: [{ kind: 'skillDmg', skill: 'gale', pct: 25 }, { kind: 'skillCd', skill: 'gale', delta: -1 }], desc: '바람 화살 피해 +25%, 쿨타임 -1' },
+    { id: 'a_venom', name: '맹독 숙련', icon: '☠️', tier: 2, level: T2, pre: 'a_swift', effects: [{ kind: 'poisonMul', mul: 2 }, { kind: 'skillCd', skill: 'venom', delta: -1 }], desc: '독 피해 2배, 독화살 쿨타임 -1' },
+    { id: 'a_long', name: '긴 활', icon: '🏹', tier: 2, level: T2, pre: 'a_aim', effects: [{ kind: 'skillRange', skill: 'arrow', delta: 1 }, { kind: 'skillDmg', skill: 'arrow', pct: 10 }], desc: '화살 사거리 +1, 피해 +10%' },
+    { id: 'a_sharp', name: '명사수', icon: '🏆', tier: 3, level: T3, pre: 'a_gale', effects: [{ kind: 'allDmg', pct: 15 }, { kind: 'crit', pct: 5 }], desc: '모든 피해 +15%, 치명타 +5%' },
+    { id: 'a_hunter', name: '사냥꾼의 체력', icon: '🦌', tier: 3, level: T3, pre: 'a_venom', effects: [{ kind: 'stat', stat: 'hp', pct: 25 }], desc: '체력 +25%' },
+    { id: 'a_beast', name: '야수 교감', icon: '🐺', tier: 3, level: T3, pre: 'a_long', effects: [{ kind: 'petAtk', pct: 35 }], desc: '스피릿 공격 +35%' },
+  ],
+};
+
+// ── 스피릿 테크트리 (D80): 스피릿 레벨에 따라 저절로 열린다 ──
+export const SPIRIT_TREE: Record<Element, { lv3: string; lv6: string; lv10: string }> = {
+  fire: { lv3: '🔥 화상: 공격한 적이 3턴 동안 불탄다', lv6: '🔥 불꽃 오라: 캐릭터 공격 +10%', lv10: '🔥 화염 폭발: 5턴마다 주변 2칸의 적 모두에게 큰 피해' },
+  water: { lv3: '💧 치유의 물결: 3턴마다 캐릭터·스피릿 체력 회복', lv6: '💧 물의 가호: 근처에 적이 없을 때 회복 2배', lv10: '💧 해일: 5턴마다 주변 2칸의 적 모두에게 큰 피해' },
+  forest: { lv3: '🌿 덩굴: 30% 확률로 적을 1턴 묶는다(못 움직임)', lv6: '🌿 생명의 숲: 캐릭터 최대 체력 +12%', lv10: '🌿 가시 폭풍: 5턴마다 주변 2칸의 적 모두에게 큰 피해' },
+  earth: { lv3: '⛰️ 도발: 적들이 이 스피릿을 먼저 노린다, 방어 +50%', lv6: '⛰️ 대지의 갑옷: 캐릭터 방어·마법방어 +12%', lv10: '⛰️ 지진: 5턴마다 주변 2칸의 적 모두에게 큰 피해' },
+  wind: { lv3: '🌪️ 질풍: 30% 확률로 두 번 공격', lv6: '🌪️ 바람의 눈: 캐릭터 치명타 +10%', lv10: '🌪️ 폭풍: 5턴마다 주변 2칸의 적 모두에게 큰 피해' },
 };

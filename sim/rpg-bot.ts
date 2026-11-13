@@ -1,7 +1,8 @@
 // RPG 밸런스 봇: 가까운 몬스터를 사냥하며 위로 올라간다. 체력이 낮으면 야영지로, 기술은 쿨타임마다.
 // 실행: npx tsx sim/rpg-bot.ts
 import { BAL, HEROES, MONSTERS, SKILLS, beatenBy, type Element } from '../src/rpg/data';
-import { equip, heroStats, itemScore, move, newRpg, onCamp, spendSpiritPoint, switchHero, useSkill, wait, type RpgState } from '../src/rpg/game';
+import { autoAct, equip, heroStats, itemScore, learnNode, move, newRpg, onCamp, spendSpiritPoint, switchHero, useSkill, wait, type RpgState } from '../src/rpg/game';
+import { TREES } from '../src/rpg/data';
 import { BOSS_ROWS, DIRS, WORLD, ZONES, cellAt, dist, isFloor, key, step, zoneOf, type Dir } from '../src/rpg/world';
 
 function bfs(s: RpgState, goal: (c: number, r: number) => boolean, avoidMon = true): Dir | null {
@@ -74,19 +75,10 @@ export function runRpgBot(maxTurns = 20000, log = false, trace?: string[]) {
       else wait(s);
       continue;
     }
-    // 기술: 쓸 수 있으면
-    const skills = HEROES[s.heroId].skills;
-    let acted = false;
-    for (const i of [2, 1, 0]) {
-      const sk = SKILLS[skills[i]];
-      if ((s.cds[sk.id] ?? 0) > 0) continue;
-      const inRange = s.monsters.filter((m) => !m.dead && dist(m, s.pos) <= sk.range).length;
-      if (inRange && (sk.shape !== 'around' || inRange >= 2 || i === 0)) {
-        useSkill(s, i);
-        acted = true;
-        break;
-      }
-    }
+    // 기술 포인트: 배울 수 있는 것부터
+    for (const n of TREES[s.heroId]) if (!learnNode(s, n.id)) break;
+    // 몬스터가 붙어 있으면 자동 전투 (화면과 같은 규칙)
+    const acted = !!autoAct(s);
     if (acted) {
       trace?.push(`t${t} skill @${s.pos.c},${s.pos.r}`);
       continue;
@@ -131,3 +123,5 @@ export function runRpgBot(maxTurns = 20000, log = false, trace?: string[]) {
 
 if (process.argv[1]?.endsWith('rpg-bot.ts')) runRpgBot(20000, true);
 void BAL;
+void useSkill;
+void SKILLS;
