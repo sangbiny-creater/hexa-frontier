@@ -37,7 +37,7 @@ export function TreePanel({ state, onClose, onLearn }: { state: RpgState; onClos
       {[1, 2, 3].map((tier) => (
         <div key={tier} className="tree-tier">
           <div className="tier-label">
-            {tier}단계 <span className="muted">· Lv{tree.find((n) => n.tier === tier)!.level}부터</span>
+            {tier}단계 <span className="muted">· 레벨 {tree.find((n) => n.tier === tier)!.level}부터</span>
           </div>
           <div className="tier-row">
             {tree
@@ -57,7 +57,7 @@ export function TreePanel({ state, onClose, onLearn }: { state: RpgState; onClos
                     </span>
                     <small>{n.desc}</small>
                     {!preOk && pre && <small className="tn-need">🔒 {pre.name} {h.nodes[pre.id] ?? 0}/{n.preRanks}</small>}
-                    {preOk && !lvOk && <small className="tn-need">🔒 Lv{n.level}</small>}
+                    {preOk && !lvOk && <small className="tn-need">🔒 레벨 {n.level}</small>}
                     {can && <small className="tn-plus">＋ 찍기</small>}
                   </button>
                 );
@@ -96,7 +96,7 @@ export function SpiritPanel({ state, onClose, onSpend }: { state: RpgState; onCl
               <img src={img(`${SPIRITS[e].art}-p${lv >= 20 ? 3 : lv >= 8 ? 2 : 1}`)} alt="" className={owned ? '' : 'silhouette'} />
               <div className="sc-body">
                 <b>
-                  {EL_ICON[e]} {SPIRITS[e].name} {owned ? `Lv${lv}` : '🔒'}
+                  {EL_ICON[e]} {SPIRITS[e].name} {owned ? `레벨 ${lv}` : '🔒'}
                   {good && <span className="rec-tag">이 판 추천</span>}
                 </b>
                 {owned ? (
@@ -125,7 +125,7 @@ export function SpiritPanel({ state, onClose, onSpend }: { state: RpgState; onCl
                 ] as [number, string][]
               ).map(([need, text]) => (
                 <div key={need} className={`st-node ${lv >= need ? 'on' : ''}`}>
-                  <b>Lv{need}</b> {text}
+                  <b>레벨 {need}</b> {text}
                 </div>
               ))}
             </div>
@@ -162,7 +162,7 @@ export function EquipPanel({ state, onClose, onEquip, onUnequip, onSell, onBest 
     );
   };
   return (
-    <Sheet title={`장비 · ${HEROES[state.heroId].name} Lv${h.level}`} onClose={onClose}>
+    <Sheet title={`장비 · ${HEROES[state.heroId].name} 레벨 ${h.level}`} onClose={onClose}>
       <button className="cta best-btn" disabled={!state.bag.some((it) => itemScore(it) > itemScore(gear[it.slot]))} onClick={onBest}>
         ✨ 가장 좋은 장비 한 번에 착용
       </button>
@@ -208,7 +208,7 @@ export function EquipPanel({ state, onClose, onEquip, onUnequip, onSell, onBest 
           return (
             <button key={it.uid} className={`eq-item ${pick === it.uid ? 'on' : ''}`} onClick={() => setPick(pick === it.uid ? null : it.uid)} style={{ borderColor: RARITY_COLOR[it.rarity] }}>
               <b style={{ color: RARITY_COLOR[it.rarity] }}>
-                {it.name} <small className="muted">{RARITY_NAME[it.rarity]} · Lv{it.level}</small>
+                {it.name} <small className="muted">{RARITY_NAME[it.rarity]} · 레벨 {it.level}</small>
               </b>
               <small>{statLine(it)}</small>
               {better && <span className="eq-better">▲ 더 좋음</span>}
@@ -249,19 +249,19 @@ export function Popup({ f, state, onClose, onGo }: { f: Fx; state: RpgState; onC
       <>
         <h2>{SPIRITS[f.element].name}</h2>
         <p>
-          칸을 차지하고 함께 싸워요. 키울수록 <b>{EL_ICON[beats(f.element)]}{EL_NAME[beats(f.element)]} 몬스터</b>에게 캐릭터도 강해지고, Lv3·6·10에 새 능력이 열려요.
+          칸을 차지하고 함께 싸워요. 키울수록 <b>{EL_ICON[beats(f.element)]}{EL_NAME[beats(f.element)]} 몬스터</b>에게 캐릭터도 강해지고, 레벨 3·6·10에 새 능력이 열려요.
         </p>
         <p className="small muted">쓰러지면 🏕야영지에서 되살아나요.</p>
       </>
     );
     if (state.spiritPoints > 0) go = { label: '스피릿 키우러 가기', panel: 'spirit' };
   } else if (f.k === 'levelup') {
-    tag = 'LEVEL UP!';
+    tag = '레벨 업!';
     picture = img('hero-p');
     body = (
       <>
         <h2>
-          {HEROES[f.hero].name} Lv{f.level}
+          {HEROES[f.hero].name} 레벨 {f.level}
         </h2>
         <p>능력치가 오르고 체력이 가득 찼어요. 🌳기술 포인트 +1!</p>
       </>

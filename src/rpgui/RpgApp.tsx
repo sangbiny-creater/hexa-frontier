@@ -32,25 +32,46 @@ import {
   type Fx,
   type RpgState,
 } from '../rpg/game';
-import { activate, active, dist, isFloor, LAYOUT_NAME, STAGES } from '../rpg/world';
+import { activate, active, dist, isFloor, LAYOUT_NAME, STAGES, step, type Dir } from '../rpg/world';
 import { EquipPanel, Popup, ShopPanel, SpiritPanel, TreePanel, type Panel } from './Panels';
 import { useRpg } from './store';
-import { cellXY, WorldView } from './WorldView';
+import { HexPad } from './HexPad';
+import { ROW_H, WorldView } from './WorldView';
 
 const BASE = (import.meta.env?.BASE_URL ?? '/') + 'assets/';
 const img = (n: string) => `${BASE}${n}.webp`;
 const TICK_MS = 280; // 한 턴(한 걸음·한 번 공격)의 화면 속도
-/** 화면이 가로로 길면 가로 화면 배치 */
-function useLand() {
-  const get = () => typeof window !== 'undefined' && window.innerWidth > window.innerHeight * 1.05;
-  const [land, setLand] = useState(get);
+// 가로 화면에서 각 방향의 화면 각도(0 = 오른쪽, 반시계). 지도가 왼쪽→오른쪽으로 나아간다.
+const DIR_DEG: [Dir, number][] = [
+  ['E', 270],
+  ['NE', 330],
+  ['NW', 30],
+  ['W', 90],
+  ['SW', 150],
+  ['SE', 210],
+];
+/** 이동 버튼 각도 → 갈 수 있는 방향 (바위면 바로 옆 방향으로 비켜 간다) */
+function dirFromAngle(s: RpgState, deg: number): Dir | null {
+  const diff = (a: number) => Math.min(Math.abs(a - deg), 360 - Math.abs(a - deg));
+  for (const [d, a] of [...DIR_DEG].sort((x, y) => diff(x[1]) - diff(y[1]))) {
+    if (diff(a) > 60) break;
+    const t = step(s.pos.c, s.pos.r, d);
+    if (isFloor(t.c, t.r)) return d;
+  }
+  return null;
+}
+
+/** 세로로 들고 있는지 (가로 화면 전용 게임) */
+function usePortrait() {
+  const get = () => typeof window !== 'undefined' && window.innerHeight > window.innerWidth;
+  const [v, setV] = useState(get);
   useEffect(() => {
-    const on = () => setLand(get());
+    const on = () => setV(get());
     window.addEventListener('resize', on);
     window.addEventListener('orientationchange', on);
     return () => (window.removeEventListener('resize', on), window.removeEventListener('orientationchange', on));
   }, []);
-  return land;
+  return v;
 }
 
 export function RpgApp() {
@@ -64,7 +85,9 @@ export function RpgApp() {
   const [toast, setToast] = useState<string | null>(null);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [goal, setGoal] = useState<{ c: number; r: number } | null>(null);
-  const land = useLand();
+  const portrait = usePortrait();
+  const padRef = useRef<number | null>(null);
+  const [tutSeen, setTutSeen] = useState(-1);
   const goalRef = useRef(goal);
   goalRef.current = goal;
   const stateRef = useRef(state);
@@ -72,7 +95,7 @@ export function RpgApp() {
   const hero = HEROES.knight;
   const hs = heroStats(state);
   const h = state.heroes.knight;
-  const blockedUi = !!panel || popup.length > 0 || state.stageClear || !state.inStage;
+  const blockedUi = !!panel || popup.length > 0 || state.stageClear || !state.inStage || (!!TUT[state.tut] && tutSeen !== state.tut);
   const blockedRef = useRef(blockedUi);
   blockedRef.current = blockedUi;
 
@@ -87,7 +110,7 @@ export function RpgApp() {
     }
     const drop = list.find((f) => f.k === 'drop');
     const down = list.find((f) => f.k === 'petDown');
-    if (lv && lv.k === 'levelup') setToast(`⬆ LEVEL UP! Lv${lv.level} — 🌳테크트리 포인트 +1`);
+    if (lv && lv.k === 'levelup') setToast(`⬆ 레벨 업! ${lv.level}레벨 — 🌳테크트리 포인트 +1`);
     else if (list.some((f) => f.k === 'swarm')) setToast('⚠ 머뭇거리는 사이 몬스터 무리가 몰려와요!');
     else if (down && down.k === 'petDown') setToast(`${EL_ICON[down.element]} ${SPIRITS[down.element].name} 쓰러짐 — 🏕야영지에서 부활`);
     else if (drop && drop.k === 'drop') setToast(`🎁 ${drop.item.name} 획득!`);
@@ -111,6 +134,7 @@ export function RpgApp() {
     const id = setInterval(() => {
       if (blockedRef.current) return;
       const s = stateRef.current;
+      if (padRef.current !== null) return padStep();
       if (engaged(s)) {
         const r = act((x) => autoAct(x));
         if (r) show(r);
@@ -133,6 +157,29 @@ export function RpgApp() {
     return () => clearInterval(id);
   }, [started, act, show]);
 
+  // 이동 버튼: 누르는 순간 한 걸음, 누르고 있으면 한 턴마다 한 걸음 (몬스터 쪽이면 공격)
+  const padStep = () => {
+    const s = stateRef.current;
+    const deg = padRef.current;
+    if (deg === null || blockedRef.current) return;
+    const d = dirFromAngle(s, deg);
+    if (!d) return;
+    show(act((x) => move(x, d)));
+  };
+  const lastPad = useRef(0);
+  const onPad = (deg: number | null) => {
+    const was = padRef.current;
+    padRef.current = deg;
+    if (deg !== null) {
+      setGoal(null);
+      setPan({ x: 0, y: 0 });
+      if (was === null && Date.now() - lastPad.current > TICK_MS * 0.8) {
+        lastPad.current = Date.now();
+        padStep();
+      }
+    }
+  };
+
   // 주인공을 잡고 끌기: 손가락이 있는 칸이 계속 목표가 된다(손을 떼면 그 칸까지 마저 걷는다)
   const onSteer = (cell: { c: number; r: number } | null) => {
     if (!cell || blockedRef.current) return;
@@ -149,6 +196,12 @@ export function RpgApp() {
     if (st && state.inStage && st.done(state)) act((s) => void (s.tut += 1));
   }, [state, act]);
 
+  // 상황 안내(체력 위험·출구 열림 등)는 바뀔 때 한 번만 짧게 알림으로
+  const tipNow = state.inStage && !TUT[state.tut] ? tipFor(state) : null;
+  useEffect(() => {
+    if (tipNow) setToast(tipNow);
+  }, [tipNow]);
+
   const tapCell = (c: number, r: number) => {
     if (blockedUi) return;
     if (!isFloor(c, r)) return setToast('바위라 갈 수 없어요');
@@ -164,16 +217,25 @@ export function RpgApp() {
     if (r.length === 1 && m && m.k === 'msg') setToast(m.text);
   };
 
+  if (portrait)
+    return (
+      <div className="rpg rotate-screen">
+        <div className="rotate-icon">📱</div>
+        <b>폰을 가로로 돌려 주세요</b>
+        <span>헥사 프론티어는 가로 화면 게임이에요</span>
+      </div>
+    );
+
   if (!started)
     return (
       <div className="rpg intro-screen">
         <img className="intro-hero" src={img('hero-t')} alt="" />
         <div className="intro-logo">
-          HEXA <span>FRONTIER</span>
+          헥사 <span>프론티어</span>
         </div>
-        <div className="intro-sub">헥사 들판을 누비는 사냥 RPG</div>
+        <div className="intro-sub">헥사 들판을 누비는 사냥 모험</div>
         <ul className="intro-list">
-          <li>⬡ 헥사를 누르면 그곳까지 걸어가요. 주인공을 잡고 끌면 손가락을 따라 걸어요</li>
+          <li>🕹 오른쪽 아래 이동 버튼을 누르고 있으면 걸어요. 헥사를 톡 눌러도 그곳까지 가요</li>
           <li>⚔️ 몬스터가 붙으면 저절로 싸워요. 멈춰 있으면 시간도 멈춰요</li>
           <li>🪨 장애물을 이용해 길목에서 싸우고, 넓은 곳에선 포위 조심</li>
           <li>🌳 기술 테크트리 + ✨어떤 스피릿을 키우느냐로 성장</li>
@@ -277,7 +339,7 @@ export function RpgApp() {
         <header className="rhud">
           <div className="rhud-face">
             <img src={img('hero-p')} alt="" />
-            <b>Lv{h.level}</b>
+            <b>{h.level}레벨</b>
           </div>
           <div className="rhud-bars">
             <div className="rhud-name">{hero.name} · 스테이지 선택</div>
@@ -298,8 +360,8 @@ export function RpgApp() {
                     {st.name} {cleared && '✅'}
                   </b>
                   <small>
-                    Lv{st.minLv}~{st.maxLv} · 👑{st.bossElite ? '대장 ' : ''}
-                    {MONSTERS[st.boss].name} Lv{st.bossLv} {EL_ICON[MONSTERS[st.boss].element]}
+                    레벨 {st.minLv}~{st.maxLv} · 👑{st.bossElite ? '대장 ' : ''}
+                    {MONSTERS[st.boss].name} 레벨 {st.bossLv} {EL_ICON[MONSTERS[st.boss].element]}
                   </small>
                   <small className="muted">
                     {LAYOUT_NAME[st.layout]}
@@ -327,9 +389,9 @@ export function RpgApp() {
     );
   }
 
-  // ── 스테이지 안 ──
+  // ── 스테이지 안 (D94: 가로 화면 전용, 지도 전체 + 네 모서리) ──
   const tut = TUT[state.tut];
-  const tip = tut ? null : tipFor(state);
+  const showTut = !!tut && tutSeen !== state.tut && !state.stageClear;
   const fight = engaged(state);
   const st = stageInfo(state);
   const progress = Math.min(1, state.pos.r / (st.rows - 1));
@@ -337,92 +399,10 @@ export function RpgApp() {
   const logLines = state.log.slice(0, 3);
   const skills = hero.skills.slice(1).map((id) => skillOf(state, id)); // 기본 공격(베기)은 자동
 
-  const hud = (
-    <>
-      <header className="rhud">
-        <div className="rhud-face">
-          <img src={img('hero-p')} alt="" />
-          <b>Lv{h.level}</b>
-        </div>
-        <div className="rhud-bars">
-          <div className="rhud-name">
-            STAGE {st.n} {st.name}
-          </div>
-          <div className="bar hp">
-            <i style={{ width: `${(h.hp / hs.hp) * 100}%` }} />
-            <span>
-              {h.hp}/{hs.hp}
-            </span>
-          </div>
-          <div className="bar xp">
-            <i style={{ width: `${(h.xp / xpToNext(h.level)) * 100}%` }} />
-          </div>
-        </div>
-        <div className="rhud-right">
-          <span>🪙 {state.gold}</span>
-          <span className="spirit-dots">
-            {ELEMENTS.map((e) => {
-              const p = state.pets.find((x) => x.element === e);
-              return (
-                <i key={e} style={{ background: state.spirits[e] ? EL_COLOR[e] : '#ffffff22', opacity: p?.dead ? 0.35 : 1 }} title={EL_NAME[e]}>
-                  {state.spirits[e] ?? ''}
-                </i>
-              );
-            })}
-          </span>
-          <button className="exit-btn" onClick={() => confirm('스테이지를 나갈까요? (진행은 사라져요, 얻은 경험치·장비는 남아요)') && act((s) => leaveStage(s))}>
-            ⏏ 나가기
-          </button>
-        </div>
-      </header>
-      <div className="stage-progress">
-        <div className="sp-bar">
-          <i style={{ width: `${progress * 100}%` }} />
-          <b style={{ left: `${(st.bossRow / (st.rows - 1)) * 100}%` }}>👑</b>
-          <b style={{ left: '100%' }}>🚪</b>
-        </div>
-        <span>
-          🚪 출구까지 {st.toExit}줄 · 남은 몬스터 {st.left} · {st.bossDown ? '출구 열림!' : `보스 ${MONSTERS[st.boss].name}`}
-        </span>
-      </div>
-
-    </>
-  );
-
   return (
-    <div className={`rpg ${land ? 'land' : ''}`}>
-      <div className="rmain">
-      {!land && hud}
-      {(tut || tip) && (
-        <div className="guide-strip">
-          {tut ? (
-            <>
-              <b>
-                {state.tut + 1}/{TUT.length} {tut.title}
-              </b>{' '}
-              {tut.text(state)}
-              <span className="gs-btns">
-                <button className="link" onClick={() => act((s) => void (s.tut += 1))}>
-                  다음
-                </button>
-                <button className="link" onClick={() => act((s) => void (s.tut = 99))}>
-                  끄기
-                </button>
-              </span>
-            </>
-          ) : (
-            tip
-          )}
-        </div>
-      )}
+    <div className="rpg game">
       <main className="rworld">
-        <WorldView state={state} fx={fx} fxKey={fxKey} heroHue={0} pan={pan} goal={goal} path={path} land={land} onSteer={onSteer} onPan={(dx, dy) => setPan((p) => ({ x: p.x + dx, y: p.y + dy / (cellXY(0, 1).y - cellXY(0, 0).y || -33) * -1 }))} onTap={tapCell} />
-        <div className={`state-badge ${fight ? 'fight' : goal ? 'walk' : ''}`}>{fight ? '⚔️ 자동 전투 중' : goal ? '🚶 이동 중' : `⏸ 멈춤${state.stall >= 10 ? ` · ⚠ 머뭇거림 ${state.stall}` : ''}`}</div>
-        {(Math.abs(pan.x) > 4 || Math.abs(pan.y) > 0.5) && (
-          <button className="recenter" onClick={() => setPan({ x: 0, y: 0 })}>
-            📍 내 위치
-          </button>
-        )}
+        <WorldView state={state} fx={fx} fxKey={fxKey} heroHue={0} pan={pan} goal={goal} path={path} land onSteer={onSteer} onPan={(dx, dy) => setPan((p) => ({ x: p.x + dx, y: p.y + dy / ROW_H }))} onTap={tapCell} />
         <div className="battle-log">
           {logLines.map((l, i) => (
             <div key={i} style={{ opacity: 1 - i * 0.3 }}>
@@ -431,34 +411,101 @@ export function RpgApp() {
           ))}
         </div>
       </main>
+
+      {/* 좌측 상단: 메뉴 */}
+      <div className="g-tl">
+        {menu}
+        <div className={`state-badge ${fight ? 'fight' : goal || padRef.current !== null ? 'walk' : ''}`}>{fight ? '⚔️ 자동 전투 중' : goal || padRef.current !== null ? '🚶 이동 중' : `⏸ 멈춤${state.stall >= 10 ? ` · ⚠ 머뭇거림 ${state.stall}` : ''}`}</div>
       </div>
 
-      <aside className="rside">
-      {land && hud}
-      <div className="actbar">
+      {/* 가운데 위: 스테이지 진행 */}
+      <div className="g-stage">
+        <b>
+          스테이지 {st.n} · {st.name}
+        </b>
+        <div className="sp-bar">
+          <i style={{ width: `${progress * 100}%` }} />
+          <em style={{ left: `${(st.bossRow / (st.rows - 1)) * 100}%` }}>👑</em>
+          <em style={{ left: '100%' }}>🚪</em>
+        </div>
+        <span>
+          출구까지 {st.toExit}줄 · 남은 몬스터 {st.left}
+          {st.bossDown ? ' · 출구 열림!' : ''}
+        </span>
+      </div>
+
+      {/* 우측 상단: 캐릭터 정보 */}
+      <div className="g-hero">
+        <div className="gh-top">
+          <div className="rhud-face">
+            <img src={img('hero-p')} alt="" />
+            <b>{h.level}레벨</b>
+          </div>
+          <div className="rhud-bars">
+            <div className="bar hp">
+              <i style={{ width: `${(h.hp / hs.hp) * 100}%` }} />
+              <span>
+                체력 {h.hp}/{hs.hp}
+              </span>
+            </div>
+            <div className="bar xp">
+              <i style={{ width: `${(h.xp / xpToNext(h.level)) * 100}%` }} />
+            </div>
+            <div className="gh-row">
+              <span>🪙 {state.gold}</span>
+              <span className="spirit-dots">
+                {ELEMENTS.map((e) => {
+                  const p = state.pets.find((x) => x.element === e);
+                  return (
+                    <i key={e} style={{ background: state.spirits[e] ? EL_COLOR[e] : '#ffffff22', opacity: p?.dead ? 0.35 : 1 }} title={EL_NAME[e]}>
+                      {state.spirits[e] ?? ''}
+                    </i>
+                  );
+                })}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="gh-btns">
+          <button className="link" onClick={() => setTutSeen(-1)} disabled={!tut}>
+            ❔ 안내
+          </button>
+          <button className="exit-btn" onClick={() => confirm('스테이지를 나갈까요? (진행은 사라져요, 얻은 경험치·장비는 남아요)') && act((s) => leaveStage(s))}>
+            ⏏ 나가기
+          </button>
+        </div>
+      </div>
+
+      {(Math.abs(pan.x) > 4 || Math.abs(pan.y) > 0.5) && (
+        <button className="recenter" onClick={() => setPan({ x: 0, y: 0 })}>
+          📍 내 위치
+        </button>
+      )}
+
+      {/* 좌측 하단: 기술·물약 */}
+      <div className="g-bl">
         {skills.map((sk, j) => {
           const i = j + 1;
           const cd = state.cds[sk.id] ?? 0;
           const target = sk.shape === 'around' ? state.monsters.find((m) => !m.dead && dist(m, state.pos) === 1) : nearestTarget(state, sk.range);
           return (
-            <button key={sk.id} className={`act-skill ${!target || cd ? 'off' : ''}`} onClick={() => doSkill(i)} style={{ borderColor: sk.element ? EL_COLOR[sk.element] : '#7f8c86' }}>
-              <span className="as-icon">{sk.icon}</span>
-              <span className="as-text">
-                <b>{sk.name}</b>
-                <small>{cd ? `${cd}턴 뒤` : !target ? (sk.shape === 'around' ? '옆에 적 없음' : '사거리 밖') : sk.shape === 'around' ? '주변 6칸 공격' : '기절시키기'}</small>
-              </span>
+            <button key={sk.id} className={`g-skill ${!target || cd ? 'off' : ''}`} onClick={() => doSkill(i)} style={{ borderColor: sk.element ? EL_COLOR[sk.element] : '#7f8c86' }}>
+              <span className="gs-icon">{sk.icon}</span>
+              <b>{sk.name}</b>
+              <small>{cd ? `${cd}턴 뒤` : !target ? (sk.shape === 'around' ? '옆에 적 없음' : '사거리 밖') : sk.shape === 'around' ? '주변 6칸' : '기절'}</small>
             </button>
           );
         })}
-        <button className="act-potion" disabled={state.potions.small <= 0} onClick={() => setToast(act((s) => usePotion(s, 'small')) ?? '💊 체력 +40%')}>
+        <button className="g-potion" disabled={state.potions.small <= 0} onClick={() => setToast(act((s) => usePotion(s, 'small')) ?? '💊 체력 +40%')}>
           💊<b>{state.potions.small}</b>
         </button>
-        <button className="act-potion" disabled={state.potions.big <= 0} onClick={() => setToast(act((s) => usePotion(s, 'big')) ?? '🧪 체력 가득!')}>
+        <button className="g-potion" disabled={state.potions.big <= 0} onClick={() => setToast(act((s) => usePotion(s, 'big')) ?? '🧪 체력 가득!')}>
           🧪<b>{state.potions.big}</b>
         </button>
       </div>
-      {menu}
-      </aside>
+
+      {/* 우측 하단: 이동 버튼 (이 영역은 지도가 눌리지 않음) */}
+      <HexPad onDir={onPad} />
 
       {panels}
       {state.stageClear && (
@@ -470,6 +517,23 @@ export function RpgApp() {
         />
       )}
       {popup.length > 0 && !state.stageClear && <Popup f={popup[0]} state={state} onClose={() => setPopup((p) => p.slice(1))} onGo={(p) => (setPopup([]), setPanel(p))} />}
+      {showTut && popup.length === 0 && !panel && (
+        <div className="modal">
+          <div className="reveal tut-card">
+            <div className="reveal-tag">
+              안내 {state.tut + 1}/{TUT.length}
+            </div>
+            <h2>{tut.title}</h2>
+            <p>{tut.text(state)}</p>
+            <button className="cta" onClick={() => setTutSeen(state.tut)}>
+              확인
+            </button>
+            <button className="link" onClick={() => (act((s) => void (s.tut = 99)), setTutSeen(99))}>
+              안내 그만 보기
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -480,7 +544,7 @@ function ClearScreen({ state, onNext, onRetry, onList }: { state: RpgState; onNe
   return (
     <div className="modal">
       <div className="reveal clear-card">
-        <div className="reveal-tag">STAGE {st.n} CLEAR!</div>
+        <div className="reveal-tag">스테이지 {st.n} 클리어!</div>
         <h2>{st.name}</h2>
         <p>보스를 쓰러뜨리고 출구에 도착했어요.</p>
         <div className="small muted">
@@ -489,9 +553,9 @@ function ClearScreen({ state, onNext, onRetry, onList }: { state: RpgState; onNe
         {!last ? (
           <>
             <div className="next-stage">
-              ▶ 다음: STAGE {st.n + 1} {STAGES[st.n].name}
+              ▶ 다음: 스테이지 {st.n + 1} {STAGES[st.n].name}
               <small>
-                Lv{STAGES[st.n].minLv}~{STAGES[st.n].maxLv} · {LAYOUT_NAME[STAGES[st.n].layout]}
+                레벨 {STAGES[st.n].minLv}~{STAGES[st.n].maxLv} · {LAYOUT_NAME[STAGES[st.n].layout]}
               </small>
             </div>
             <button className="cta" onClick={onNext}>
@@ -519,16 +583,16 @@ interface TutStep {
   done: (s: RpgState) => boolean;
 }
 const TUT: TutStep[] = [
-  { title: '이동', text: () => '가고 싶은 헥사를 누르거나, 주인공을 잡고 끌어 보세요. 손가락을 따라 걷고, 손가락을 앞에 두고 있으면 계속 걸어요. 주인공을 톡 누르면 멈춰요 (한 칸 = 한 턴, 몬스터도 같이 움직여요).', done: (s) => s.turn >= 3 },
-  { title: '둘러보기', text: () => '지도를 끌면 앞을 미리 볼 수 있어요. 맨 위 👑보스와 🚪출구, 바위 사이 길목을 확인해 보세요.', done: (s) => s.turn >= 6 },
+  { title: '이동', text: () => '오른쪽 아래 이동 버튼을 누르고 있으면 그쪽으로 걸어요. 손가락을 미끄러뜨리면 방향이 바뀌고, 떼면 멈춰요. 가고 싶은 헥사를 톡 눌러도 그곳까지 걸어가요. (한 칸 = 한 턴, 몬스터도 같이 움직여요)', done: (s) => s.turn >= 3 },
+  { title: '둘러보기', text: () => '지도를 끌면 앞을 미리 볼 수 있어요. 오른쪽 끝의 👑보스와 🚪출구, 바위 사이 길목을 확인해 보세요. [📍 내 위치]로 돌아와요.', done: (s) => s.turn >= 6 },
   { title: '싸우기', text: () => '몬스터를 누르면 다가가서 싸워요. 붙어 있으면 아무것도 안 눌러도 자동 공격! 빨간 선 = 몬스터 공격, 노란 선 = 내 공격.', done: (s) => s.kills >= 2 },
-  { title: '기술', text: () => '아래 기술 버튼: 🌀회오리 베기(주변 6칸 전부), 🛡️방패 강타(기절). 둘러싸였을 때 회오리가 최고!', done: (s) => s.stat.skills >= 1 },
-  { title: '테크트리', text: () => '[🌳테크트리]에서 기술 포인트를 찍어요. 한 노드에 여러 번 찍을 수 있고, 3포인트 넣으면 아래 노드가 열려요.', done: (s) => Object.keys(s.heroes.knight.nodes).length > 0 },
+  { title: '기술', text: () => '왼쪽 아래 기술 버튼: 🌀회오리 베기(주변 6칸 전부), 🛡️방패 강타(기절). 둘러싸였을 때 회오리가 최고! 옆의 💊🧪는 물약이에요.', done: (s) => s.stat.skills >= 1 },
+  { title: '테크트리', text: () => '왼쪽 위 [🌳테크트리]에서 기술 포인트를 찍어요. 한 노드에 여러 번 찍을 수 있고, 3포인트 넣으면 아래 노드가 열려요.', done: (s) => Object.keys(s.heroes.knight.nodes).length > 0 },
   { title: '스피릿', text: () => '반짝이는 제단에 가면 스피릿이 동료가 돼요. 칸을 차지하고 같이 싸워요 (속성 색 선이 스피릿 공격).', done: (s) => s.pets.length >= 1 },
-  { title: '스피릿 키우기', text: () => '사냥하면 스피릿 포인트가 쌓여요. [✨스피릿]에서 어떤 속성을 키울지 골라요.', done: (s) => Object.values(s.spirits).reduce((a, b) => a + (b ?? 0), 0) > Object.keys(s.spirits).length },
+  { title: '스피릿 키우기', text: () => '사냥하면 스피릿 포인트가 쌓여요. 왼쪽 위 [✨스피릿]에서 어떤 속성을 키울지 골라요.', done: (s) => Object.values(s.spirits).reduce((a, b) => a + (b ?? 0), 0) > Object.keys(s.spirits).length },
   { title: '물약·야영지', text: () => '체력이 줄면 💊물약. 🏕야영지에 가면 모두 회복(한 번 쉬면 15턴 뒤 다시). 쓰러지면 마지막 야영지에서 다시 시작해요.', done: (s) => s.stat.camps >= 1 || s.potions.small < 3 },
   { title: '머뭇거리면', text: () => '앞으로 못 가고 한 곳에 오래 있으면 몬스터가 몰려와요. 레벨이 모자랄 땐 버티며 경험치를 벌어도 돼요.', done: (s) => s.stall >= 20 || s.kills >= 10 },
-  { title: '보스와 출구', text: () => '맨 위 👑보스를 쓰러뜨리면 🚪출구가 열려요. 출구에 들어가면 클리어 → 다음 판!', done: (s) => s.stageClear || s.cleared.length > 0 },
+  { title: '보스와 출구', text: () => '길 끝(오른쪽)의 👑보스를 쓰러뜨리면 🚪출구가 열려요. 출구에 들어가면 클리어 → 다음 판!', done: (s) => s.stageClear || s.cleared.length > 0 },
 ];
 
 function tipFor(s: RpgState): string | null {
@@ -538,6 +602,6 @@ function tipFor(s: RpgState): string | null {
   if (s.bossDown) return '🚪 출구가 열렸어요! 길 끝의 출구 헥사를 누르세요.';
   const ranged = s.monsters.find((m) => !m.dead && m.aggro && MONSTERS[m.def].range > 1 && dist(m, s.pos) === 2);
   if (ranged) return `${MONSTERS[ranged.def].name}은 2칸 밖에서 공격해요! 눌러서 다가가 붙으세요.`;
-  if (!s.bossDown && st.bossLv - h.level >= 3 && s.pos.r > active().rows * 0.6) return `👑 보스는 Lv${st.bossLv}. 아직 버거워요 — 머뭇거리면 몰려오는 몬스터로 레벨업.`;
+  if (!s.bossDown && st.bossLv - h.level >= 3 && s.pos.r > active().rows * 0.6) return `👑 보스는 레벨 ${st.bossLv}. 아직 버거워요 — 머뭇거리면 몰려오는 몬스터로 레벨업.`;
   return null;
 }

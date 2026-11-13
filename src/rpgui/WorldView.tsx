@@ -75,13 +75,13 @@ export function WorldView({
   // 카메라 목표
   let width: number, viewH: number, tX: number, tY: number;
   if (land) {
-    // 가로 화면: 세로로 약 6.5칸이 보이게 확대(손가락으로 누르기 좋게), 앞쪽(오른쪽)이 넓게 보이게 주인공을 35% 지점에
+    // 가로 화면: 세로로 약 6.5칸이 보이게 확대(손가락으로 누르기 좋게), 앞쪽(오른쪽)이 넓게 보이게 주인공을 40% 지점에
     viewH = HW * 6.6;
     width = viewH / aspect;
     const fullH = HW * (COLS + 1.2);
-    tY = Math.max(-S * 1.8, Math.min(fullH - viewH, hero.y - viewH * 0.5 - pan.y * ROW_H));
-    const maxX = w.rows * ROW_H + S * 2.2 - width;
-    tX = Math.max(0, Math.min(Math.max(0, maxX), hero.x + pan.x - width * 0.35));
+    // 모서리 버튼(메뉴·정보·기술·이동)에 주인공이 가리지 않게 지도 끝에서도 여유를 둔다
+    tY = Math.max(-S * 1.8 - viewH * 0.18, Math.min(fullH - viewH * 0.82, hero.y - viewH * 0.5 - pan.y * ROW_H));
+    tX = Math.max(-width * 0.3, Math.min(w.rows * ROW_H + S * 2.2 - width * 0.65, hero.x + pan.x - width * 0.4));
   } else {
     const fullW = HW * (COLS + 1.2);
     width = HW * 7.3; // 가로 7칸
@@ -323,7 +323,7 @@ export function WorldView({
               <rect x={-S * 0.7} y={-wdt * 0.98} width={S * 1.4 * ratio} height={3.5} rx={1.5} fill={m.aggro ? '#ff5a5a' : '#f4d03f'} />
               <circle cx={-S * 0.72} cy={-wdt * 0.98 + 2} r={4.5} fill={EL_COLOR[d.element]} />
               <text x={0} y={S * 0.75} textAnchor="middle" className={`mon-lv ${big ? 'boss' : ''}`}>
-                {big ? `👑${m.elite ? '대장 ' : ''}` : ''}Lv{m.level}
+                {big ? `👑${m.elite ? '대장 ' : ''}` : ''}레벨 {m.level}
               </text>
               {m.stun > 0 && <text x={S * 0.6} y={-wdt * 0.7} className="mon-st">💫</text>}
               {(m.poison > 0 || m.burn > 0) && <text x={-S * 0.9} y={-wdt * 0.6} className="mon-st">{m.burn > 0 ? '🔥' : '☠'}</text>}
@@ -345,7 +345,7 @@ export function WorldView({
               <rect x={-S * 0.6} y={-S * 1.65} width={S * 1.2} height={3} rx={1.5} fill="#000a" />
               <rect x={-S * 0.6} y={-S * 1.65} width={S * 1.2 * ratio} height={3} rx={1.5} fill="#7ab8ff" />
               <text x={0} y={S * 0.8} textAnchor="middle" className="mon-lv">
-                {EL_NAME[p.element]}Lv{lv}
+                {EL_NAME[p.element]} {lv}레벨
               </text>
             </g>
           );
