@@ -86,9 +86,9 @@ export const MONSTERS: Record<string, MonsterDef> = {
   leafpup: { id: 'leafpup', name: '잎새 강아지', art: 'leafpup', element: 'forest', hp: 34, atk: 7, def: 3, res: 3, dmg: 'phys', range: 1, xp: 10, gold: 4 },
   leafkit: { id: 'leafkit', name: '잎사슴', art: 'leafkit', element: 'forest', hp: 30, atk: 7, def: 2, res: 7, dmg: 'magic', range: 2, xp: 11, gold: 5, note: '2칸 밖에서 공격' },
   tidekit: { id: 'tidekit', name: '물결 여우', art: 'tidekit', element: 'water', hp: 36, atk: 8, def: 3, res: 12, dmg: 'magic', range: 2, xp: 13, gold: 6, note: '마법 방어가 높다' },
-  shell: { id: 'shell', name: '껍질 기사', art: 'shellknight', element: 'water', hp: 52, atk: 7, def: 14, res: 3, dmg: 'phys', range: 1, xp: 15, gold: 7, note: '물리 방어가 높다 → 마법으로' },
+  shell: { id: 'shell', name: '껍질 기사', art: 'shellknight', element: 'water', hp: 52, atk: 7, def: 10, res: 5, dmg: 'phys', range: 1, xp: 15, gold: 7, note: '물리 방어가 높다 → 마법으로' },
   ember: { id: 'ember', name: '불꽃새', art: 'emberwing', element: 'fire', hp: 32, atk: 10, def: 3, res: 6, dmg: 'magic', range: 2, xp: 14, gold: 6 },
-  boar: { id: 'boar', name: '바위엄니', art: 'rocktusk', element: 'earth', hp: 58, atk: 10, def: 13, res: 4, dmg: 'phys', range: 1, xp: 17, gold: 8, note: '물리 방어가 높다 → 마법으로' },
+  boar: { id: 'boar', name: '바위엄니', art: 'rocktusk', element: 'earth', hp: 58, atk: 10, def: 10, res: 5, dmg: 'phys', range: 1, xp: 17, gold: 8, note: '물리 방어가 높다 → 마법으로' },
   wolf: { id: 'wolf', name: '돌풍 늑대', art: 'skywarden', element: 'wind', hp: 44, atk: 11, def: 6, res: 6, dmg: 'phys', range: 1, xp: 16, gold: 7, note: '빠르다(가끔 두 번 움직임)' },
   bloom: { id: 'bloom', name: '꽃요정', art: 'bloomel', element: 'forest', hp: 40, atk: 8, def: 4, res: 10, dmg: 'magic', range: 2, xp: 15, gold: 7 },
   // 보스
@@ -136,7 +136,7 @@ export interface Item {
 
 export const BAL = {
   heroGrowth: 0.1, // 레벨당 능력치 +10%
-  monGrowth: 0.13,
+  monGrowth: 0.16,
   defK: 30, // 피해 = 공격 × 계수 × defK/(defK+방어)
   xpBase: 18,
   xpPow: 1.45,
@@ -144,10 +144,15 @@ export const BAL = {
   regenPct: 0.03, // 근처에 적이 없을 때 한 걸음마다 회복
   aggro: 4,
   respawnTurns: 40,
+  goldMul: 0.4,
+  campCooldown: 15, // 야영지는 한 번 쉬면 15턴 뒤에 다시
+  stallStart: 18, // 이만큼 앞으로 못 가면 몬스터가 몰려오기 시작
+  stallEvery: 10,
+  extraCap: 8,
   dropChance: 0.14,
   benchXp: 0.5, // 쉬고 있는 캐릭터도 경험치 50%
   heroDmg: 1.6,
-  monDmg: 1.5,
+  monDmg: 2.3,
   deathGoldLoss: 0.1,
 };
 

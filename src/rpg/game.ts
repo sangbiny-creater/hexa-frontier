@@ -25,9 +25,9 @@ import {
   type SkillDef,
   type Slot,
 } from './data';
-import { BOSS_ROWS, cellAt, dist, isFloor, key, neighbors, spawnPlan, step, WORLD, ZONES, zoneOf, type Dir } from './world';
+import { activate, active, cellAt, dist, isFloor, key, neighbors, STAGES, stageSpawns, step, type Dir } from './world';
 
-export const RPG_VERSION = 2;
+export const RPG_VERSION = 3;
 
 export interface Mon {
   id: number;
@@ -39,6 +39,9 @@ export interface Mon {
   home: { c: number; r: number };
   pack: number;
   boss?: boolean;
+  elite?: boolean;
+  /** 머뭇거려서 몰려온 몬스터 */
+  extra?: boolean;
   dead: boolean;
   deadAt: number;
   aggro: boolean;
@@ -94,6 +97,16 @@ export interface RpgState {
   deaths: number;
   /** 튜토리얼 진행 (단계 번호) */
   tut: number;
+  // ── 스테이지 (D82) ──
+  stage: number; // 지금(또는 마지막) 스테이지
+  inStage: boolean;
+  cleared: number[];
+  stageClear: boolean;
+  bossDown: boolean;
+  campReady: Record<string, number>; // 야영지 → 다시 쉴 수 있는 턴
+  bestRow: number; // 가장 멀리 간 줄
+  stall: number; // 앞으로 못 간 턴 수
+  potions: { small: number; big: number };
   stat: { skills: number; camps: number; equips: number; autoHits: number };
   tips: string[];
   log: string[];
@@ -113,6 +126,8 @@ export type Fx =
   | { k: 'death' }
   | { k: 'boss'; name: string }
   | { k: 'unlock'; hero: string }
+  | { k: 'clear'; stage: number; gold: number; item?: Item; first: boolean }
+  | { k: 'swarm' }
   | { k: 'msg'; text: string };
 
 const freshMonFields = { aggro: false, stun: 0, slow: 0, poison: 0, burn: 0, root: 0 };
@@ -122,10 +137,10 @@ export function newRpg(): RpgState {
     version: RPG_VERSION,
     turn: 0,
     heroId: 'knight',
-    heroes: Object.fromEntries(Object.keys(HEROES).map((id) => [id, { unlocked: id !== 'archer', level: 1, xp: 0, hp: 0, gear: {}, skillPts: 0, nodes: [] }])),
-    pos: { ...WORLD.start },
-    camp: { ...WORLD.start },
-    monsters: spawnPlan().map((p, i) => ({ id: i, def: p.id, level: p.level, c: p.c, r: p.r, hp: 0, home: { c: p.c, r: p.r }, pack: p.pack, boss: p.boss, dead: false, deadAt: 0, ...freshMonFields })),
+    heroes: { knight: { unlocked: true, level: 1, xp: 0, hp: 0, gear: {}, skillPts: 0, nodes: [] } },
+    pos: { c: 4, r: 0 },
+    camp: { c: 4, r: 0 },
+    monsters: [],
     pets: [],
     bossesDown: [],
     spirits: {},
@@ -133,7 +148,7 @@ export function newRpg(): RpgState {
     spiritPoints: 0,
     spiritEarned: 0,
     bag: [],
-    gold: 0,
+    gold: 60,
     cds: {},
     opened: [],
     seen: [],
@@ -141,14 +156,60 @@ export function newRpg(): RpgState {
     kills: 0,
     deaths: 0,
     tut: 0,
+    stage: 1,
+    inStage: false,
+    cleared: [],
+    stageClear: false,
+    bossDown: false,
+    campReady: {},
+    bestRow: 0,
+    stall: 0,
+    potions: { small: 3, big: 0 },
     stat: { skills: 0, camps: 0, equips: 0, autoHits: 0 },
     tips: [],
     log: [],
   };
-  for (const m of s.monsters) m.hp = monStats(m).hp;
-  for (const id of Object.keys(s.heroes)) s.heroes[id].hp = heroStats(s, id).hp;
-  reveal(s);
+  s.heroes.knight.hp = heroStats(s).hp;
   return s;
+}
+
+/** 열린 스테이지: 깬 판 + 그다음 판 */
+export const unlockedStage = (s: RpgState) => Math.min(STAGES.length, Math.max(0, ...s.cleared) + 1);
+
+/** 스테이지 시작 (다시 하기도 같음) */
+export function startStage(s: RpgState, n: number): string | null {
+  if (n > unlockedStage(s)) return '앞 스테이지를 먼저 깨야 해요';
+  const w = activate(n);
+  s.stage = n;
+  s.inStage = true;
+  s.stageClear = false;
+  s.bossDown = false;
+  s.turn = 0;
+  s.pos = { ...w.start };
+  s.camp = { ...w.start };
+  s.monsters = stageSpawns(w).map((p, i) => ({ id: i, def: p.id, level: p.level, c: p.c, r: p.r, hp: 0, home: { c: p.c, r: p.r }, pack: p.pack, boss: p.boss, elite: p.elite, dead: false, deadAt: 0, ...freshMonFields }));
+  for (const m of s.monsters) m.hp = monStats(m).hp;
+  s.opened = [];
+  s.seen = [];
+  s.cds = {};
+  s.campReady = {};
+  s.bestRow = 0;
+  s.stall = 0;
+  s.heroes[s.heroId].hp = heroStats(s).hp;
+  s.pets = s.pets.map((p) => ({ ...p, dead: false, cd: 0, heal: 0 }));
+  revivePets(s);
+  reveal(s);
+  return null;
+}
+
+export function leaveStage(s: RpgState) {
+  s.inStage = false;
+  s.stageClear = false;
+}
+
+/** 지금 스테이지를 다시 켤 때 (저장 불러오기) */
+export function resume(s: RpgState) {
+  activate(s.stage);
 }
 
 // ───────── 테크트리 효과 ─────────
@@ -220,8 +281,12 @@ export function heroStats(s: RpgState, id = s.heroId) {
 export function monStats(m: Mon) {
   const d = MONSTERS[m.def];
   const g = 1 + BAL.monGrowth * (m.level - 1);
-  return { hp: Math.round(d.hp * g), atk: d.atk * g, def: d.def * g, res: d.res * g };
+  const e = m.elite ? { hp: 3.5, atk: 1.3 } : { hp: 1, atk: 1 };
+  return { hp: Math.round(d.hp * g * e.hp), atk: d.atk * g * e.atk, def: d.def * g, res: d.res * g };
 }
+
+/** 몬스터 이름 (대장이면 '대장 …') */
+export const monName = (m: Mon) => (m.elite ? `대장 ${MONSTERS[m.def].name}` : MONSTERS[m.def].name);
 
 /** 스피릿 능력치: 스피릿 레벨 + 캐릭터 레벨(함께 성장) */
 export function petStats(s: RpgState, e: Element) {
@@ -325,13 +390,24 @@ export function move(s: RpgState, d: Dir): Fx[] {
   const f = cellAt(to.c, to.r)!.feature;
   if (f?.kind === 'camp') {
     s.camp = { ...to };
-    for (const id of Object.keys(s.heroes)) s.heroes[id].hp = heroStats(s, id).hp;
-    s.cds = {};
-    revivePets(s);
-    s.stat.camps++;
-    fx.push({ k: 'camp' });
-    msg(s, fx, '🏕 야영지: 캐릭터와 스피릿이 모두 회복됐다. 여기서 캐릭터를 바꿀 수 있다.');
-  } else if (f?.kind === 'shrine' && !s.opened.includes(key(to.c, to.r))) {
+    const k = key(to.c, to.r);
+    const ready = s.campReady[k] ?? 0;
+    if (s.turn >= ready) {
+      s.heroes[s.heroId].hp = heroStats(s).hp;
+      s.cds = {};
+      revivePets(s);
+      s.campReady[k] = s.turn + BAL.campCooldown;
+      s.stat.camps++;
+      fx.push({ k: 'camp' });
+      msg(s, fx, `🏕 야영지: 캐릭터와 스피릿이 모두 회복됐다. (${BAL.campCooldown}턴 뒤 다시 쉴 수 있다)`);
+    } else msg(s, fx, `🏕 아직 쉴 수 없어요 — ${ready - s.turn}턴 뒤에 다시 회복할 수 있어요. (부활 지점은 여기로 바뀌었어요)`);
+  } else if (f?.kind === 'exit') {
+    if (s.bossDown) {
+      clearStage(s, fx);
+      return fx;
+    }
+    msg(s, fx, '🚪 출구가 닫혀 있어요. 보스를 쓰러뜨려야 열려요!');
+  } else if (f?.kind === 'shrine' && !s.opened.includes(key(to.c, to.r)) && !s.spirits[f.element]) {
     s.opened.push(key(to.c, to.r));
     s.spirits[f.element] = Math.max(1, s.spirits[f.element] ?? 0);
     const pet: Pet = { element: f.element, c: 0, r: 0, hp: 0, dead: false, cd: 0, heal: 0 };
@@ -342,7 +418,7 @@ export function move(s: RpgState, d: Dir): Fx[] {
     msg(s, fx, `${EL_ICON[f.element]} ${SPIRITS[f.element].name}(${EL_NAME[f.element]} 스피릿)이(가) 동료가 되었다!`);
   } else if (f?.kind === 'chest' && !s.opened.includes(key(to.c, to.r))) {
     s.opened.push(key(to.c, to.r));
-    const it = makeItem(s, ZONES[zoneOf(to.r)].maxLv, 'rare');
+    const it = makeItem(s, active().stage.maxLv, 'rare');
     s.bag.push(it);
     fx.push({ k: 'drop', item: it });
     msg(s, fx, `보물 상자: ${it.name}!`);
@@ -447,8 +523,8 @@ function kill(s: RpgState, fx: Fx[], m: Mon) {
   s.kills++;
   fx.push({ k: 'kill', c: m.c, r: m.r, name: d.name });
   const g = 1 + 0.1 * (m.level - 1);
-  const xp = Math.round(d.xp * g);
-  s.gold += Math.round(d.gold * g);
+  const xp = Math.round(d.xp * g * (m.elite ? 4 : 1));
+  s.gold += Math.round(d.gold * g * BAL.goldMul * (m.extra ? 0.5 : 1));
   gainXp(s, fx, xp);
   if (Object.keys(s.spirits).length) {
     s.spiritXp += xp;
@@ -460,19 +536,12 @@ function kill(s: RpgState, fx: Fx[], m: Mon) {
     }
   }
   if (m.boss) {
-    s.bossesDown.push(m.def);
-    fx.push({ k: 'boss', name: d.name });
-    msg(s, fx, `👑 ${d.name}을(를) 쓰러뜨렸다! 위쪽 길이 열렸다.`);
-    if (m.def === 'golem' && !s.heroes.archer.unlocked) {
-      const a = s.heroes.archer;
-      a.unlocked = true;
-      a.level = Math.max(1, topLevel(s) - 2);
-      a.skillPts = a.level - 1;
-      a.hp = heroStats(s, 'archer').hp;
-      fx.push({ k: 'unlock', hero: 'archer' });
-    }
+    s.bossDown = true;
+    if (!s.bossesDown.includes(m.def)) s.bossesDown.push(m.def);
+    fx.push({ k: 'boss', name: monName(m) });
+    msg(s, fx, `👑 ${monName(m)}을(를) 쓰러뜨렸다! 맨 위 🚪출구가 열렸다.`);
   }
-  if (rand(s, m.id * 7 + 3) < (m.boss ? 1 : BAL.dropChance)) {
+  if (rand(s, m.id * 7 + 3) < (m.boss ? 1 : m.extra ? BAL.dropChance * 0.5 : BAL.dropChance)) {
     const it = makeItem(s, m.level, m.boss ? (rand(s, 99) < 0.4 ? 'epic' : 'rare') : undefined);
     s.bag.push(it);
     fx.push({ k: 'drop', item: it });
@@ -536,10 +605,51 @@ function endTurn(s: RpgState, fx: Fx[]) {
       p.hp = Math.min(max, p.hp + Math.max(1, Math.round(max * BAL.regenPct * mul)));
     }
   }
-  for (const m of s.monsters)
-    if (m.dead && !m.boss && s.turn - m.deadAt >= BAL.respawnTurns && dist(m.home, s.pos) > 5 && freeCell(s, m.home.c, m.home.r)) {
-      Object.assign(m, { dead: false, c: m.home.c, r: m.home.r, hp: monStats(m).hp, ...freshMonFields });
-    }
+  pressure(s, fx);
+}
+
+/** 앞으로 못 가고 머뭇거리면 몬스터가 몰려온다 (낮은 판에서는 경험치 벌기 장소) */
+function pressure(s: RpgState, fx: Fx[]) {
+  if (s.pos.r > s.bestRow) {
+    s.bestRow = s.pos.r;
+    s.stall = 0;
+    return;
+  }
+  s.stall++;
+  if (s.stall < BAL.stallStart || (s.stall - BAL.stallStart) % BAL.stallEvery !== 0) return;
+  const alive = s.monsters.filter((m) => m.extra && !m.dead).length;
+  if (alive >= BAL.extraCap) return;
+  const st = active().stage;
+  const lvUp = Math.floor((s.stall - BAL.stallStart) / 40);
+  const spots = [...active().cells.values()].filter((x) => x.floor && !x.feature && dist(x, s.pos) >= 3 && dist(x, s.pos) <= 5 && freeCell(s, x.c, x.r));
+  if (!spots.length) return;
+  const rng = createRng(hashSeed('swarm', s.turn, s.stage, s.kills));
+  const center = spots[Math.floor(rng() * spots.length)];
+  const size = Math.min(BAL.extraCap - alive, 2 + Math.floor(rng() * 2));
+  const pack = 1000 + s.turn;
+  const cand = [center, ...neighbors(center.c, center.r)].filter((x) => freeCell(s, x.c, x.r));
+  for (const p of cand.slice(0, size)) {
+    const id = s.monsters.length;
+    const m: Mon = { id, def: st.monsters[Math.floor(rng() * st.monsters.length)], level: st.maxLv + lvUp, c: p.c, r: p.r, hp: 0, home: { c: p.c, r: p.r }, pack, dead: false, deadAt: 0, extra: true, ...freshMonFields, aggro: true };
+    m.hp = monStats(m).hp;
+    s.monsters.push(m);
+  }
+  fx.push({ k: 'swarm' });
+  msg(s, fx, '⚠ 머뭇거리는 사이 몬스터 무리가 몰려온다!');
+}
+
+function clearStage(s: RpgState, fx: Fx[]) {
+  const first = !s.cleared.includes(s.stage);
+  const gold = 20 + s.stage * 15 + (first ? s.stage * 20 : 0);
+  s.gold += gold;
+  let item: Item | undefined;
+  if (first) {
+    item = makeItem(s, active().stage.bossLv, s.stage % 3 === 0 ? 'epic' : 'rare');
+    s.bag.push(item);
+    s.cleared.push(s.stage);
+  }
+  s.stageClear = true;
+  fx.push({ k: 'clear', stage: s.stage, gold, item, first });
 }
 
 /** 스피릿: 붙은 적을 공격, 아니면 캐릭터를 따라간다 */
@@ -652,6 +762,9 @@ function monsterAct(s: RpgState, fx: Fx[], m: Mon) {
   }
 }
 
+/** 몬스터 공격 배율: 앞 판은 순하게, 뒤로 갈수록 세게 (1판 ×1.4 → 10판 ×2.3) */
+const monDmgMul = (s: RpgState) => BAL.monDmg * (1 + 0.07 * (s.stage - 1)) * 0.61;
+
 function monAttack(s: RpgState, fx: Fx[], m: Mon, t: Target) {
   const d = MONSTERS[m.def];
   const ms = monStats(m);
@@ -659,14 +772,14 @@ function monAttack(s: RpgState, fx: Fx[], m: Mon, t: Target) {
   if (t.kind === 'hero') {
     const hs = heroStats(s);
     const guard = d.dmg === 'phys' ? hs.def : hs.res;
-    const amount = Math.max(1, Math.round(ms.atk * (BAL.defK / (BAL.defK + guard)) * spiritBonus(s, d.element).guard * roll * BAL.monDmg));
+    const amount = Math.max(1, Math.round(ms.atk * (BAL.defK / (BAL.defK + guard)) * spiritBonus(s, d.element).guard * roll * monDmgMul(s)));
     const h = s.heroes[s.heroId];
     h.hp = Math.max(0, h.hp - amount);
     fx.push({ k: 'dmg', c: s.pos.c, r: s.pos.r, amount, eff: null, blocked: false, crit: false, onHero: true });
   } else {
     const p = t.pet;
     const ps = petStats(s, p.element);
-    const amount = Math.max(1, Math.round(ms.atk * (BAL.defK / (BAL.defK + ps.def)) * typeMul(d.element, p.element) * roll * BAL.monDmg));
+    const amount = Math.max(1, Math.round(ms.atk * (BAL.defK / (BAL.defK + ps.def)) * typeMul(d.element, p.element) * roll * monDmgMul(s)));
     p.hp -= amount;
     fx.push({ k: 'dmg', c: p.c, r: p.r, amount, eff: null, blocked: false, crit: false, onPet: true });
     if (p.hp <= 0) {
@@ -685,7 +798,10 @@ function die(s: RpgState, fx: Fx[]) {
   s.pos = { ...s.camp };
   s.heroes[s.heroId].hp = heroStats(s).hp;
   s.cds = {};
+  s.monsters = s.monsters.filter((m) => !m.extra);
   for (const m of s.monsters) if (!m.dead) Object.assign(m, { c: m.home.c, r: m.home.r, hp: monStats(m).hp, ...freshMonFields });
+  s.stall = 0;
+  s.campReady = {};
   revivePets(s);
   fx.push({ k: 'death' });
   msg(s, fx, `쓰러졌다… 마지막 야영지에서 다시 일어났다. (골드 -${lost})`);
@@ -698,13 +814,36 @@ export function onCamp(s: RpgState) {
   return cellAt(s.pos.c, s.pos.r)?.feature?.kind === 'camp';
 }
 
-export function switchHero(s: RpgState, id: string): string | null {
-  if (!s.heroes[id]?.unlocked) return '아직 합류하지 않은 캐릭터예요';
-  if (!onCamp(s)) return '캐릭터는 🏕야영지에서만 바꿀 수 있어요';
-  s.heroId = id;
-  s.heroes[id].hp = heroStats(s, id).hp;
-  s.cds = {};
+// ───────── 물약·상점 (D83) ─────────
+
+export function usePotion(s: RpgState, kind: 'small' | 'big'): string | null {
+  if (s.potions[kind] <= 0) return '물약이 없어요 (상점에서 사요)';
+  const h = s.heroes[s.heroId];
+  const max = heroStats(s).hp;
+  if (h.hp >= max) return '체력이 가득해요';
+  s.potions[kind]--;
+  h.hp = Math.min(max, h.hp + Math.round(max * (kind === 'small' ? 0.4 : 1)));
   return null;
+}
+
+export type ShopItem = 'small' | 'big' | 'box';
+export function shopPrice(s: RpgState, it: ShopItem): number {
+  return it === 'small' ? 30 : it === 'big' ? 90 : 80 + unlockedStage(s) * 25;
+}
+export function buy(s: RpgState, it: ShopItem): { error: string } | { item?: Item } {
+  const price = shopPrice(s, it);
+  if (s.gold < price) return { error: `골드가 부족해요 (${price})` };
+  s.gold -= price;
+  if (it === 'small') s.potions.small++;
+  else if (it === 'big') s.potions.big++;
+  else {
+    const lv = STAGES[unlockedStage(s) - 1].maxLv;
+    const roll = createRng(hashSeed('box', s.itemCounter, s.gold))();
+    const item = makeItem(s, lv, roll < 0.15 ? 'epic' : roll < 0.6 ? 'rare' : 'common');
+    s.bag.push(item);
+    return { item };
+  }
+  return {};
 }
 
 export function equip(s: RpgState, uid: string): string | null {
@@ -786,9 +925,10 @@ export function makeItem(s: RpgState, level: number, force?: Rarity): Item {
   return it;
 }
 
-export function currentZone(s: RpgState) {
-  const z = zoneOf(s.pos.r);
-  return { index: z, ...ZONES[z], bossDown: s.bossesDown.includes(ZONES[z].boss), bossRow: BOSS_ROWS[z] };
+/** 지금 스테이지 진행: 출구까지 남은 줄, 남은 몬스터 */
+export function stageInfo(s: RpgState) {
+  const w = active();
+  return { ...w.stage, rows: w.rows, toExit: Math.max(0, w.exit.r - s.pos.r), left: s.monsters.filter((m) => !m.dead && !m.extra).length, bossDown: s.bossDown, bossRow: w.bossAt.r };
 }
 
 export { beats };

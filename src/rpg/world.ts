@@ -1,13 +1,12 @@
-// 월드 지도 (D72): 세로로 긴 헥사 들판. 아래(row 0)에서 위로 올라간다. 4구역 × 16줄.
+// 스테이지 지도 (D82): 10판. 판마다 크기가 정해진 세로 헥사 지도, 아래(row 0)에서 위의 출구로.
+// 판마다 장애물 배치가 달라 전략이 생긴다: 길목(한 마리씩 끊어 잡기) · 넓은 곳(둘러싸일 위험) · 방 · 기둥밭 · 통로.
 // 좌표는 odd-r 오프셋 (col, row). 화면에서는 row가 클수록 위.
 import { createRng, hashSeed } from '../core/rng';
 import type { Element } from './data';
 
 export const COLS = 9;
-export const ROWS = 64;
-export const ZONE_ROWS = 16;
 
-export type Feature = { kind: 'camp' } | { kind: 'shrine'; element: Element } | { kind: 'chest' } | { kind: 'boss'; monster: string };
+export type Feature = { kind: 'camp' } | { kind: 'shrine'; element: Element } | { kind: 'chest' } | { kind: 'exit' };
 export interface Cell {
   c: number;
   r: number;
@@ -15,25 +14,44 @@ export interface Cell {
   feature?: Feature;
 }
 
-export interface Zone {
+export type Layout = 'pillars' | 'maze' | 'rooms' | 'corridors' | 'open';
+export const LAYOUT_NAME: Record<Layout, string> = {
+  pillars: '기둥밭 — 기둥 뒤로 돌며 싸우기',
+  maze: '덤불 미로 — 길목에서 한 마리씩',
+  rooms: '방과 문 — 문 앞을 지키면 유리',
+  corridors: '세 갈래 통로 — 갈림길에서 포위 주의',
+  open: '탁 트인 들판 — 둘러싸이기 쉬움!',
+};
+
+export interface StageDef {
+  n: number;
   name: string;
+  rows: number;
+  layout: Layout;
   monsters: string[];
   minLv: number;
   maxLv: number;
   boss: string;
   bossLv: number;
+  bossElite?: boolean; // 일반 몬스터를 키운 '대장'
+  shrine?: Element;
 }
-export const ZONES: Zone[] = [
-  { name: '이끼 숲길', monsters: ['leafpup', 'leafpup', 'leafkit'], minLv: 1, maxLv: 5, boss: 'golem', bossLv: 7 },
-  { name: '물안개 개울', monsters: ['tidekit', 'shell', 'bloom'], minLv: 6, maxLv: 11, boss: 'tidelord', bossLv: 13 },
-  { name: '바위엄니 고개', monsters: ['boar', 'ember', 'boar'], minLv: 12, maxLv: 18, boss: 'terra', bossLv: 20 },
-  { name: '폭풍 언덕', monsters: ['wolf', 'ember', 'shell', 'wolf'], minLv: 19, maxLv: 26, boss: 'storm', bossLv: 28 },
+
+export const STAGES: StageDef[] = [
+  { n: 1, name: '이끼 숲 입구', rows: 18, layout: 'pillars', monsters: ['leafpup', 'leafpup', 'leafkit'], minLv: 1, maxLv: 3, boss: 'leafpup', bossLv: 4, bossElite: true, shrine: 'fire' },
+  { n: 2, name: '덤불 미로', rows: 20, layout: 'maze', monsters: ['leafpup', 'leafkit', 'bloom'], minLv: 3, maxLv: 5, boss: 'leafkit', bossLv: 6, bossElite: true, shrine: 'water' },
+  { n: 3, name: '고목의 뜰', rows: 22, layout: 'rooms', monsters: ['leafkit', 'bloom', 'leafpup'], minLv: 5, maxLv: 7, boss: 'golem', bossLv: 8 },
+  { n: 4, name: '물안개 개울', rows: 22, layout: 'corridors', monsters: ['tidekit', 'shell', 'tidekit'], minLv: 7, maxLv: 9, boss: 'shell', bossLv: 10, bossElite: true, shrine: 'wind' },
+  { n: 5, name: '개울 동굴', rows: 24, layout: 'maze', monsters: ['tidekit', 'shell', 'bloom'], minLv: 9, maxLv: 11, boss: 'tidekit', bossLv: 12, bossElite: true },
+  { n: 6, name: '해일의 둥지', rows: 24, layout: 'open', monsters: ['tidekit', 'shell'], minLv: 11, maxLv: 13, boss: 'tidelord', bossLv: 14, shrine: 'forest' },
+  { n: 7, name: '바위엄니 고개', rows: 26, layout: 'corridors', monsters: ['boar', 'ember', 'boar'], minLv: 13, maxLv: 15, boss: 'boar', bossLv: 16, bossElite: true },
+  { n: 8, name: '테라스톤 광산', rows: 26, layout: 'rooms', monsters: ['boar', 'ember'], minLv: 15, maxLv: 18, boss: 'terra', bossLv: 19, shrine: 'earth' },
+  { n: 9, name: '폭풍 언덕', rows: 28, layout: 'pillars', monsters: ['wolf', 'ember', 'wolf'], minLv: 19, maxLv: 22, boss: 'wolf', bossLv: 24, bossElite: true },
+  { n: 10, name: '폭풍의 정상', rows: 30, layout: 'maze', monsters: ['wolf', 'shell', 'ember', 'wolf'], minLv: 23, maxLv: 26, boss: 'storm', bossLv: 28 },
 ];
 
 export const key = (c: number, r: number) => `${c},${r}`;
-export const zoneOf = (r: number) => Math.min(ZONES.length - 1, Math.floor(r / ZONE_ROWS));
 
-/** 이웃 6칸 (화면 기준 방향 이름 순서: 오른쪽, 왼쪽, 오른위, 왼위, 오른아래, 왼아래) */
 export const DIRS = ['E', 'W', 'NE', 'NW', 'SE', 'SW'] as const;
 export type Dir = (typeof DIRS)[number];
 export function step(c: number, r: number, d: Dir): { c: number; r: number } {
@@ -68,115 +86,153 @@ export function dist(a: { c: number; r: number }, b: { c: number; r: number }): 
 }
 
 export interface World {
+  stage: StageDef;
+  rows: number;
   cells: Map<string, Cell>;
   start: { c: number; r: number };
+  exit: { c: number; r: number };
+  bossAt: { c: number; r: number };
+  camps: { c: number; r: number }[];
 }
 
-/** 보스 칸: 그 줄에 길이 하나뿐 → 반드시 이겨야 지나간다 */
-export const BOSS_ROWS = ZONES.map((_, i) => i * ZONE_ROWS + ZONE_ROWS - 1);
-const CAMP_ROWS = [0, 8, 16, 24, 32, 40, 48, 56];
-// 스피릿 제단: 다음 구역 몬스터에 강한 속성을 미리 얻게 배치
-const SHRINES: [number, Element][] = [
-  [5, 'fire'], // 숲 몬스터에 강함
-  [12, 'water'],
-  [20, 'wind'], // 물 몬스터에 강함
-  [36, 'forest'], // 대지 몬스터에 강함
-  [52, 'earth'], // 바람 몬스터에 강함
-];
+export interface Spawn {
+  id: string;
+  level: number;
+  c: number;
+  r: number;
+  pack: number;
+  boss?: boolean;
+  elite?: boolean;
+}
 
-export function generateWorld(): World {
-  const rng = createRng(hashSeed('hexa-rpg-world', 3));
-  const cells = new Map<string, Cell>();
-  const set = (c: number, r: number, floor: boolean) => cells.set(key(c, r), { c, r, floor });
-  // 1) 무작위 바위
-  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) set(c, r, rng() > 0.24);
-  // 2) 아래에서 위로 이어지는 큰 길
-  let col = 4;
-  for (let r = 0; r < ROWS; r++) {
-    const bossRow = BOSS_ROWS.includes(r);
-    if (bossRow || BOSS_ROWS.includes(r + 1) || BOSS_ROWS.includes(r - 1)) col = 4;
-    else col = Math.max(1, Math.min(COLS - 2, col + (rng() < 0.33 ? -1 : rng() < 0.5 ? 1 : 0)));
-    set(col, r, true);
-    if (!bossRow) set(Math.min(COLS - 1, col + 1), r, true);
-  }
-  // 3) 보스 줄은 보스 칸 하나만, 앞뒤 줄은 보스로 이어지게
-  ZONES.forEach((z, i) => {
-    const r = BOSS_ROWS[i];
-    for (let c = 0; c < COLS; c++) set(c, r, false);
-    cells.set(key(4, r), { c: 4, r, floor: true, feature: { kind: 'boss', monster: z.boss } });
-    for (const n of neighbors(4, r)) if (n.r !== r && cells.has(key(n.c, n.r))) cells.get(key(n.c, n.r))!.floor = true;
-  });
-  // 4) 야영지 (주변을 넓게)
-  for (const r of CAMP_ROWS) {
-    const cell = cells.get(key(4, r))!;
-    cell.floor = true;
-    cell.feature = { kind: 'camp' };
-    for (const n of neighbors(4, r)) {
-      const x = cells.get(key(n.c, n.r));
-      if (x && !BOSS_ROWS.includes(n.r)) x.floor = true;
-    }
-  }
-  // 5) 시작점에서 닿지 않는 칸은 바위로
-  const seen = new Set<string>([key(4, 0)]);
-  const q = [{ c: 4, r: 0 }];
+function connected(cells: Map<string, Cell>, from: { c: number; r: number }): Set<string> {
+  const seen = new Set([key(from.c, from.r)]);
+  const q = [from];
   while (q.length) {
     const p = q.shift()!;
     for (const n of neighbors(p.c, p.r)) {
       const k = key(n.c, n.r);
-      const x = cells.get(k);
-      if (x?.floor && !seen.has(k)) (seen.add(k), q.push(n));
+      if (cells.get(k)?.floor && !seen.has(k)) (seen.add(k), q.push(n));
     }
   }
-  for (const [k, x] of cells) if (!seen.has(k)) x.floor = false;
-  // 6) 스피릿 제단: 큰 길에서 조금 떨어진 바닥 칸
-  for (const [row, el] of SHRINES) {
-    const cand = [...cells.values()].filter((x) => x.floor && !x.feature && Math.abs(x.r - row) <= 1 && (x.c <= 2 || x.c >= 6));
-    const pick = cand[Math.floor(rng() * cand.length)] ?? [...cells.values()].find((x) => x.floor && !x.feature && x.r === row)!;
-    pick.feature = { kind: 'shrine', element: el };
-  }
-  // 7) 보물 상자
-  for (let z = 0; z < ZONES.length; z++)
-    for (let k = 0; k < 3; k++) {
-      const cand = [...cells.values()].filter((x) => x.floor && !x.feature && zoneOf(x.r) === z && x.r % ZONE_ROWS > 2 && x.r % ZONE_ROWS < 14);
-      const pick = cand[Math.floor(rng() * cand.length)];
-      if (pick) pick.feature = { kind: 'chest' };
-    }
-  return { cells, start: { c: 4, r: 0 } };
+  return seen;
 }
 
-export const WORLD = generateWorld();
-export const cellAt = (c: number, r: number) => WORLD.cells.get(key(c, r));
-export const isFloor = (c: number, r: number) => !!cellAt(c, r)?.floor;
-
-/** 처음 몬스터 배치: 구역마다 무리(2~4마리)를 흩어 놓는다 */
-export function spawnPlan(): { id: string; level: number; c: number; r: number; pack: number; boss?: boolean }[] {
-  const rng = createRng(hashSeed('hexa-rpg-spawn', 1));
-  const out: { id: string; level: number; c: number; r: number; pack: number; boss?: boolean }[] = [];
-  const used = new Set<string>();
-  let pack = 0;
-  ZONES.forEach((z, zi) => {
-    const r0 = zi * ZONE_ROWS;
-    out.push({ id: z.boss, level: z.bossLv, c: 4, r: BOSS_ROWS[zi], pack: pack++, boss: true });
-    used.add(key(4, BOSS_ROWS[zi]));
-    const floors = [...WORLD.cells.values()].filter((x) => x.floor && !x.feature && x.r > r0 + 1 && x.r < r0 + ZONE_ROWS - 1 && !CAMP_ROWS.some((cr) => dist(x, { c: 4, r: cr }) <= 3));
-    const centers: Cell[] = [];
-    const packs = zi === 0 ? 8 : 9;
-    for (let tries = 0; tries < 200 && centers.length < packs; tries++) {
-      const center = floors[Math.floor(rng() * floors.length)];
-      // 무리끼리는 4칸 이상 떨어뜨리고, 첫 구역 입구(4줄)는 비워 둔다
-      if (!center || used.has(key(center.c, center.r)) || centers.some((x) => dist(x, center) < 4) || (zi === 0 && center.r < 4)) continue;
-      centers.push(center);
-      const size = zi === 0 ? 1 + Math.floor(rng() * 3) : 2 + Math.floor(rng() * 3);
-      const spots = [center, ...neighbors(center.c, center.r).map((n) => cellAt(n.c, n.r)).filter((x): x is Cell => !!x && x.floor && !x.feature)];
-      const prog = (center.r - r0) / ZONE_ROWS;
-      for (const s of spots.slice(0, size)) {
-        if (used.has(key(s.c, s.r)) || CAMP_ROWS.some((cr) => dist(s, { c: 4, r: cr }) <= 2)) continue;
-        used.add(key(s.c, s.r));
-        const lv = Math.round(z.minLv + (z.maxLv - z.minLv) * prog + (rng() < 0.3 ? 1 : 0));
-        out.push({ id: z.monsters[Math.floor(rng() * z.monsters.length)], level: lv, c: s.c, r: s.r, pack });
-      }
-      pack++;
+export function buildStage(n: number): World {
+  const st = STAGES[n - 1];
+  const R = st.rows;
+  const rng = createRng(hashSeed('hexa-stage', n));
+  const cells = new Map<string, Cell>();
+  for (let r = 0; r < R; r++) for (let c = 0; c < COLS; c++) cells.set(key(c, r), { c, r, floor: true });
+  const rock = (c: number, r: number) => {
+    const x = cells.get(key(c, r));
+    if (x && r > 1 && r < R - 4) x.floor = false;
+  };
+  // ── 장애물 배치 ──
+  if (st.layout === 'pillars') {
+    for (let r = 3; r < R - 4; r++) for (let c = 0; c < COLS; c++) if (rng() < 0.16 && !neighbors(c, r).some((x) => cells.get(key(x.c, x.r))?.floor === false)) rock(c, r);
+  } else if (st.layout === 'maze') {
+    // 3~4줄마다 가로 벽, 틈(길목)은 1~2개
+    for (let r = 3; r < R - 4; r += 3 + Math.floor(rng() * 2)) {
+      const gaps = new Set<number>();
+      const g = 1 + Math.floor(rng() * 2);
+      while (gaps.size < g) gaps.add(Math.floor(rng() * COLS));
+      for (let c = 0; c < COLS; c++) if (!gaps.has(c)) rock(c, r);
     }
-  });
+  } else if (st.layout === 'rooms') {
+    for (let r = 4; r < R - 4; r += 5) {
+      const door = 1 + Math.floor(rng() * (COLS - 2));
+      for (let c = 0; c < COLS; c++) if (c !== door) rock(c, r);
+      // 방 안의 칸막이
+      const wc = 2 + Math.floor(rng() * 5);
+      for (let k = 1; k <= 3; k++) if (rng() < 0.75) rock(wc, r + k);
+    }
+  } else if (st.layout === 'corridors') {
+    // 세로 벽 2줄로 세 갈래, 가끔 건너가는 틈
+    for (let r = 3; r < R - 4; r++) {
+      for (const c of [2, 6]) if (r % 5 !== 0) rock(c, r);
+      if (rng() < 0.15) rock(Math.floor(rng() * COLS), r);
+    }
+  } else {
+    for (let r = 3; r < R - 4; r++) for (let c = 0; c < COLS; c++) if (rng() < 0.05) rock(c, r);
+  }
+  // ── 특별한 칸 ──
+  const start = { c: 4, r: 0 };
+  const exit = { c: 4, r: R - 1 };
+  const bossAt = { c: 4, r: R - 3 };
+  const clearAround = (p: { c: number; r: number }, rad: number) => {
+    for (const x of cells.values()) if (dist(x, p) <= rad) x.floor = true;
+  };
+  clearAround(start, 1);
+  clearAround(bossAt, 2);
+  clearAround(exit, 1);
+  const midRow = Math.floor(R / 2);
+  const midCamp = { c: rng() < 0.5 ? 2 : 6, r: midRow };
+  clearAround(midCamp, 1);
+  cells.get(key(start.c, start.r))!.feature = { kind: 'camp' };
+  cells.get(key(midCamp.c, midCamp.r))!.feature = { kind: 'camp' };
+  cells.get(key(exit.c, exit.r))!.feature = { kind: 'exit' };
+  // 출구까지 이어지게: 안 이어지면 막힌 벽을 하나씩 뚫는다
+  for (let guard = 0; guard < 60 && !connected(cells, start).has(key(exit.c, exit.r)); guard++) {
+    const reach = connected(cells, start);
+    const edge = [...cells.values()].filter((x) => !x.floor && neighbors(x.c, x.r).some((nb) => reach.has(key(nb.c, nb.r)))).sort((a, b) => b.r - a.r)[0];
+    if (edge) edge.floor = true;
+  }
+  const reach = connected(cells, start);
+  for (const [k, x] of cells) if (!reach.has(k)) x.floor = false;
+  // 보물 상자 2개, 스피릿 제단(있으면)
+  const free = () => [...cells.values()].filter((x) => x.floor && !x.feature && x.r > 2 && x.r < R - 4 && dist(x, midCamp) > 1);
+  for (let k = 0; k < 2; k++) {
+    const f = free();
+    const p = f[Math.floor(rng() * f.length)];
+    if (p) p.feature = { kind: 'chest' };
+  }
+  if (st.shrine) {
+    const f = free().filter((x) => x.r < R * 0.6 && (x.c <= 1 || x.c >= 7));
+    const p = f[Math.floor(rng() * f.length)] ?? free()[0];
+    p.feature = { kind: 'shrine', element: st.shrine };
+  }
+  return { stage: st, rows: R, cells, start, exit, bossAt, camps: [start, midCamp] };
+}
+
+/** 처음 몬스터 배치: 무리(2~4마리)를 흩어 놓는다 */
+export function stageSpawns(w: World): Spawn[] {
+  const st = w.stage;
+  const rng = createRng(hashSeed('hexa-stage-spawn', st.n));
+  const out: Spawn[] = [{ id: st.boss, level: st.bossLv, c: w.bossAt.c, r: w.bossAt.r, pack: 0, boss: true, elite: st.bossElite }];
+  const used = new Set([key(w.bossAt.c, w.bossAt.r)]);
+  const floors = [...w.cells.values()].filter((x) => x.floor && !x.feature && x.r >= 3 && x.r < w.rows - 5 && w.camps.every((cp) => dist(cp, x) > 3));
+  const centers: Cell[] = [];
+  const packs = Math.round(w.rows / 3);
+  let pack = 1;
+  for (let tries = 0; tries < 300 && centers.length < packs; tries++) {
+    const center = floors[Math.floor(rng() * floors.length)];
+    if (!center || centers.some((x) => dist(x, center) < 4)) continue;
+    centers.push(center);
+    const size = st.n === 1 && center.r < 7 ? 1 + Math.floor(rng() * 2) : 2 + Math.floor(rng() * 3);
+    const spots = [center, ...neighbors(center.c, center.r).map((nb) => w.cells.get(key(nb.c, nb.r))).filter((x): x is Cell => !!x && x.floor && !x.feature)];
+    const prog = center.r / w.rows;
+    for (const s of spots.slice(0, size)) {
+      if (used.has(key(s.c, s.r))) continue;
+      used.add(key(s.c, s.r));
+      out.push({ id: st.monsters[Math.floor(rng() * st.monsters.length)], level: Math.round(st.minLv + (st.maxLv - st.minLv) * prog), c: s.c, r: s.r, pack });
+    }
+    pack++;
+  }
   return out;
 }
+
+// ── 지금 플레이 중인 스테이지 (화면·규칙이 함께 쓴다) ──
+const CACHE = new Map<number, World>();
+export function getStage(n: number): World {
+  if (!CACHE.has(n)) CACHE.set(n, buildStage(n));
+  return CACHE.get(n)!;
+}
+let ACTIVE: World = getStage(1);
+export function activate(n: number): World {
+  ACTIVE = getStage(n);
+  return ACTIVE;
+}
+export const active = () => ACTIVE;
+export const cellAt = (c: number, r: number) => ACTIVE.cells.get(key(c, r));
+export const isFloor = (c: number, r: number) => !!cellAt(c, r)?.floor;
