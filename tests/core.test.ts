@@ -9,6 +9,8 @@ import {
   claimActivity,
   claimIdle,
   enterTile,
+  evolve,
+  respawnMs,
   fatigueWarning,
   levelUp,
   newGame,
@@ -17,20 +19,21 @@ import {
   setFormation,
   startActivity,
   tick,
+  travel,
   type GameState,
 } from '../src/core/game';
 import { grantXp, levelUpCost, xpMultiplier } from '../src/core/growth';
 import { effectivePower, recommendedPower, teamPower } from '../src/core/power';
 import { deserialize, serialize } from '../src/core/save';
 import { BALANCE } from '../src/data/balance';
-import { TILE_BY_ID, TILES } from '../src/data/map';
+import { MAPS, TILE_BY_ID, TILES } from '../src/data/map';
 import { neighborsOf } from '../src/core/game';
 import type { OwnedSpirit } from '../src/core/types';
 
 const T0 = 1_700_000_000_000;
 
 function spirit(defId: string, level: number, rank = 0): OwnedSpirit {
-  return { defId, level, xp: 0, rank, condition: 100, injured: false, injuryProgress: 0 };
+  return { defId, level, xp: 0, rank, stage: 1, copies: 0, condition: 100, injured: false, injuryProgress: 0 };
 }
 
 function stateWith(party: OwnedSpirit[], slots: Record<string, number>): GameState {
@@ -96,11 +99,38 @@ describe('맵 (D9)', () => {
       const t = TILE_BY_ID[q.shift()!];
       for (const n of neighborsOf(t)) if (!seen.has(n.id) && !blocked.has(n.id)) (seen.add(n.id), q.push(n.id));
     }
-    for (const id of ['c1', 'c2', 'b2', 'gate']) expect(seen.has(id)).toBe(false);
+    for (const id of ['c1', 'c2', 'c4', 'gate']) expect(seen.has(id)).toBe(false);
   });
-  it('맵 크기 18~40칸', () => {
-    expect(TILES.length).toBeGreaterThanOrEqual(18);
-    expect(TILES.length).toBeLessThanOrEqual(40);
+  it('P00은 튜토리얼 전용으로 작고, P01은 10배 크기에 스테이지 100개 (D57)', () => {
+    const p00 = MAPS.P00.tiles.length;
+    expect(p00).toBeLessThanOrEqual(15);
+    expect(MAPS.P01.tiles.length).toBeGreaterThanOrEqual(p00 * 10);
+    const stages = MAPS.P01.tiles.filter((t) => t.stage).map((t) => t.stage!).sort((a, b) => a - b);
+    expect(stages).toEqual(Array.from({ length: 100 }, (_, i) => i + 1));
+    expect(TILES.length).toBe(new Set(TILES.map((t) => t.id)).size);
+  });
+  it('P01: 보스(025·050·075·100)를 지나지 않고는 그 너머로 갈 수 없다', () => {
+    const t = (n: number) => MAPS.P01.tiles.find((x) => x.stage === n)!;
+    for (const n of [25, 50, 75, 100]) {
+      expect(t(n).kind).toBe('boss');
+      const seen = new Set(['p01-start']);
+      const q = ['p01-start'];
+      while (q.length) {
+        const cur = TILE_BY_ID[q.shift()!];
+        for (const nb of neighborsOf(cur)) if (!seen.has(nb.id) && nb.id !== t(n).id) (seen.add(nb.id), q.push(nb.id));
+      }
+      expect(seen.has(t(n + 1)?.id ?? 'p01-gate')).toBe(false);
+      for (const x of MAPS.P01.tiles) if (x.stage && x.stage < n) expect(seen.has(x.id)).toBe(true);
+    }
+  });
+  it('P01 첫 칸은 P01-001 하나뿐이고, P01은 튜토리얼(바위엄니 떼)을 끝내야 열린다', () => {
+    const g = newGame(T0);
+    expect(travel(g, 'P01')).toMatch('튜토리얼');
+    g.cleared.push('c4');
+    expect(travel(g, 'P01')).toBeNull();
+    expect([...reachableTiles(g)]).toEqual(['p01-001']);
+    travel(g, 'P00');
+    expect(reachableTiles(g).has('p01-001')).toBe(false);
   });
   it('처음엔 인접 칸만 갈 수 있다', () => {
     const g = newGame(T0);
@@ -188,7 +218,7 @@ describe('골드 레벨업·전투력 (D32)', () => {
     const g = newGame(T0);
     g.spirits = { tideshell: spirit('tideshell', 1), igni: spirit('igni', 1), sylphy: spirit('sylphy', 1) };
     g.formation = { tideshell: 1, igni: 7, sylphy: 6 };
-    for (const enc of ['slimes_b', 'boss_treant', 'mixed_camp', 'boss_giant']) {
+    for (const enc of ['slimes_b', 'boss_treant', 'p01_010', 'p01_025']) {
       const rec = recommendedPower(enc);
       while (effectivePower(g, enc) < rec * 1.2) for (const sp of Object.values(g.spirits)) sp.level++;
       let wins = 0;
@@ -290,7 +320,81 @@ describe('활동·보상 중복 방지 (기획서 13장 8)', () => {
   });
 });
 
+describe('리스폰 (D59)', () => {
+  it('이긴 칸은 바로 다시 싸울 수 없고, 시간이 지나면 다시 열린다', () => {
+    const g = newGame(T0);
+    expect(enterTile(g, 'a1', T0).type).toBe('battle');
+    const again = enterTile(g, 'a1', T0 + 60_000);
+    expect(again.type === 'error' && again.message).toMatch('다시 나타나기까지');
+    expect(enterTile(g, 'a1', T0 + BALANCE.respawn.battleMin * 60_000).type).toBe('battle');
+  });
+  it('중간 보스 이상은 리스폰이 길다', () => {
+    expect(respawnMs(TILE_BY_ID['p01-025'])).toBe(BALANCE.respawn.bossMin * 60_000);
+    expect(respawnMs(TILE_BY_ID['p01-100'])).toBe(BALANCE.respawn.regionBossMin * 60_000);
+    expect(respawnMs(TILE_BY_ID['p01-010'])).toBe(BALANCE.respawn.eliteMin * 60_000);
+    expect(BALANCE.respawn.bossMin).toBeGreaterThanOrEqual(BALANCE.respawn.battleMin * 10);
+  });
+  it('진 칸은 리스폰 없이 바로 재도전할 수 있다', () => {
+    const g = newGame(T0);
+    for (const id of ['a1', 'a2', 'a3', 's1', 's2']) enterTile(g, id, T0);
+    const r = enterTile(g, 'b1', T0);
+    expect(r.type === 'battle' && r.outcome.won).toBe(false);
+    expect(enterTile(g, 'b1', T0 + 1000).type).toBe('battle');
+  });
+});
+
+describe('진화 = 같은 스피릿 중복 소환 (D60)', () => {
+  it('단계 최대 레벨에서 멈추고, 중복 소환 재료로 진화하면 더 오른다', () => {
+    const g = newGame(T0);
+    g.gold = 1e7;
+    const sp = g.spirits.tideshell;
+    sp.level = BALANCE.evolution.levelCap[0];
+    expect(levelUp(g, 'tideshell')).toMatch('진화');
+    expect(evolve(g, 'tideshell')).toMatch('같은 스피릿');
+    g.bossAttempts.b1 = 1;
+    g.summonStones = 100;
+    const r = summon(g, 'water');
+    expect('duplicate' in r && r.duplicate).toBe(true);
+    expect(sp.copies).toBe(1);
+    const before = teamPower(g);
+    expect(evolve(g, 'tideshell')).toBeNull();
+    expect(sp.stage).toBe(2);
+    expect(sp.copies).toBe(0);
+    expect(teamPower(g)).toBeGreaterThan(before);
+    expect(levelUp(g, 'tideshell')).toBeNull();
+  });
+  it('전체 랜덤 소환은 더 싸고, 5속성 스피릿 중 하나가 나온다', () => {
+    const g = newGame(T0);
+    g.bossAttempts.b1 = 1;
+    g.summonStones = 1000;
+    const seen = new Set<string>();
+    for (let i = 0; i < 60; i++) {
+      const r = summon(g, 'any');
+      if ('spiritId' in r) seen.add(r.spiritId);
+    }
+    expect(seen.size).toBe(5);
+    expect(g.summonStones).toBe(1000 - 60 * BALANCE.summon.randomCost);
+    expect(BALANCE.summon.randomCost).toBeLessThan(BALANCE.summon.cost);
+  });
+});
+
 describe('저장', () => {
+  it('v6 저장은 v7로 옮겨진다 (사라진 칸 정리, 레벨에 맞는 진화 단계)', () => {
+    const g: any = newGame(T0);
+    g.version = 6;
+    g.cleared.push('b2', 'c12');
+    delete g.map;
+    delete g.respawnAt;
+    delete g.settings;
+    for (const sp of Object.values(g.spirits) as any[]) (delete sp.stage, delete sp.copies);
+    g.spirits.tideshell.level = 14;
+    const m = deserialize(JSON.stringify(g))!;
+    expect(m.version).toBe(7);
+    expect(m.cleared).not.toContain('b2');
+    expect(m.map).toBe('P00');
+    expect(m.spirits.tideshell.stage).toBe(2);
+    expect(m.spirits.sylphy.stage).toBe(1);
+  });
   it('직렬화 왕복', () => {
     const g = newGame(T0);
     enterTile(g, 'a1', T0);

@@ -2,7 +2,7 @@
 // 시간은 항상 인자로 받는다 (Clock 교체 가능, 시뮬레이션 가능).
 import { BALANCE } from '../data/balance';
 import { ENCOUNTERS, ENEMIES } from '../data/enemies';
-import { TILE_BY_ID, TILES, type TileDef } from '../data/map';
+import { MAPS, TILE_BY_ID, TILES, stageCode, type TileDef } from '../data/map';
 import { DEFAULT_SLOT, SPIRITS } from '../data/spirits';
 import { analyzeDefeat, type DefeatAnalysis } from './analysis';
 import { simulateBattle, type BattleResult, type BattleSetup, type BattleUnitInput } from './battle';
@@ -14,7 +14,7 @@ import { effectivePower, recommendedPower } from './power';
 import { createRng, hashSeed } from './rng';
 import type { ActivityRun, ActivityType, Element, OwnedSpirit } from './types';
 
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 
 /** 튜토리얼 진행 (저장 v2) */
 export interface TutorialState {
@@ -55,6 +55,12 @@ export interface GameState {
   attempts: Record<string, number>; // 칸별 전투 도전 횟수 (튜토리얼 판단용)
   messages: string[];
   tutorial: TutorialState;
+  /** 지금 보고 있는 지도 (P00/P01) */
+  map: string;
+  /** 이긴 칸이 다시 열리는 시각 (D59) */
+  respawnAt: Record<string, number>;
+  summonCounter: number;
+  settings: { skipBattle: boolean };
 }
 
 export function newGame(now: number): GameState {
@@ -80,6 +86,10 @@ export function newGame(now: number): GameState {
     attempts: {},
     messages: [],
     tutorial: newTutorial(),
+    map: 'P00',
+    respawnAt: {},
+    summonCounter: 0,
+    settings: { skipBattle: false },
   };
   // 시작 스피릿: 💧쉘나이트(탱커) + 🌿블루멜(회복) (D47)
   addSpirit(s, 'tideshell');
@@ -92,7 +102,7 @@ function addSpirit(s: GameState, id: string) {
   // 새 동료는 최고 레벨의 80%로 합류 (따라잡기 E의 단순화, D32)
   const top = Math.max(1, ...Object.values(s.spirits).map((x) => x.level));
   const level = Math.max(1, Math.floor(top * BALANCE.growth.joinLevelRatio));
-  s.spirits[id] = { defId: id, level, xp: 0, rank: 0, condition: 100, injured: false, injuryProgress: 0 };
+  s.spirits[id] = { defId: id, level: Math.min(level, BALANCE.evolution.levelCap[0]), xp: 0, rank: 0, stage: 1, copies: 0, condition: 100, injured: false, injuryProgress: 0 };
   if (Object.keys(s.formation).length < s.maxDeploy) {
     const want = DEFAULT_SLOT[id] ?? 4;
     const used = new Set(Object.values(s.formation));
@@ -108,26 +118,60 @@ function msg(s: GameState, text: string) {
 
 // ───────── 맵 ─────────
 
-const COORD_INDEX = new Map(TILES.map((t) => [`${t.q},${t.r}`, t]));
+const COORD_INDEX = new Map(TILES.map((t) => [`${t.map}:${t.q},${t.r}`, t]));
 
 export function neighborsOf(tile: TileDef): TileDef[] {
   return axialNeighbors(tile.q, tile.r)
-    .map(([q, r]) => COORD_INDEX.get(`${q},${r}`))
+    .map(([q, r]) => COORD_INDEX.get(`${tile.map}:${q},${r}`))
     .filter((t): t is TileDef => !!t);
 }
 
-/** 들어갈 수 있는 칸: 클리어한 칸에 인접한 미클리어 칸 (D9) */
+/** 들어갈 수 있는 칸: 지금 지도에서 클리어한 칸에 인접한 미클리어 칸 (D9) */
 export function reachableTiles(s: GameState): Set<string> {
   const out = new Set<string>();
   for (const id of s.cleared) {
-    for (const n of neighborsOf(TILE_BY_ID[id])) if (!s.cleared.includes(n.id)) out.add(n.id);
+    const t = TILE_BY_ID[id];
+    if (!t || t.map !== s.map) continue;
+    for (const n of neighborsOf(t)) if (!s.cleared.includes(n.id)) out.add(n.id);
   }
   return out;
 }
 
+/** P01은 튜토리얼(바위엄니 떼)을 끝내면 열린다 */
+export function mapUnlocked(s: GameState, mapId: string): boolean {
+  if (mapId === 'P00') return true;
+  if (mapId === 'P01') return s.cleared.includes('c4');
+  return false;
+}
+
+/** 지도 이동. 처음 가는 지도면 입구를 연다. */
+export function travel(s: GameState, mapId: string): string | null {
+  const m = MAPS[mapId];
+  if (!m) return '준비 중인 지역이에요.';
+  if (!mapUnlocked(s, mapId)) return '튜토리얼(P00)을 먼저 끝내세요.';
+  s.map = mapId;
+  if (!s.cleared.includes(m.startId)) s.cleared.push(m.startId);
+  if (TILE_BY_ID[s.lastTile]?.map !== mapId) s.lastTile = m.startId;
+  return null;
+}
+
+// ───────── 리스폰 (D59) ─────────
+
+export function respawnMs(tile: TileDef): number {
+  const R = BALANCE.respawn;
+  const enc = tile.encounterId ? ENCOUNTERS[tile.encounterId] : null;
+  const min = enc?.bossKind === 'region' ? R.regionBossMin : enc?.bossKind ? R.bossMin : tile.kind === 'elite' ? R.eliteMin : R.battleMin;
+  return min * 60_000;
+}
+
+/** 다시 싸울 수 있기까지 남은 시간 (0이면 지금 가능) */
+export function respawnLeft(s: GameState, tileId: string, now: number): number {
+  return Math.max(0, (s.respawnAt[tileId] ?? 0) - now);
+}
+
 /** 안개가 걷힌 칸: 클리어 칸 + 그 인접 칸 */
 export function visibleTiles(s: GameState): Set<string> {
-  const out = new Set<string>(s.cleared);
+  const out = new Set<string>(s.cleared.filter((id) => TILE_BY_ID[id]?.map === s.map));
   for (const id of reachableTiles(s)) out.add(id);
   return out;
 }
@@ -206,6 +250,7 @@ export function buildSetup(s: GameState, encounterId: string, seed: number, now:
       slot: s.formation[id],
       level: sp.level,
       rank: sp.rank,
+      stage: sp.stage,
       condition: BALANCE.condition.enabled ? sp.condition : 100,
       injured: BALANCE.condition.enabled ? sp.injured : false,
     };
@@ -225,6 +270,7 @@ export type EnterResult =
   | { type: 'spirit'; spiritId: string }
   | { type: 'resource'; resource: 'stones' | 'gold' | 'summon'; bonus: { gold: number; stones: number; summon: number } }
   | { type: 'gate' }
+  | { type: 'travel'; map: string }
   | { type: 'battle'; outcome: BattleOutcome }
   | { type: 'error'; message: string };
 
@@ -234,8 +280,19 @@ export function enterTile(s: GameState, tileId: string, now: number): EnterResul
   if (!tile) return { type: 'error', message: '없는 칸' };
   const cleared = s.cleared.includes(tileId);
   if (!cleared && !reachableTiles(s).has(tileId)) return { type: 'error', message: '아직 갈 수 없는 칸입니다.' };
-  if (tile.kind === 'gate') return { type: 'gate' };
-  if (tile.encounterId) return fight(s, tile, now);
+  if (tile.kind === 'gate') {
+    const next = tile.map === 'P00' ? 'P01' : null;
+    if (!next || !MAPS[next]) return { type: 'gate' };
+    const err = travel(s, next);
+    if (err) return { type: 'error', message: err };
+    msg(s, `${next} ${MAPS[next].name}에 들어섰다!`);
+    return { type: 'travel', map: next };
+  }
+  if (tile.encounterId) {
+    const left = cleared ? respawnLeft(s, tileId, now) : 0;
+    if (left > 0) return { type: 'error', message: `몬스터가 다시 나타나기까지 ${Math.ceil(left / 60_000)}분 남았어요.` };
+    return fight(s, tile, now);
+  }
   if (cleared) return { type: 'error', message: '이미 탐험한 칸입니다.' };
 
   s.cleared.push(tileId);
@@ -247,8 +304,14 @@ export function enterTile(s: GameState, tileId: string, now: number): EnterResul
   }
   if (tile.kind === 'resource' && tile.resource) {
     s.nodes.push(tileId);
+    // 본편 보물은 튜토리얼보다 작게: 위로 갈수록 조금씩 커진다 (D62)
+    const main = tile.map !== 'P00';
     const bonus =
-      tile.resource === 'stones' ? { gold: 0, stones: 10, summon: 0 } : tile.resource === 'summon' ? { gold: 0, stones: 0, summon: BALANCE.summon.cost } : { gold: 250, stones: 0, summon: 0 };
+      tile.resource === 'stones'
+        ? { gold: 0, stones: main ? 3 + Math.floor(tile.row / 20) : 10, summon: 0 }
+        : tile.resource === 'summon'
+          ? { gold: 0, stones: 0, summon: BALANCE.summon.cost }
+          : { gold: main ? 60 + tile.row * 6 : 250, stones: 0, summon: 0 };
     s.gold += bonus.gold;
     s.stones += bonus.stones;
     s.summonStones += bonus.summon;
@@ -325,23 +388,25 @@ function fight(s: GameState, tile: TileDef, now: number): EnterResult {
       newInjuries.push(id);
     }
   }
+  if (won) s.respawnAt[tile.id] = now + respawnMs(tile);
 
   const unlockedText: string[] = [];
   if (firstClear) {
     s.cleared.push(tile.id);
-    if (enc.bossKind === 'normal') {
+    if (tile.id === 'b1') {
       s.unlocked.training = true;
       s.unlocked.gathering = true;
       unlockedText.push('고목 골렘 너머로 길이 여러 갈래 열렸어요!');
     }
-    if (enc.bossKind === 'region') {
-      s.maxDeploy = Math.min(5, s.maxDeploy + 1);
-      unlockedText.push(`출전 인원이 ${s.maxDeploy}명으로 늘었습니다.`);
-      unlockedText.push('이끼 숲을 돌파했습니다! 다음 지역은 준비 중입니다 (P0 끝).');
+    if (enc.unlockDeploy && enc.unlockDeploy > s.maxDeploy) {
+      s.maxDeploy = enc.unlockDeploy;
+      unlockedText.push(`출전 인원이 ${s.maxDeploy}명으로 늘었습니다!`);
     }
+    if (tile.id === 'c4') unlockedText.push('튜토리얼 끝! 지도 맨 위 길로 P01에 갈 수 있어요.');
+    if (enc.bossKind === 'region') unlockedText.push(`${MAPS[tile.map].code} ${MAPS[tile.map].name}을(를) 돌파했습니다! 다음 지역은 준비 중이에요.`);
   }
   s.lastTile = tile.id;
-  msg(s, `${enc.name}: ${won ? '승리' : '패배'}`);
+  msg(s, `${stageCode(tile) ?? enc.name}: ${won ? '승리' : '패배'}`);
 
   const analysis = won ? null : analyzeDefeat(s, setup, result, now);
   return {
@@ -361,10 +426,10 @@ export function fatigueWarning(s: GameState, now: number): { names: string[]; wo
 }
 
 /** 골드 벌기 좋은 칸: 클리어한 일반 전투 칸 중 '쉬움'인 가장 높은 칸 (없으면 가장 쉬운 칸) */
-export function bestFarmTile(s: GameState): string | null {
+export function bestFarmTile(s: GameState, now: number): string | null {
   const farm = s.cleared
     .map((id) => TILE_BY_ID[id])
-    .filter((t) => t.kind === 'battle' && t.encounterId)
+    .filter((t) => t && t.map === s.map && t.kind === 'battle' && t.encounterId && respawnLeft(s, t.id, now) === 0)
     .map((t) => ({ t, rec: recommendedPower(t.encounterId!) }));
   if (!farm.length) return null;
   const ok = farm.filter((f) => effectivePower(s, f.t.encounterId!) >= f.rec * BALANCE.power.easyAt).sort((a, b) => b.rec - a.rec);
@@ -378,16 +443,16 @@ export function reachableSpiritTile(s: GameState): string | null {
 
 /** 지금 골드로 할 수 있는 레벨업 횟수 (가장 싼 것부터) */
 export function affordableLevelUps(s: GameState): number {
-  const levels = Object.keys(s.formation).map((id) => s.spirits[id].level);
+  const levels = Object.keys(s.formation).map((id) => ({ lv: s.spirits[id].level, cap: levelCap(s.spirits[id]) }));
   let gold = s.gold;
   let n = 0;
   for (;;) {
-    levels.sort((a, b) => a - b);
-    if (levels[0] === undefined || levels[0] >= BALANCE.growth.maxLevel) break;
-    const c = levelUpCost(levels[0]);
+    const open = levels.filter((x) => x.lv < x.cap).sort((a, b) => a.lv - b.lv);
+    if (!open.length) break;
+    const c = levelUpCost(open[0].lv);
     if (gold < c) break;
     gold -= c;
-    levels[0]++;
+    open[0].lv++;
     n++;
     if (n > 200) break;
   }
@@ -396,11 +461,42 @@ export function affordableLevelUps(s: GameState): number {
 
 // ───────── 성장 ─────────
 
+/** 진화 단계별 최대 레벨 (D60) */
+export function levelCap(sp: OwnedSpirit): number {
+  return Math.min(BALANCE.growth.maxLevel, BALANCE.evolution.levelCap[sp.stage - 1]);
+}
+
+/** 다음 진화 조건. 최종 단계면 null */
+export function evolveNeed(sp: OwnedSpirit): { level: number; copies: number } | null {
+  if (sp.stage >= 3) return null;
+  return { level: BALANCE.evolution.levelCap[sp.stage - 1], copies: BALANCE.evolution.copies[sp.stage - 1] };
+}
+
+export function canEvolve(s: GameState, spiritId: string): boolean {
+  const sp = s.spirits[spiritId];
+  const need = sp && evolveNeed(sp);
+  return !!need && sp.level >= need.level && sp.copies >= need.copies;
+}
+
+/** 진화: 최대 레벨 + 같은 스피릿 중복 소환 N개 (D60) */
+export function evolve(s: GameState, spiritId: string): string | null {
+  const sp = s.spirits[spiritId];
+  const need = sp && evolveNeed(sp);
+  if (!sp || !need) return '더 이상 진화할 수 없어요.';
+  if (sp.level < need.level) return `Lv.${need.level}이 되어야 진화할 수 있어요.`;
+  if (sp.copies < need.copies) return `같은 스피릿이 ${need.copies}번 더 소환돼야 해요 (지금 ${sp.copies}).`;
+  sp.copies -= need.copies;
+  sp.stage = (sp.stage + 1) as 2 | 3;
+  msg(s, `${SPIRITS[spiritId].stages?.[sp.stage - 1] ?? SPIRITS[spiritId].name}(으)로 진화!`);
+  return null;
+}
+
 /** 골드로 레벨업 (D32) */
 export function levelUp(s: GameState, spiritId: string): string | null {
   const sp = s.spirits[spiritId];
   if (!sp) return '보유하지 않은 스피릿';
   if (sp.level >= BALANCE.growth.maxLevel) return '최대 레벨입니다.';
+  if (sp.level >= levelCap(sp)) return `진화해야 더 올릴 수 있어요 (같은 스피릿 ${evolveNeed(sp)?.copies ?? 0}마리 필요).`;
   const cost = levelUpCost(sp.level);
   if (s.gold < cost) return `골드가 부족합니다 (${cost} 필요).`;
   s.gold -= cost;
@@ -565,17 +661,27 @@ export const TUTORIAL_PATH = ['a1', 'a2', 'a3', 's1', 's2', 'b1'];
 
 /** 목표 안내가 가리키는 칸 (지도에 ▼ 표시) */
 export function objectiveTile(s: GameState): string | null {
+  if (s.map !== 'P00') return mainObjectiveTile(s);
   const next = TUTORIAL_PATH.find((id) => !s.cleared.includes(id));
   if (next) return next;
   const t2 = tutorialPhase2Target(s);
   if (t2 !== undefined) return t2;
-  if (s.cleared.includes('b2')) return null;
-  const reach = reachableTiles(s);
-  if (reach.has('b2')) return 'b2';
-  // 위쪽(지역 보스 방향)의 미탐험 칸 중 가장 높은 칸
-  const cand = [...reach].map((id) => TILE_BY_ID[id]).filter((t) => t.kind !== 'gate');
-  cand.sort((a, b) => b.row - a.row || (a.kind === 'battle' ? -1 : 1));
-  return cand[0]?.id ?? null;
+  return s.cleared.includes('c4') ? 'gate' : 'c4';
+}
+
+/** 본편 지도: 갈 수 있는 칸 중 번호가 가장 작은 스테이지 */
+function mainObjectiveTile(s: GameState): string | null {
+  const reach = [...reachableTiles(s)].map((id) => TILE_BY_ID[id]).filter((t) => t.stage);
+  reach.sort((a, b) => a.stage! - b.stage!);
+  if (reach[0]) return reach[0].id;
+  const gate = MAPS[s.map].tiles.find((t) => t.kind === 'gate');
+  return gate && reachableTiles(s).has(gate.id) ? gate.id : null;
+}
+
+/** 본편 진행도: 이긴 스테이지 수 */
+export function stageProgress(s: GameState, mapId: string): { cleared: number; total: number } {
+  const st = MAPS[mapId].tiles.filter((t) => t.stage);
+  return { cleared: st.filter((t) => s.cleared.includes(t.id)).length, total: st.length };
 }
 
 /**
@@ -604,25 +710,39 @@ export function summonUnlocked(s: GameState): boolean {
   return upgradeUnlocked(s);
 }
 
-/** 속성별 소환 제단: 그 속성의 스피릿 1종이 나온다 (예측 가능한 소환, 가챠 아님) */
-export const SUMMON_POOL: Record<Element, string | null> = {
-  water: 'tideshell',
-  fire: 'igni',
-  forest: 'sylphy',
-  electric: 'galewing',
-  earth: null, // 준비 중
+/** 속성별 소환 풀: 그 속성의 스피릿 중 하나가 나온다. 등급은 없다 (D60) */
+export const SUMMON_POOL: Record<Element, string[]> = {
+  water: ['tideshell'],
+  fire: ['igni'],
+  forest: ['sylphy'],
+  electric: ['galewing'],
+  earth: ['rocky'],
 };
 
-export function summon(s: GameState, element: Element): { spiritId: string } | { error: string } {
+export const ALL_SUMMONABLE = Object.values(SUMMON_POOL).flat();
+
+export type SummonMode = Element | 'any';
+
+export function summonCost(mode: SummonMode): number {
+  return mode === 'any' ? BALANCE.summon.randomCost : BALANCE.summon.cost;
+}
+
+/** 소환: 속성 소환(그 속성 중 하나) 또는 전체 랜덤. 이미 있는 스피릿이 나오면 진화 재료(copies +1) */
+export function summon(s: GameState, mode: SummonMode): { spiritId: string; duplicate: boolean } | { error: string } {
   if (!summonUnlocked(s)) return { error: '아직 열리지 않았어요' };
-  const id = SUMMON_POOL[element];
-  if (!id) return { error: '이 제단은 준비 중이에요' };
-  if (s.spirits[id]) return { error: '이미 함께하는 스피릿이에요' };
-  if (s.summonStones < BALANCE.summon.cost) return { error: `🔮소환석이 ${BALANCE.summon.cost}개 필요해요` };
-  s.summonStones -= BALANCE.summon.cost;
-  addSpirit(s, id);
-  msg(s, `소환: ${SPIRITS[id].name}`);
-  return { spiritId: id };
+  const pool = mode === 'any' ? ALL_SUMMONABLE : SUMMON_POOL[mode];
+  if (!pool.length) return { error: '이 제단은 준비 중이에요' };
+  const cost = summonCost(mode);
+  if (s.summonStones < cost) return { error: `🔮소환석이 ${cost}개 필요해요` };
+  s.summonStones -= cost;
+  s.summonCounter++;
+  const rng = createRng(hashSeed('summon', s.createdAt, s.summonCounter, mode));
+  const id = pool[Math.floor(rng() * pool.length)];
+  const duplicate = !!s.spirits[id];
+  if (duplicate) s.spirits[id].copies++;
+  else addSpirit(s, id);
+  msg(s, `소환: ${SPIRITS[id].name}${duplicate ? ' (중복 → 진화 재료 +1)' : ''}`);
+  return { spiritId: id, duplicate };
 }
 
 /** 자동 사냥(방치 보상)은 첫 보스 돌파 후 열린다 */
@@ -631,7 +751,7 @@ export function idleUnlocked(s: GameState): boolean {
 }
 
 export function currentObjective(s: GameState): string {
-  const next = TUTORIAL_PATH.find((id) => !s.cleared.includes(id));
+  const next = s.map === 'P00' ? TUTORIAL_PATH.find((id) => !s.cleared.includes(id)) : undefined;
   const texts: Record<string, string> = {
     a1: '위쪽 칸의 잎새 강아지를 물리치세요',
     a2: '불씨 둥지에서 새 동료를 만나세요',
@@ -641,7 +761,7 @@ export function currentObjective(s: GameState): string {
     b1: !s.bossAttempts['b1'] ? '숲을 지키는 고목 골렘에 도전하세요' : !s.spirits.igni ? '✨소환에서 🔥불 스피릿을 불러 골렘(🌿)을 공략!' : '🔥엠버윙과 함께 고목 골렘에 재도전!',
   };
   if (next) return texts[next];
-  if (!s.tutorial.done && s.cleared.includes('b1')) {
+  if (s.map === 'P00' && !s.tutorial.done && s.cleared.includes('b1')) {
     const c = (id: string) => s.cleared.includes(id);
     if (!c('c1') && !s.attempts['c1']) return '💧물안개 여울에 도전하세요';
     if (!c('c1') && !s.spirits.galewing) return s.summonStones >= BALANCE.summon.cost ? '✨소환에서 🌪️바람 스피릿을 부르세요' : '💧물에 강한 🌪️바람! 바람의 결정을 찾으세요';
@@ -649,6 +769,10 @@ export function currentObjective(s: GameState): string {
     if (!c('c4') && !s.attempts['c4']) return '⛰️바위엄니 떼에 도전하세요';
     if (!c('c4')) return '🐾스피릿에서 레벨업해 전투력을 올리고 재도전!';
   }
-  if (!s.cleared.includes('b2')) return '길을 골라 숲 끝의 테라스톤을 쓰러뜨리세요';
-  return '이끼 숲 돌파! 다음 지역은 준비 중';
+  if (s.map === 'P00') return s.cleared.includes('c4') ? '튜토리얼 끝! 맨 위 길로 P01에 가세요' : '바위엄니 떼를 물리치세요';
+  const p = stageProgress(s, s.map);
+  const obj = objectiveTile(s);
+  const code = obj ? stageCode(TILE_BY_ID[obj]) : null;
+  if (p.cleared >= p.total) return `${s.map} 돌파! 다음 지역은 준비 중 (${p.cleared}/${p.total})`;
+  return `${code ? `${code} 클리어하기` : '길을 찾아 위로'} · ${p.cleared}/${p.total}`;
 }

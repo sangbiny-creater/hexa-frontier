@@ -3,33 +3,35 @@ import type { ActionId } from '../core/analysis';
 import { HOUR } from '../core/clock';
 import {
   affordableLevelUps,
-  availableTeam,
   currentObjective,
   enterTile,
+  evolveNeed,
   idlePreview,
   idleUnlocked,
+  mapUnlocked,
   objectiveTile,
   reachableTiles,
-  setFormation,
+  stageProgress,
   summon,
   summonUnlocked,
+  travel,
   upgradeUnlocked,
   type BattleOutcome,
   type GameState,
 } from '../core/game';
-import { attackMatchup, difficulty, DIFFICULTY_LABEL, effectivePower, recommendedPower, suggestTeam, teamPower } from '../core/power';
+import { recommendedPower, teamPower } from '../core/power';
+import type { Element } from '../core/types';
 import { BALANCE } from '../data/balance';
-import { ENCOUNTERS, ENEMIES } from '../data/enemies';
-import { REGION_NAME, TILE_BY_ID } from '../data/map';
+import { MAP_ORDER, MAPS, TILE_BY_ID } from '../data/map';
 import { SPIRITS } from '../data/spirits';
-import { asset, ELEMENT_ICON, ElementChart, ElementTag, enemyStage, GOLD, portrait, POWER, RoleTag, spiritStage, STONE } from './art';
-import { ELEMENT_LABEL } from '../core/board';
-import { DEFAULT_SLOT } from '../data/spirits';
+import { asset, ELEMENT_ICON, ElementChart, ElementTag, GOLD, portrait, POWER, RoleTag, STONE } from './art';
+import { elementMultiplier, ELEMENT_LABEL } from '../core/board';
+import { BattlePrep } from './BattlePrep';
 import { BattleView } from './BattleView';
 import { CampView } from './CampView';
 import { SpiritView } from './SpiritView';
 import { SummonView } from './SummonView';
-import { DIFF_COLOR, MapView } from './MapView';
+import { MapView } from './MapView';
 import { useGame } from './store';
 import { computeGuide, GuideBar, Intro, type Tab } from './tutorial';
 
@@ -45,13 +47,15 @@ export function App() {
   const [help, setHelp] = useState(false);
   const [focusLevel, setFocusLevel] = useState(false);
   const [elemOpen, setElemOpen] = useState(false);
+  const [elemFocus, setElemFocus] = useState<Element | null>(null);
+  const [dup, setDup] = useState(false);
 
   const tut = state.tutorial;
   const tutActive = tut.introSeen && !tut.done;
   const elemIntroDue = tut.introSeen && !tut.done && !tut.elementIntro && !!state.bossAttempts['b1'] && !battle && !joined;
   const windIntroDue = !elemIntroDue && tut.introSeen && !tut.done && !tut.windIntro && !!state.attempts['c1'] && !state.cleared.includes('c1') && !battle && !joined;
   const [summoned, setSummoned] = useState(false);
-  const guide = battle || joined || evolve || elemOpen || elemIntroDue || windIntroDue ? null : computeGuide(state, { selected, tab });
+  const guide = battle || joined || evolve || elemOpen || elemFocus || elemIntroDue || windIntroDue ? null : computeGuide(state, { selected, tab });
   const objTile = objectiveTile(state);
   const mapTarget = guide ? (guide.target?.kind === 'tile' ? guide.target.id : null) : objTile;
   const markTut = (f: (t: GameState['tutorial']) => void) => act((s) => f(s.tutorial));
@@ -86,6 +90,7 @@ export function App() {
     else if (r.type === 'spirit') setJoined(r.spiritId);
     else if (r.type === 'resource') toast(r.bonus.summon ? `🔮 소환석 +${r.bonus.summon}! 소환에 쓸 수 있어요` : `보물 상자! ${r.bonus.gold ? `${GOLD} +${r.bonus.gold}` : ''}${r.bonus.stones ? `${STONE} +${r.bonus.stones}` : ''}`);
     else if (r.type === 'gate') toast('다음 지역은 준비 중이에요.');
+    else if (r.type === 'travel') toast(`${r.map} ${MAPS[r.map].name}에 들어섰어요!`);
     else if (r.type === 'error') toast(r.message);
   };
 
@@ -186,8 +191,28 @@ export function App() {
       <main className="content">
         {tab === 'map' && (
           <>
-            <div className="region">{REGION_NAME}</div>
-            <MapView state={state} selected={selected} target={mapTarget} onTap={tapTile} />
+            <div className="region">
+              <b>{state.map}</b> {MAPS[state.map].name}
+              {state.map !== 'P00' && (() => {
+                const p = stageProgress(state, state.map);
+                return <span className="region-prog"> {p.cleared}/{p.total}</span>;
+              })()}
+              {MAP_ORDER.filter((m) => m !== state.map && mapUnlocked(state, m)).map((m) => (
+                <button
+                  key={m}
+                  className="region-go"
+                  onClick={() => {
+                    if (tutActive) return toast('튜토리얼을 먼저 끝내 줘!');
+                    const err = act((s) => travel(s, m));
+                    if (err) return toast(err);
+                    setSelected(null);
+                  }}
+                >
+                  {m} ▸
+                </button>
+              ))}
+            </div>
+            <MapView key={state.map} state={state} now={now} selected={selected} target={mapTarget} onTap={tapTile} />
           </>
         )}
         {tab === 'spirit' && (
@@ -196,7 +221,7 @@ export function App() {
             act={act}
             toast={toast}
             focusLevel={focusLevel || guide?.target?.kind === 'levelUp'}
-            goal={!state.cleared.includes('b1') ? recommendedPower('boss_treant') : !state.cleared.includes('b2') ? recommendedPower('boss_giant') : null}
+            goal={nextBossGoal(state)}
             onLeveled={() => {
               setFocusLevel(false);
               if (tutActive && !tut.levelTip) markTut((t) => (t.levelTip = true));
@@ -208,10 +233,11 @@ export function App() {
           <SummonView
             state={state}
             focus={guide?.target?.kind === 'altar' ? guide.target.element : null}
-            onSummon={(el) => {
-              const r = act((s) => summon(s, el));
+            onSummon={(mode) => {
+              const r = act((s) => summon(s, mode));
               if ('error' in r) return toast(r.error);
               setSummoned(true);
+              setDup(r.duplicate);
               setJoined(r.spiritId);
             }}
           />
@@ -239,34 +265,30 @@ export function App() {
         </button>
       </nav>
 
-      {tile && tab === 'map' && (
-        <TileSheet
+      {tile && tab === 'map' && tile.encounterId && (
+        <BattlePrep
           state={state}
-          id={tile.id}
+          tileId={tile.id}
           now={now}
           power={power}
+          guideText={guide && (guide.target?.kind === 'tileAction' || guide.target?.kind === 'suggest') ? guide.text : null}
           focus={guide?.target?.kind === 'tileAction'}
           focusSuggest={guide?.target?.kind === 'suggest'}
+          act={act}
+          toast={toast}
           onGo={() => enter(tile.id)}
           onClose={() => setSelected(null)}
-          onToggle={(sid) => {
-            const deployed = state.formation[sid] !== undefined;
-            if (!deployed && Object.keys(state.formation).length >= state.maxDeploy) return toast(`출전은 ${state.maxDeploy}명까지! 먼저 다른 스피릿을 빼세요`);
-            if (deployed && Object.keys(state.formation).length <= 1) return toast('최소 1명은 출전해야 해요');
-            act((s) => setFormation(s, sid, deployed ? null : DEFAULT_SLOT[sid]));
-          }}
-          onSuggest={(ids) =>
-            act((s) => {
-              for (const k of Object.keys(s.formation)) setFormation(s, k, null);
-              for (const k of ids) setFormation(s, k, DEFAULT_SLOT[k]);
-            })
-          }
+          onElement={(el) => setElemFocus(el)}
         />
+      )}
+      {tile && tab === 'map' && !tile.encounterId && (
+        <TileSheet state={state} id={tile.id} focus={guide?.target?.kind === 'tileAction'} onGo={() => enter(tile.id)} onClose={() => setSelected(null)} />
       )}
 
       {battle && (
         <BattleView
           outcome={battle}
+          instant={state.settings.skipBattle}
           tips={tutActive ? { battle: !tut.battleTip, win: !tut.winTip, defeat: !tut.defeatTip, note: battleNote(battle.tileId) } : null}
           onClose={() => {
             if (tutActive) markTut((t) => ((t.battleTip = true), battle.won ? (t.winTip = true) : (t.defeatTip = true)));
@@ -280,11 +302,22 @@ export function App() {
       )}
 
       {joined && (
-        <div className="modal" onClick={() => (setJoined(null), setSummoned(false))}>
+        <div className="modal" onClick={() => (setJoined(null), setSummoned(false), setDup(false))}>
           <div className="reveal">
-            <div className="reveal-tag">{summoned ? '✨ 소환 성공!' : '새로운 동료!'}</div>
-            <img className="reveal-art" src={portrait(SPIRITS[joined], 1)} alt="" />
-            <h2>{SPIRITS[joined].stages?.[0] ?? SPIRITS[joined].name}</h2>
+            <div className="reveal-tag">{dup ? '✨ 같은 스피릿!' : summoned ? '✨ 소환 성공!' : '새로운 동료!'}</div>
+            <img className="reveal-art" src={portrait(SPIRITS[joined], state.spirits[joined]?.stage ?? 1)} alt="" />
+            <h2>{SPIRITS[joined].stages?.[(state.spirits[joined]?.stage ?? 1) - 1] ?? SPIRITS[joined].name}</h2>
+            {dup && (() => {
+              const sp = state.spirits[joined];
+              const need = evolveNeed(sp);
+              return (
+                <div className="dup-box">
+                  진화 재료 +1 → <b>{sp.copies}</b>
+                  {need ? ` / ${need.copies}` : ''}
+                  <div className="small">{need ? (sp.copies >= need.copies ? (sp.level >= need.level ? '지금 진화할 수 있어요! 🐾스피릿에서 진화' : `Lv.${need.level}이 되면 진화할 수 있어요`) : `같은 스피릿이 ${need.copies - sp.copies}번 더 나오면 진화 재료가 다 모여요`) : '최종 진화 완료!'}</div>
+                </div>
+              );
+            })()}
             <div className="muted">{SPIRITS[joined].title}</div>
             <div className="tags">
               <ElementTag element={SPIRITS[joined].element} /> <RoleTag role={SPIRITS[joined].role} />
@@ -292,10 +325,10 @@ export function App() {
             <div className="reveal-power">
               팀 전투력 {POWER} <b>{power}</b>
             </div>
-            {state.formation[joined] === undefined && (
+            {!dup && state.formation[joined] === undefined && (
               <div className="small">출전은 {state.maxDeploy}명까지! 칸을 누르면 상성에 맞게 출전 동료를 고를 수 있어요.</div>
             )}
-            <button className="cta">함께 가자!</button>
+            <button className="cta">{dup ? '좋아!' : '함께 가자!'}</button>
           </div>
         </div>
       )}
@@ -334,11 +367,12 @@ export function App() {
         </div>
       )}
 
-      {(elemOpen || elemIntroDue) && (
-        <div className="modal" onClick={() => (elemIntroDue ? null : setElemOpen(false))}>
+      {(elemOpen || elemFocus || elemIntroDue) && (
+        <div className="modal" onClick={() => (elemIntroDue ? null : (setElemOpen(false), setElemFocus(null)))}>
           <div className="reveal elem-modal" onClick={(e) => e.stopPropagation()}>
             <div className="reveal-tag">속성 상성</div>
-            <ElementChart highlight={elemIntroDue ? ['fire', 'forest'] : undefined} />
+            <ElementChart highlight={elemIntroDue ? ['fire', 'forest'] : undefined} focus={elemIntroDue ? undefined : elemFocus ?? undefined} />
+            {elemFocus && !elemIntroDue && <FocusLines el={elemFocus} />}
             {elemIntroDue && <p className="elem-rule"><b>왜 졌을까?</b> 골렘은 🌿숲. 우리 팀 💧물·🌿숲은 숲을 상대로 <b>보통</b>이라 피해가 약했어.</p>}
             <p className="elem-rule">
               <b>화살표 방향으로 강해요.</b> 유리한 상대에게는 피해 <b className="adv">×1.3</b>, 불리한 상대에게는 <b className="dis">×0.75</b>.
@@ -357,6 +391,7 @@ export function App() {
               onClick={() => {
                 if (elemIntroDue) markTut((t) => (t.elementIntro = true));
                 setElemOpen(false);
+                setElemFocus(null);
               }}
             >
               알겠어!
@@ -396,44 +431,36 @@ function battleNote(tileId: string): string | undefined {
   return undefined;
 }
 
-const MATCH_LABEL = { adv: '▲ 유리', dis: '▼ 불리', even: '= 보통' } as const;
+const ELEMENTS: Element[] = ['water', 'fire', 'forest', 'earth', 'electric'];
 
-function TileSheet({
-  state,
-  id,
-  now,
-  power,
-  focus,
-  focusSuggest,
-  onGo,
-  onClose,
-  onToggle,
-  onSuggest,
-}: {
-  state: GameState;
-  id: string;
-  now: number;
-  power: number;
-  focus: boolean;
-  focusSuggest?: boolean;
-  onGo: () => void;
-  onClose: () => void;
-  onToggle: (spiritId: string) => void;
-  onSuggest: (ids: string[]) => void;
-}) {
+/** 적 속성 하나에 대한 상성 요약 (전투 시작 화면에서 길게 눌렀을 때) */
+function FocusLines({ el }: { el: Element }) {
+  const strongVs = ELEMENTS.filter((e) => elementMultiplier(e, el) > 1);
+  const weakVs = ELEMENTS.filter((e) => elementMultiplier(e, el) < 1);
+  const name = (e: Element) => `${ELEMENT_ICON[e]}${ELEMENT_LABEL[e]}`;
+  return (
+    <div className="focus-lines">
+      <div>
+        {name(el)} 적에게 <b className="adv">강한</b> 동료: <b>{strongVs.map(name).join(' ')}</b> (주는 피해 ×1.3)
+      </div>
+      <div>
+        {name(el)} 적에게 <b className="dis">약한</b> 동료: <b>{weakVs.map(name).join(' ')}</b> (주는 피해 ×0.75)
+      </div>
+    </div>
+  );
+}
+
+/** 스피릿 탭 목표: 지금 지도의 다음 보스 권장 전투력 */
+function nextBossGoal(s: GameState): number | null {
+  const boss = MAPS[s.map].tiles.find((t) => t.kind === 'boss' && !s.cleared.includes(t.id));
+  return boss?.encounterId ? recommendedPower(boss.encounterId) : null;
+}
+
+function TileSheet({ state, id, focus, onGo, onClose }: { state: GameState; id: string; focus: boolean; onGo: () => void; onClose: () => void }) {
   const t = TILE_BY_ID[id];
   const cleared = state.cleared.includes(id);
-  const reachable = reachableTiles(state).has(id);
-  const canGo = reachable || (cleared && !!t.encounterId);
-  const enc = t.encounterId ? ENCOUNTERS[t.encounterId] : null;
-  const rec = enc ? recommendedPower(enc.id) : 0;
-  const eff = enc ? effectivePower(state, enc.id) : power;
-  const diff = rec ? difficulty(eff, rec) : null;
-  const gold = enc
-    ? enc.enemies.reduce((a, e) => a + Math.round(ENEMIES[e.enemyId].gold * (1 + BALANCE.enemy.goldPerLevel * (e.level - 1))), 0) + (cleared ? 0 : enc.firstClear.gold)
-    : 0;
-  const team = availableTeam(state, now);
-  const label = enc ? (cleared ? '다시 싸우기 (골드 벌기)' : t.kind === 'boss' ? '보스 도전' : '전투 시작') : t.kind === 'resource' ? (t.resource === 'summon' ? '결정 줍기' : '상자 열기') : '확인';
+  const canGo = reachableTiles(state).has(id) || (t.kind === 'gate' && cleared);
+  const label = t.kind === 'resource' ? (t.resource === 'summon' ? '결정 줍기' : '상자 열기') : t.kind === 'gate' ? '다음 지역으로' : '확인';
 
   return (
     <div className="sheet-wrap" onClick={onClose}>
@@ -441,114 +468,26 @@ function TileSheet({
         <div className="sheet-handle" />
         <div className="sheet-head">
           <b>{t.name}</b>
-          {t.kind === 'elite' && <span className="elite-badge">정예</span>}
-          {t.kind === 'boss' && <span className="boss-badge">BOSS</span>}
           <button className="icon-btn" onClick={onClose}>
             ✕
           </button>
         </div>
-        {enc && (
-          <>
-            <div className="enemy-row">
-              {enc.enemies.map((e, i) => {
-                const d = ENEMIES[e.enemyId];
-                return (
-                  <div key={i} className={`enemy-card ${d.isBoss ? 'boss' : ''}`}>
-                    <img src={portrait(d, enemyStage(d, e.level))} alt="" />
-                    <div className="ec-name">{d.name}</div>
-                    <div className="ec-sub">
-                      Lv.{e.level} <ElementTag element={d.element} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="power-compare">
-              <div className="pc-row">
-                <span>내 전투력 {power} → 상성 보정</span>
-                <b>
-                  {POWER} {eff}
-                </b>
-              </div>
-              <div className="pc-track">
-                <div className="pc-me" style={{ width: `${Math.min(100, (eff / (rec * 1.4)) * 100)}%`, background: diff ? DIFF_COLOR[diff] : '#aaa' }} />
-                <div className="pc-rec" style={{ left: `${(1 / 1.4) * 100}%` }} />
-              </div>
-              <div className="pc-row">
-                <span>권장 전투력 {rec}</span>
-                {diff && (
-                  <b style={{ color: DIFF_COLOR[diff] }}>
-                    {DIFFICULTY_LABEL[diff]} {diff === 'hard' ? '— 질 수 있어요' : diff === 'fair' ? '— 해볼 만해요' : '— 넉넉히 이겨요'}
-                  </b>
-                )}
-              </div>
-            </div>
-            <div className="reward-line">
-              승리 보상 {GOLD} 약 {gold}
-              {!cleared && (enc.firstClear.stones > 0 ? ` · ${STONE} ${enc.firstClear.stones}` : '')}
-              {!cleared && <small> (첫 승리 보너스 포함)</small>}
-            </div>
-            <div className="team-box">
-              <div className="team-head">
-                <b>
-                  출전 {team.length}/{state.maxDeploy}
-                </b>
-                <span className="muted small">
-                  적 속성: {[...new Set(enc.enemies.map((e) => ENEMIES[e.enemyId].element))].map((el) => `${ELEMENT_ICON[el]}${ELEMENT_LABEL[el]}`).join(' ')}
-                </span>
-              </div>
-              <div className="team-row">
-                {Object.keys(state.spirits).map((sid) => {
-                  const d = SPIRITS[sid];
-                  const m = attackMatchup(sid, enc.id);
-                  const on = state.formation[sid] !== undefined;
-                  const multi = Object.keys(state.spirits).length > state.maxDeploy;
-                  return (
-                    <button key={sid} className={`member ${on ? 'on' : ''} ${m}`} onClick={() => (multi ? onToggle(sid) : null)}>
-                      <img src={portrait(d, spiritStage(state.spirits[sid].level))} alt="" />
-                      <span className="m-el">{ELEMENT_ICON[d.element]}</span>
-                      <span className={`m-match ${m}`}>{MATCH_LABEL[m]}</span>
-                      {multi && <span className="m-on">{on ? '출전' : '대기'}</span>}
-                    </button>
-                  );
-                })}
-              </div>
-              {Object.keys(state.spirits).length > state.maxDeploy && (() => {
-                const best = suggestTeam(Object.keys(state.spirits), enc.id, state.maxDeploy);
-                const same = best.every((b) => state.formation[b] !== undefined);
-                return same ? (
-                  <div className="muted small">상성이 좋은 동료로 출전 중이에요.</div>
-                ) : (
-                  <button className={`suggest ${focusSuggest ? 'pulse' : ''}`} onClick={() => onSuggest(best)}>
-                    ✨ 상성 추천 편성으로 바꾸기
-                  </button>
-                );
-              })()}
-            </div>
-          </>
-        )}
-        {t.kind === 'spirit' && t.spiritId && !cleared && (
-          <div className="spirit-preview">
-            <img src={portrait(SPIRITS[t.spiritId], 1)} alt="" />
-            <div>
-              <b>{SPIRITS[t.spiritId].stages?.[0]}</b>
-              <div className="muted small">{SPIRITS[t.spiritId].title}</div>
-              <div className="small">동료가 되면 함께 싸우고, 팀 전투력이 크게 올라요.</div>
-            </div>
-          </div>
-        )}
         {t.kind === 'resource' && !cleared && (
           <div className="spirit-preview">
             <img src={asset(t.resource === 'summon' ? 'tile-crystal' : 'tile-treasure')} alt="" />
             <div className="small">
               {t.resource === 'summon'
-                ? `🔮 소환석 ${BALANCE.summon.cost}개를 얻어요. ✨소환 탭에서 원하는 속성의 스피릿을 부를 수 있어요.`
+                ? `🔮 소환석 ${BALANCE.summon.cost}개를 얻어요. ✨소환 탭에서 스피릿을 부를 수 있어요.`
                 : `보물 상자예요. 열면 ${t.resource === 'stones' ? `${STONE} 성장석 (승급에 사용)` : `${GOLD} 골드`}을 얻어요.`}
             </div>
           </div>
         )}
         {t.kind === 'start' && <div className="muted">{t.hint}</div>}
-        {t.kind === 'gate' && <div className="muted">테라스톤을 쓰러뜨리면 다음 지역으로 갈 수 있어요. (준비 중)</div>}
+        {t.kind === 'gate' && (
+          <div className="muted">
+            {t.map === 'P00' ? (mapUnlocked(state, 'P01') ? '튜토리얼 끝! 본편 P01(스테이지 100개)로 출발해요.' : '바위엄니 떼를 물리치면(튜토리얼 끝) 열려요.') : '다음 지역은 준비 중이에요.'}
+          </div>
+        )}
         {canGo && t.kind !== 'start' ? (
           <button className={`cta ${focus ? 'pulse' : ''}`} onClick={onGo}>
             {label}

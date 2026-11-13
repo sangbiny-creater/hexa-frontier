@@ -65,7 +65,7 @@ export function computeGuide(state: GameState, ctx: { selected: string | null; t
       return atMap('c4', `${POWER}${eff}! 이제 충분해. 바위엄니 떼 재도전!`, '[전투 시작]!');
     }
     return {
-      text: '튜토리얼 끝! 막히면 ① 상성 맞는 동료로 바꾸고(✨소환·편성) ② 레벨업으로 힘을 키우면 돼. 남은 길을 골라 숲 꼭대기의 테라스톤(⛰️)을 쓰러뜨려! 🏕캠프 자동 사냥도 잊지 마.',
+      text: '튜토리얼 끝! 막히면 ① 상성 맞는 동료로 바꾸고(✨소환·편성) ② 레벨업으로 힘을 키우면 돼. 이제 맨 위 길로 본편 P01에 가자. P01-001부터 P01-100까지 100개 스테이지야! 🏕캠프 자동 사냥도 잊지 마.',
       target: null,
       finish: true,
     };
@@ -166,7 +166,7 @@ export function Intro({ hasProgress, onStart, onContinue, onClose }: { hasProgre
           <span>👑</span>
           <div>
             <b>강해져서 보스 돌파</b>
-            <p>레벨업하면 {POWER}전투력이 오르고, Lv.10에 진화해요. 숲 꼭대기의 테라스톤을 쓰러뜨리세요.</p>
+            <p>레벨업하면 {POWER}전투력이 올라요. 같은 스피릿을 또 소환하면 진화! 튜토리얼(P00) 다음엔 P01-001~P01-100을 돌파하세요.</p>
           </div>
         </li>
       </ol>

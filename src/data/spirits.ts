@@ -1,6 +1,6 @@
 import type { SpiritDef } from '../core/types';
 
-// P0 스피릿 3종: 탱커 / 딜러 / 회복 (기획서 11장 P0)
+// 스피릿 5종: 속성마다 하나 (대지 락터스크는 D58에서 추가)
 export const SPIRITS: Record<string, SpiritDef> = {
   tideshell: {
     id: 'tideshell',
@@ -66,6 +66,22 @@ export const SPIRITS: Record<string, SpiritDef> = {
       { id: 'gw_ult', name: '폭풍 깃', kind: 'ultimate', cooldown: 0, target: 'enemyAll', effects: [{ type: 'damage', coef: 1.1 }, { type: 'debuffDef', ratio: 0.2, duration: 5 }], condition: { type: 'none' }, desc: '적 전체에 110% 피해 + 5초간 방어 -20%.' },
     ],
   },
+  rocky: {
+    id: 'rocky',
+    name: '락터스크',
+    art: 'rocktusk',
+    stages: ['락키', '락터스크', '가이아 터스크'],
+    title: '바위 엄니의 돌격대',
+    element: 'earth',
+    role: 'dealer',
+    range: 'melee',
+    base: { hp: 120, atk: 17, def: 10, spd: 44 },
+    skills: [
+      { id: 'rk_basic', name: '들이받기', kind: 'basic', cooldown: 0, target: 'enemyDefault', effects: [{ type: 'damage', coef: 1.0 }], condition: { type: 'none' }, desc: '가장 앞의 적을 들이받는다.' },
+      { id: 'rk_charge', name: '바위 돌진', kind: 'active', cooldown: 7, target: 'enemyDefault', effects: [{ type: 'damage', coef: 1.8 }], condition: { type: 'none' }, desc: '앞의 적에게 180% 피해.' },
+      { id: 'rk_ult', name: '대지 붕괴', kind: 'ultimate', cooldown: 0, target: 'enemyAll', effects: [{ type: 'damage', coef: 1.0 }, { type: 'debuffDef', ratio: 0.15, duration: 5 }], condition: { type: 'none' }, desc: '적 전체에 100% 피해 + 5초간 방어 -15%.' },
+    ],
+  },
 };
 
 /** 기본 편성 슬롯 (0~2 전열, 3~5 중열, 6~8 후열) */
@@ -74,4 +90,5 @@ export const DEFAULT_SLOT: Record<string, number> = {
   igni: 7,
   sylphy: 6,
   galewing: 8,
+  rocky: 0,
 };

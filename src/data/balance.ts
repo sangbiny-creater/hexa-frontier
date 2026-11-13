@@ -55,8 +55,8 @@ export const BALANCE = {
   enemy: {
     statPerLevel: 0.1,
     xpPerLevel: 0.12, // [가설] 적 레벨당 경험치 +12%
-    goldPerLevel: 0.15,
-    stoneChanceMul: 1.5,
+    goldPerLevel: 0.1,
+    stoneChanceMul: 0.6,
   },
   condition: {
     // P0 단순화(D32): 컨디션·경상 효과를 끔. 켜려면 true.
@@ -104,7 +104,21 @@ export const BALANCE = {
     fairAt: 1.0,
   },
   summon: {
-    cost: 10, // 🔮 소환석 1회 비용
+    cost: 10, // 🔮 속성 소환 1회 비용 (그 속성 스피릿 중 하나)
+    randomCost: 6, // 🔮 전체 랜덤 소환 1회 비용 (모든 스피릿 중 하나)
+  },
+  evolution: {
+    // [결정 D60] 등급(레어·유니크)은 없다. 같은 스피릿이 다시 소환돼야 진화한다.
+    levelCap: [10, 25, 30], // 진화 단계별 최대 레벨
+    copies: [1, 2], // 1→2단계, 2→3단계에 필요한 중복 소환 수
+    statMul: [1, 1.15, 1.32], // 진화 단계별 능력치 배율
+  },
+  respawn: {
+    // [결정 D59] 이긴 칸은 비었다가 시간이 지나면 몬스터가 다시 나타난다 (분)
+    battleMin: 10,
+    eliteMin: 60,
+    bossMin: 6 * 60, // 중간 보스
+    regionBossMin: 24 * 60,
   },
   deploy: {
     initialMax: 3, // [결정 D11]

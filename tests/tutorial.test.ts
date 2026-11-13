@@ -109,15 +109,16 @@ describe('튜토리얼: 조합의 중요성 (D47)', () => {
     }
   });
 
-  it('소환은 소환석이 필요하고, 같은 스피릿은 두 번 소환할 수 없다', () => {
+  it('소환은 소환석이 필요하고, 같은 스피릿이 또 나오면 진화 재료가 된다 (D60)', () => {
     const g = newGame(T0);
     g.bossAttempts.b1 = 1;
     expect('error' in summon(g, 'fire')).toBe(true);
-    g.summonStones = 20;
-    expect('spiritId' in summon(g, 'fire')).toBe(true);
-    expect('error' in summon(g, 'fire')).toBe(true);
-    expect('error' in summon(g, 'earth')).toBe(true);
-    expect(g.summonStones).toBe(10);
+    g.summonStones = 30;
+    expect(summon(g, 'fire')).toEqual({ spiritId: 'igni', duplicate: false });
+    expect(summon(g, 'fire')).toEqual({ spiritId: 'igni', duplicate: true });
+    expect(g.spirits.igni.copies).toBe(1);
+    expect(summon(g, 'earth')).toEqual({ spiritId: 'rocky', duplicate: false });
+    expect(g.summonStones).toBe(0);
   });
 });
 

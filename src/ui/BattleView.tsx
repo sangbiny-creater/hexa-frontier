@@ -7,7 +7,7 @@ import type { BattleOutcome } from '../core/game';
 import { ENCOUNTERS, ENEMIES } from '../data/enemies';
 import { TILE_BY_ID } from '../data/map';
 import { SPIRITS } from '../data/spirits';
-import { enemyStage, GOLD, POWER, spiritStage, sprite, STONE } from './art';
+import { enemyStage, GOLD, POWER, sprite, STONE } from './art';
 
 export interface BattleTips {
   battle: boolean;
@@ -25,7 +25,7 @@ function unitPos(u: UnitSnapshot) {
 }
 
 function unitSprite(u: UnitSnapshot) {
-  if (u.side === 'ally') return sprite(SPIRITS[u.defId], spiritStage(u.level));
+  if (u.side === 'ally') return sprite(SPIRITS[u.defId], u.stage);
   const def = ENEMIES[u.defId];
   return sprite(def, enemyStage(def, u.level));
 }
@@ -41,19 +41,22 @@ export function BattleView({
   onClose,
   onAction,
   tips,
+  instant,
 }: {
   outcome: BattleOutcome;
+  /** 바로 결과 보기 (D61) */
+  instant?: boolean;
   onClose: () => void;
   onAction: (id: ActionId, tileId?: string) => void;
   tips?: BattleTips | null;
 }) {
   const { result } = outcome;
   const enc = ENCOUNTERS[outcome.encounterId];
-  const [t, setT] = useState(0);
-  const [speed, setSpeed] = useState(2);
-  const [done, setDone] = useState(false);
-  const raf = useRef(0);
   const end = result.duration + 0.8;
+  const [t, setT] = useState(instant ? end : 0);
+  const [speed, setSpeed] = useState(2);
+  const [done, setDone] = useState(!!instant);
+  const raf = useRef(0);
 
   const timelines = useMemo(() => {
     const m: Record<string, Tl[]> = {};

@@ -16,6 +16,8 @@ export interface BattleUnitInput {
   slot: number;
   level: number;
   rank?: number;
+  /** 진화 단계 (아군만) */
+  stage?: number;
   condition?: number;
   injured?: boolean;
   isBoss?: boolean;
@@ -58,6 +60,7 @@ export interface UnitSnapshot {
   element: UnitDef['element'];
   role: UnitDef['role'];
   level: number;
+  stage: number;
   isBoss: boolean;
   maxHp: number;
   atk: number;
@@ -115,7 +118,7 @@ const B = BALANCE.battle;
 export function computeStats(input: BattleUnitInput, team: BattleUnitInput[]) {
   const g = BALANCE.growth;
   const lvMul = 1 + (input.side === 'ally' ? g.statPerLevel : BALANCE.enemy.statPerLevel) * (input.level - 1);
-  const rankMul = 1 + g.statPerRank * (input.rank ?? 0);
+  const rankMul = (1 + g.statPerRank * (input.rank ?? 0)) * (input.side === 'ally' ? BALANCE.evolution.statMul[(input.stage ?? 1) - 1] : 1);
   const condMul = input.side === 'ally' ? conditionMultiplier(input.condition ?? 100) : 1;
   const injuryMul = input.injured ? 1 - BALANCE.condition.injuryAtkPenalty : 1;
   const row = rowName(input.slot);
@@ -156,6 +159,7 @@ export function simulateBattle(setup: BattleSetup): BattleResult {
       element: input.def.element,
       role: input.def.role,
       level: input.level,
+      stage: input.stage ?? 1,
       isBoss: !!input.isBoss,
       maxHp: s.hp,
       atk: Math.round(s.atk),

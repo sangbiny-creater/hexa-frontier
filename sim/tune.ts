@@ -9,7 +9,7 @@ export function testEncounter(encId: string, party: { id: string; level: number;
   s.spirits = {};
   s.formation = {};
   for (const p of party) {
-    s.spirits[p.id] = { defId: p.id, level: p.level, xp: 0, rank: p.rank ?? 0, condition: 100, injured: false, injuryProgress: 0 };
+    s.spirits[p.id] = { defId: p.id, level: p.level, xp: 0, rank: p.rank ?? 0, stage: 1, copies: 0, condition: 100, injured: false, injuryProgress: 0 };
     s.formation[p.id] = DEFAULT_SLOT[p.id];
   }
   let wins = 0;

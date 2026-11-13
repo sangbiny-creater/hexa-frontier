@@ -2,17 +2,18 @@
 import { useRef, useState } from 'react';
 import { elementMultiplier, ELEMENT_LABEL, ROLE_LABEL, ROW_LABEL, rowName } from '../core/board';
 import { computeStats } from '../core/battle';
-import { affordableLevelUps, canRankUp, levelUp, rankUp, setFormation, SUMMON_POOL, upgradeUnlocked, type GameState } from '../core/game';
+import { affordableLevelUps, ALL_SUMMONABLE, canEvolve, canRankUp, evolve, evolveNeed, levelCap, levelUp, rankUp, setFormation, upgradeUnlocked, type GameState } from '../core/game';
 import { levelUpCost, rankUpCost } from '../core/growth';
 import { hexCorners } from '../core/hex';
 import { spiritPower, spiritPowerAt, teamPower } from '../core/power';
 import type { Element } from '../core/types';
 import { BALANCE } from '../data/balance';
 import { SPIRITS } from '../data/spirits';
-import { Bar, ELEMENT_COLOR, ELEMENT_ICON, ElementTag, GOLD, portrait, POWER, RoleTag, spiritStage, stageName, STONE } from './art';
+import { Bar, ELEMENT_COLOR, ELEMENT_ICON, ElementTag, GOLD, portrait, POWER, RoleTag, stageName, STONE } from './art';
 
 type Act = <T>(fn: (s: GameState, now: number) => T) => T;
 const ELEMENTS: Element[] = ['water', 'fire', 'forest', 'earth', 'electric'];
+const EVO: { levelCap: readonly number[]; statMul: readonly number[] } = BALANCE.evolution;
 
 export function SpiritView({
   state,
@@ -37,33 +38,31 @@ export function SpiritView({
   const canLevel = upgradeUnlocked(state);
   const ups = canLevel ? affordableLevelUps(state) : 0;
   const total = teamPower(state);
-  const notOwned = Object.values(SUMMON_POOL).filter((id): id is string => !!id && !state.spirits[id]);
+  const notOwned = ALL_SUMMONABLE.filter((id) => !state.spirits[id]);
 
   const levelOne = (id: string) => {
     const sp = state.spirits[id];
-    const before = spiritStage(sp.level);
-    const gain = spiritPowerAt(id, sp.level + 1, sp.rank) - spiritPower(state, id);
+    const gain = spiritPowerAt(id, sp.level + 1, sp.rank, sp.stage) - spiritPower(state, id);
     const err = act((s) => levelUp(s, id));
     if (err) return toast(err);
-    toast(`${stageName(SPIRITS[id], sp.level + 1)} Lv.${sp.level + 1}  ${POWER}+${gain}`);
-    if (spiritStage(sp.level + 1) > before) onEvolve(id, spiritStage(sp.level + 1));
+    toast(`${stageName(SPIRITS[id], sp.stage)} Lv.${sp.level + 1}  ${POWER}+${gain}`);
     onLeveled();
   };
 
   const levelAll = () => {
-    const before = Object.fromEntries(owned.map((id) => [id, spiritStage(state.spirits[id].level)]));
-    const res = act((s) => {
-      let n = 0;
+    const n = act((s) => {
+      let k = 0;
       for (let g = 0; g < 400; g++) {
-        const id = Object.keys(s.formation).sort((a, b) => s.spirits[a].level - s.spirits[b].level)[0];
-        if (!id || s.spirits[id].level >= BALANCE.growth.maxLevel || s.gold < levelUpCost(s.spirits[id].level) || levelUp(s, id)) break;
-        n++;
+        const id = Object.keys(s.formation)
+          .filter((x) => s.spirits[x].level < levelCap(s.spirits[x]))
+          .sort((a, b) => s.spirits[a].level - s.spirits[b].level)[0];
+        if (!id || s.gold < levelUpCost(s.spirits[id].level) || levelUp(s, id)) break;
+        k++;
       }
-      return { n, levels: Object.fromEntries(Object.entries(s.spirits).map(([k, v]) => [k, v.level])) };
+      return k;
     });
-    if (!res.n) return;
-    toast(`출전 스피릿 레벨업 ${res.n}번!`);
-    for (const id of owned) if (spiritStage(res.levels[id]) > before[id]) onEvolve(id, spiritStage(res.levels[id]));
+    if (!n) return;
+    toast(`출전 스피릿 레벨업 ${n}번!`);
     onLeveled();
   };
 
@@ -112,7 +111,7 @@ export function SpiritView({
           const on = state.formation[id] !== undefined;
           return (
             <button key={id} className={`spchip ${on ? 'on' : ''} ${picked === id ? 'picked' : ''}`} onClick={() => setPicked(picked === id ? null : id)}>
-              <img src={portrait(SPIRITS[id], spiritStage(state.spirits[id].level))} alt="" />
+              <img src={portrait(SPIRITS[id], state.spirits[id].stage)} alt="" />
               <span>{on ? ROW_LABEL[rowName(state.formation[id])] : '대기'}</span>
             </button>
           );
@@ -121,7 +120,7 @@ export function SpiritView({
       <p className="explain small">
         {picked ? (
           <>
-            <b>{stageName(SPIRITS[picked], state.spirits[picked].level)}</b> 선택됨 → 배치판의 칸을 누르세요.{' '}
+            <b>{stageName(SPIRITS[picked], state.spirits[picked].stage)}</b> 선택됨 → 배치판의 칸을 누르세요.{' '}
             {state.formation[picked] !== undefined && (
               <button
                 className="link-btn"
@@ -147,11 +146,12 @@ export function SpiritView({
           const sp = state.spirits[id];
           return (
             <button key={id} className="spcard" style={{ borderColor: ELEMENT_COLOR[d.element] }} onClick={() => setDetail(id)}>
-              <img src={portrait(d, spiritStage(sp.level))} alt="" />
+              <img src={portrait(d, sp.stage)} alt="" />
               <div className="spcard-lv">Lv.{sp.level}</div>
               {state.formation[id] !== undefined && <div className="spcard-on">출전</div>}
+              {canEvolve(state, id) ? <div className="spcard-evo">진화!</div> : sp.copies > 0 && <div className="spcard-evo dim">+{sp.copies}</div>}
               <div className="spcard-name">
-                {ELEMENT_ICON[d.element]} {stageName(d, sp.level)}
+                {ELEMENT_ICON[d.element]} {stageName(d, sp.stage)}
               </div>
               <div className="spcard-sub">
                 {ROLE_LABEL[d.role]} · {POWER}
@@ -167,11 +167,6 @@ export function SpiritView({
             <div className="spcard-sub">소환으로 얻기</div>
           </div>
         ))}
-        <div className="spcard locked">
-          <div className="spcard-q">?</div>
-          <div className="spcard-name">🔒 ⛰️대지 스피릿</div>
-          <div className="spcard-sub">준비 중</div>
-        </div>
       </div>
 
       {detail && (
@@ -187,6 +182,11 @@ export function SpiritView({
           onRank={(id) => {
             const err = act((s) => rankUp(s, id));
             toast(err ?? '승급! 능력치 +12%');
+          }}
+          onEvolve={(id) => {
+            const err = act((s) => evolve(s, id));
+            if (err) return toast(err);
+            onEvolve(id, state.spirits[id].stage + 1);
           }}
         />
       )}
@@ -217,7 +217,7 @@ function FormationBoard({ state, picked, onSlot }: { state: GameState; picked: s
         return (
           <g key={slot} onClick={() => onSlot(slot)} className={`fslot ${picked ? 'target' : ''}`}>
             <polygon points={hexCorners(p.x, p.y, R)} fill={d ? ELEMENT_COLOR[d.element] + '40' : '#ffffff0a'} stroke={d ? ELEMENT_COLOR[d.element] : '#ffffff30'} strokeWidth={id && id === picked ? 4 : 2} />
-            {d && <image href={portrait(d, spiritStage(state.spirits[id].level))} x={p.x - 20} y={p.y - 20} width={40} height={40} clipPath="circle(20px)" />}
+            {d && <image href={portrait(d, state.spirits[id].stage)} x={p.x - 20} y={p.y - 20} width={40} height={40} clipPath="circle(20px)" />}
           </g>
         );
       })}
@@ -235,6 +235,7 @@ function SpiritDetail({
   focusLevel,
   onLevel,
   onRank,
+  onEvolve,
 }: {
   state: GameState;
   ids: string[];
@@ -245,6 +246,7 @@ function SpiritDetail({
   focusLevel: boolean;
   onLevel: (id: string) => void;
   onRank: (id: string) => void;
+  onEvolve: (id: string) => void;
 }) {
   const touch = useRef<number | null>(null);
   const idx = ids.indexOf(id);
@@ -252,14 +254,16 @@ function SpiritDetail({
   const def = SPIRITS[id];
   const sp = state.spirits[id];
   const slot = state.formation[id];
-  const st = computeStats({ uid: 'x', def, side: 'ally', slot: slot ?? 4, level: sp.level, rank: sp.rank }, []);
+  const st = computeStats({ uid: 'x', def, side: 'ally', slot: slot ?? 4, level: sp.level, rank: sp.rank, stage: sp.stage }, []);
   const cost = levelUpCost(sp.level);
-  const can = canLevel && state.gold >= cost && sp.level < BALANCE.growth.maxLevel;
-  const gain = spiritPowerAt(id, sp.level + 1, sp.rank) - spiritPower(state, id);
+  const cap = levelCap(sp);
+  const can = canLevel && state.gold >= cost && sp.level < cap;
+  const gain = spiritPowerAt(id, sp.level + 1, sp.rank, sp.stage) - spiritPower(state, id);
+  const need = evolveNeed(sp);
   const rc = rankUpCost(sp);
   const strong = ELEMENTS.filter((e) => elementMultiplier(def.element, e) > 1);
   const weak = ELEMENTS.filter((e) => elementMultiplier(e, def.element) > 1);
-  const stage = spiritStage(sp.level);
+  const stage = sp.stage;
 
   return (
     <div
@@ -292,7 +296,7 @@ function SpiritDetail({
           </button>
         </div>
         <div className="detail-name">
-          <h2>{stageName(def, sp.level)}</h2>
+          <h2>{stageName(def, sp.stage)}</h2>
           <div className="muted">
             {def.name} · {def.title}
           </div>
@@ -360,10 +364,25 @@ function SpiritDetail({
               <div key={s} className={`evo-cell ${s <= stage ? 'got' : ''}`}>
                 <img src={portrait(def, s)} alt="" />
                 <small>{def.stages?.[s - 1]}</small>
-                <small className="muted">{['Lv.1', 'Lv.10', 'Lv.25'][s - 1]}</small>
+                <small className="muted">
+                  {s === 1 ? '소환' : `Lv.${BALANCE.evolution.levelCap[s - 2]} + 같은 스피릿 ${BALANCE.evolution.copies[s - 2]}`}
+                </small>
               </div>
             ))}
           </div>
+          <div className="small">
+            등급은 없어요. <b>같은 스피릿이 다시 소환되면</b> 진화 재료가 돼요. 모은 재료 <b>{sp.copies}</b>개
+          </div>
+          {need ? (
+            <button className={`rank-btn evo-btn ${canEvolve(state, id) ? 'can pulse' : ''}`} disabled={!canEvolve(state, id)} onClick={() => onEvolve(id)}>
+              ✨ 진화 → {(def.stages as readonly string[] | undefined)?.[stage]}{' '}
+              <small>
+                (Lv.{sp.level}/{need.level} · 같은 스피릿 {sp.copies}/{need.copies} · 능력치 ×{(EVO.statMul[stage] / EVO.statMul[stage - 1]).toFixed(2)}, 최대 Lv.{EVO.levelCap[stage]})
+              </small>
+            </button>
+          ) : (
+            <div className="small good">최종 진화 완료!</div>
+          )}
         </div>
 
         <div className="dbox">
@@ -381,10 +400,7 @@ function SpiritDetail({
               ) : (
                 <>
                   <b>레벨업</b>
-                  <span>
-                    {GOLD}
-                    {cost} 필요
-                  </span>
+                  <span>{sp.level >= cap ? `Lv.${cap} 최대 — 진화하면 더 올라요` : `${GOLD}${cost} 필요`}</span>
                 </>
               )}
             </button>
@@ -398,12 +414,12 @@ function SpiritDetail({
               {rc.gold} <small>(Lv.{rc.minLevel}+, 능력치 +12%)</small>
             </button>
           )}
-          {sp.level < 25 && (
+          {need && (
             <div className="evo">
               <small>
-                다음 진화까지 Lv.{sp.level < 10 ? 10 : 25}
+                이 단계 최대 Lv.{cap} (지금 Lv.{sp.level})
               </small>
-              <Bar value={sp.level - (sp.level < 10 ? 1 : 10)} max={sp.level < 10 ? 9 : 15} color="#b48cff" h={5} />
+              <Bar value={sp.level} max={cap} color="#b48cff" h={5} />
             </div>
           )}
           <div className="locked-row">🔒 스킬 강화 — 준비 중</div>

@@ -92,12 +92,13 @@ export function analyzeDefeat(s: GameState, setup: BattleSetup, result: BattleRe
   const actions: DefeatAnalysis['actions'] = [];
   // 상성 좋은 스피릿을 소환할 수 있으면 가장 먼저 (D47)
   if (summonUnlocked(s) && s.summonStones >= BALANCE.summon.cost) {
-    const counter = (Object.entries(SUMMON_POOL) as [string, string | null][]).find(
-      ([el, id]) => id && !s.spirits[id] && elementMultiplier(el as Element, boss.def.element) > 1,
+    const counter = (Object.entries(SUMMON_POOL) as [Element, string[]][]).find(
+      ([el, ids]) => ids.some((id) => !s.spirits[id]) && elementMultiplier(el, boss.def.element) > 1,
     );
     if (counter) {
-      const [el, id] = counter;
-      actions.push({ id: 'summon', label: `${ELEMENT_LABEL[el as Element]} 속성 스피릿 소환하기`, why: `${boss.def.name}은(는) ${ELEMENT_LABEL[boss.def.element]} 속성! ${ELEMENT_LABEL[el as Element]} 속성 ${SPIRITS[id!].stages?.[0]}이(가) 강해요.` });
+      const [el, ids] = counter;
+      const id = ids.find((x) => !s.spirits[x])!;
+      actions.push({ id: 'summon', label: `${ELEMENT_LABEL[el]} 속성 스피릿 소환하기`, why: `${boss.def.name}은(는) ${ELEMENT_LABEL[boss.def.element]} 속성! ${ELEMENT_LABEL[el]} 속성 ${SPIRITS[id].stages?.[0]}이(가) 강해요.` });
     }
   }
   const ownedIds = Object.keys(s.spirits);
@@ -110,7 +111,7 @@ export function analyzeDefeat(s: GameState, setup: BattleSetup, result: BattleRe
   const ups = affordableLevelUps(s);
   if (ups > 0) actions.push({ id: 'levelup', label: `레벨업 하기 (${ups}번 가능)`, why: `지금 가진 골드로 레벨업을 ${ups}번 할 수 있어요.` });
   if (ownedIds.some((id) => canRankUp(s, id))) actions.push({ id: 'rankup', label: '승급 하기', why: '성장석이 모였어요. 승급하면 능력치 +12%.' });
-  const farm = bestFarmTile(s);
+  const farm = bestFarmTile(s, now);
   if (farm) actions.push({ id: 'farm', label: '골드 벌러 가기', why: `쉬운 칸 "${TILE_BY_ID[farm].name}"에서 바로 싸워 골드를 법니다.`, tileId: farm });
   const benched = ownedIds.filter((id) => s.formation[id] === undefined && !isBusy(s, id, now));
   if (benched.length) actions.push({ id: 'formation', label: '편성에 넣기', why: `${benched.map((id) => SPIRITS[id].name).join(', ')}이(가) 출전하지 않고 있어요.` });

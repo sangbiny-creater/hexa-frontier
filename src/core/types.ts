@@ -85,6 +85,8 @@ export interface Encounter {
   name: string;
   enemies: EncounterEnemy[];
   bossKind?: 'normal' | 'region';
+  /** 첫 승리 시 출전 인원을 이 수로 늘린다 */
+  unlockDeploy?: number;
   firstClear: { gold: number; stones: number; xp?: number; summon?: number };
 }
 
@@ -93,6 +95,10 @@ export interface OwnedSpirit {
   level: number;
   xp: number; // 현재 레벨에서 쌓인 경험치
   rank: number;
+  /** 진화 단계 (D60): 같은 스피릿이 소환돼 모인 copies로 진화한다 */
+  stage: 1 | 2 | 3;
+  /** 진화에 쓰지 않은 중복 소환 수 */
+  copies: number;
   condition: number; // 0~100
   injured: boolean;
   injuryProgress: number; // 0~1, 1이 되면 해제
