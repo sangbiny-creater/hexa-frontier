@@ -42,7 +42,7 @@ function manage(s: RpgState) {
     const want = els.sort((a, b) => (s.spirits[a] ?? 0) - (s.spirits[b] ?? 0))[0] ?? (Object.keys(s.spirits)[0] as Element);
     if (spendSpiritPoint(s, want)) break;
   }
-  for (const n of TREES.knight) if (!learnNode(s, n.id)) break;
+  for (const n of TREES.knight) while (!learnNode(s, n.id));
   for (const it of [...s.bag]) if (itemScore(it) > itemScore(s.heroes.knight.gear[it.slot])) equip(s, it.uid);
 }
 

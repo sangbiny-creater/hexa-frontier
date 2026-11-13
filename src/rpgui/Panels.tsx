@@ -27,30 +27,38 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
 export function TreePanel({ state, onClose, onLearn }: { state: RpgState; onClose: () => void; onLearn: (id: string) => void }) {
   const h = state.heroes[state.heroId];
   const tree = TREES[state.heroId];
+  const spent = Object.values(h.nodes).reduce((a, b) => a + b, 0);
   return (
-    <Sheet title={`기술 테크트리 · ${HEROES[state.heroId].name}`} onClose={onClose}>
+    <Sheet title="🌳 기술 테크트리" onClose={onClose}>
       <div className="tree-head">
-        기술 포인트 <b className="gold">{h.skillPts}</b> <span className="muted small">— 레벨업마다 1개. 아래 단계는 위 단계를 배워야 열려요. 캐릭터마다 트리가 달라요.</span>
+        남은 포인트 <b className="gold">{h.skillPts}</b> · 쓴 포인트 {spent}
+        <div className="muted small">레벨업마다 1포인트. 노드를 누를 때마다 1랭크씩 올라가요(최대 5~10). 윗 노드에 3포인트를 넣으면 아래 노드가 열려요.</div>
       </div>
       {[1, 2, 3].map((tier) => (
         <div key={tier} className="tree-tier">
           <div className="tier-label">
-            {tier}단계 <span className="muted">Lv{tree.find((n) => n.tier === tier)!.level}+</span>
+            {tier}단계 <span className="muted">· Lv{tree.find((n) => n.tier === tier)!.level}부터</span>
           </div>
           <div className="tier-row">
             {tree
               .filter((n) => n.tier === tier)
               .map((n) => {
-                const got = h.nodes.includes(n.id);
-                const preOk = !n.pre || h.nodes.includes(n.pre);
-                const can = !got && preOk && h.level >= n.level && h.skillPts > 0;
+                const rank = h.nodes[n.id] ?? 0;
+                const pre = n.pre ? tree.find((x) => x.id === n.pre)! : null;
+                const preOk = !pre || (h.nodes[pre.id] ?? 0) >= (n.preRanks ?? 1);
+                const lvOk = h.level >= n.level;
+                const can = preOk && lvOk && rank < n.maxRank && h.skillPts > 0;
                 return (
-                  <button key={n.id} className={`tnode ${got ? 'got' : ''} ${can ? 'can' : ''} ${!preOk || h.level < n.level ? 'locked' : ''}`} onClick={() => onLearn(n.id)}>
+                  <button key={n.id} className={`tnode ${rank > 0 ? 'got' : ''} ${can ? 'can' : ''} ${!preOk || !lvOk ? 'locked' : ''}`} onClick={() => onLearn(n.id)}>
                     <span className="tn-icon">{n.icon}</span>
                     <b>{n.name}</b>
+                    <span className="tn-rank">
+                      {rank}/{n.maxRank}
+                    </span>
                     <small>{n.desc}</small>
-                    {n.pre && <small className="muted">← {tree.find((x) => x.id === n.pre)!.name}</small>}
-                    {got && <span className="tn-got">✔</span>}
+                    {!preOk && pre && <small className="tn-need">🔒 {pre.name} {h.nodes[pre.id] ?? 0}/{n.preRanks}</small>}
+                    {preOk && !lvOk && <small className="tn-need">🔒 Lv{n.level}</small>}
+                    {can && <small className="tn-plus">＋ 찍기</small>}
                   </button>
                 );
               })}

@@ -1,4 +1,4 @@
-// 스테이지 화면 (D82): 지도 전체가 보이고(전략용), 끌어서 위아래로 둘러볼 수 있다. 움직이면 주인공에게 돌아온다.
+// 스테이지 화면 (D82~D86): 가로 7칸이 보이게 확대, 카메라가 주인공을 따라간다. 끌면 둘러보기, 헥사를 누르면 그곳으로 이동.
 import { useEffect, useRef, useState } from 'react';
 import { hexCorners } from '../core/hex';
 import { EL_COLOR, EL_NAME, MONSTERS, SPIRITS } from '../rpg/data';
@@ -20,11 +20,33 @@ const THEME = (n: number) => (n <= 3 ? 0 : n <= 6 ? 1 : n <= 8 ? 2 : 3);
 const FLOOR = ['#2f5a37', '#2a5560', '#5a4a33', '#3e3a5c'];
 const EDGE = ['#4f8a55', '#4a8a96', '#8a7350', '#6a63a0'];
 
-export function WorldView({ state, fx, fxKey, heroHue, pan, onPointer }: { state: RpgState; fx: Fx[]; fxKey: number; heroHue: number; pan: number; onPointer?: object }) {
+export function WorldView({
+  state,
+  fx,
+  fxKey,
+  heroHue,
+  pan,
+  goal,
+  path,
+  onPan,
+  onTap,
+}: {
+  state: RpgState;
+  fx: Fx[];
+  fxKey: number;
+  heroHue: number;
+  pan: { x: number; y: number };
+  goal: { c: number; r: number } | null;
+  path: { c: number; r: number }[];
+  onPan: (dx: number, dy: number) => void;
+  onTap: (c: number, r: number) => void;
+}) {
   const w = active();
   const { pos } = state;
   const hero = cellXY(pos.c, pos.r);
-  const width = HW * (COLS + 1.2);
+  const fullW = HW * (COLS + 1.2);
+  const width = HW * 7.3; // 가로 7칸
+  const drag = useRef<{ x: number; y: number; moved: boolean } | null>(null);
   const box = useRef<SVGSVGElement>(null);
   const [aspect, setAspect] = useState(1.4);
   useEffect(() => {
@@ -36,15 +58,65 @@ export function WorldView({ state, fx, fxKey, heroHue, pan, onPointer }: { state
   }, []);
   const viewH = width * aspect;
   // 카메라: 주인공을 화면 60% 높이에 두고 pan(줄 단위)만큼 위아래로
-  const camRow = Math.max(0, Math.min(w.rows - 1, pos.r + pan));
-  const top = -camRow * ROW_H - viewH * 0.6;
+  const camRow = Math.max(0, Math.min(w.rows - 1, pos.r + pan.y));
+  const camX = Math.max(0, Math.min(fullW - width, hero.x + pan.x - width / 2));
+  // 지도 끝에서는 빈 곳이 보이지 않게
+  const topRaw = -camRow * ROW_H - viewH * 0.6;
+  const top = Math.min(S * 1.3 - viewH, Math.max(-(w.rows - 1) * ROW_H - S * 2.2, topRaw));
   const visRows = Math.ceil(viewH / ROW_H) + 2;
   const rows: number[] = [];
-  for (let r = Math.floor(camRow - visRows * 0.45); r <= camRow + visRows * 0.65; r++) if (r >= 0 && r < w.rows) rows.push(r);
+  for (let r = Math.floor(-(top + viewH) / ROW_H) - 1; r <= Math.ceil(-top / ROW_H) + 2; r++) if (r >= 0 && r < w.rows) rows.push(r);
+  void visRows;
   const th = THEME(w.stage.n);
 
   return (
-    <svg ref={box} className="world" viewBox={`0 ${top} ${width} ${viewH}`} preserveAspectRatio="xMidYMid meet" {...onPointer}>
+    <svg
+      ref={box}
+      className="world"
+      viewBox={`${camX} ${top} ${width} ${viewH}`}
+      preserveAspectRatio="xMidYMid meet"
+      onPointerDown={(e) => {
+        try {
+          (e.currentTarget as SVGSVGElement).setPointerCapture?.(e.pointerId);
+        } catch {
+          /* 일부 환경에서 실패해도 무시 */
+        }
+        drag.current = { x: e.clientX, y: e.clientY, moved: false };
+      }}
+      onPointerMove={(e) => {
+        const d = drag.current;
+        if (!d) return;
+        const dx = e.clientX - d.x;
+        const dy = e.clientY - d.y;
+        if (!d.moved && Math.hypot(dx, dy) < 10) return;
+        d.moved = true;
+        const k = width / (box.current?.clientWidth || 1); // 화면 px → 지도 단위
+        onPan(-dx * k, dy * k);
+        d.x = e.clientX;
+        d.y = e.clientY;
+      }}
+      onPointerUp={(e) => {
+        const d = drag.current;
+        drag.current = null;
+        if (!d || d.moved || !box.current) return;
+        // 누른 곳의 헥사 찾기
+        const pt = box.current.createSVGPoint();
+        pt.x = e.clientX;
+        pt.y = e.clientY;
+        const m = box.current.getScreenCTM();
+        if (!m) return;
+        const sp = pt.matrixTransform(m.inverse());
+        let best: { c: number; r: number } | null = null;
+        let bd = Infinity;
+        for (const cell of w.cells.values()) {
+          const p = cellXY(cell.c, cell.r);
+          const dd = (p.x - sp.x) ** 2 + (p.y - sp.y) ** 2;
+          if (dd < bd) (bd = dd), (best = cell);
+        }
+        if (best && bd < S * S * 1.3) onTap(best.c, best.r);
+      }}
+      onPointerCancel={() => (drag.current = null)}
+    >
       {rows.flatMap((r) =>
         Array.from({ length: COLS }, (_, c) => {
           const cell = w.cells.get(key(c, r))!;
@@ -100,6 +172,15 @@ export function WorldView({ state, fx, fxKey, heroHue, pan, onPointer }: { state
           return null;
         }),
       )}
+      {/* 이동 목표와 길 */}
+      {path.map((p, i) => {
+        const xy = cellXY(p.c, p.r);
+        return <circle key={`pt${i}`} cx={xy.x} cy={xy.y} r={3} className="path-dot" />;
+      })}
+      {goal && (() => {
+        const xy = cellXY(goal.c, goal.r);
+        return <polygon points={hexCorners(xy.x, xy.y, S - 2)} className="goal-hex" />;
+      })()}
       {/* 몬스터 */}
       {state.monsters
         .filter((m) => !m.dead && rows.includes(m.r))
@@ -172,6 +253,12 @@ export function WorldView({ state, fx, fxKey, heroHue, pan, onPointer }: { state
                 {f.k === 'dmg' && f.crit ? '!' : ''}
               </text>,
             ];
+          }
+          if (f.k === 'hit') {
+            const a = cellXY(f.from.c, f.from.r);
+            const b = cellXY(f.to.c, f.to.r);
+            const col = f.who === 'mon' ? '#ff5a5a' : f.who === 'pet' ? (f.element ? EL_COLOR[f.element] : '#7ab8ff') : '#ffd257';
+            return [<line key={`h${i}`} x1={a.x} y1={a.y - S * 0.7} x2={b.x} y2={b.y - S * 0.7} stroke={col} className={`hit-line ${f.who}`} />];
           }
           if (f.k === 'kill') {
             const p = cellXY(f.c, f.r);

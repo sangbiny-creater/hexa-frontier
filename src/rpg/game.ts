@@ -27,7 +27,7 @@ import {
 } from './data';
 import { activate, active, cellAt, dist, isFloor, key, neighbors, STAGES, stageSpawns, step, type Dir } from './world';
 
-export const RPG_VERSION = 3;
+export const RPG_VERSION = 4;
 
 export interface Mon {
   id: number;
@@ -70,7 +70,7 @@ export interface HeroState {
   hp: number;
   gear: Partial<Record<Slot, Item>>;
   skillPts: number;
-  nodes: string[];
+  nodes: Record<string, number>; // 노드 → 랭크
 }
 
 export interface RpgState {
@@ -127,6 +127,7 @@ export type Fx =
   | { k: 'boss'; name: string }
   | { k: 'unlock'; hero: string }
   | { k: 'clear'; stage: number; gold: number; item?: Item; first: boolean }
+  | { k: 'hit'; from: { c: number; r: number }; to: { c: number; r: number }; who: 'hero' | 'pet' | 'mon'; element?: Element | null }
   | { k: 'swarm' }
   | { k: 'msg'; text: string };
 
@@ -137,7 +138,7 @@ export function newRpg(): RpgState {
     version: RPG_VERSION,
     turn: 0,
     heroId: 'knight',
-    heroes: { knight: { unlocked: true, level: 1, xp: 0, hp: 0, gear: {}, skillPts: 0, nodes: [] } },
+    heroes: { knight: { unlocked: true, level: 1, xp: 0, hp: 0, gear: {}, skillPts: 1, nodes: {} } },
     pos: { c: 4, r: 0 },
     camp: { c: 4, r: 0 },
     monsters: [],
@@ -217,22 +218,23 @@ export function resume(s: RpgState) {
 export function treeMods(s: RpgState, id = s.heroId) {
   const m = { allDmg: 0, lifesteal: 0, crit: 0, petAtk: 0, stunPlus: 0, poisonMul: 1, typeBonus: 0, stat: { hp: 0, atk: 0, def: 0, res: 0 }, skill: {} as Record<string, { dmg: number; cd: number; range: number }> };
   const sk = (k: string) => (m.skill[k] ??= { dmg: 0, cd: 0, range: 0 });
-  for (const nid of s.heroes[id].nodes) {
-    const node = TREES[id].find((n) => n.id === nid);
-    for (const e of node?.effects ?? []) {
-      if (e.kind === 'skillDmg') sk(e.skill).dmg += e.pct;
-      if (e.kind === 'skillCd') sk(e.skill).cd += e.delta;
-      if (e.kind === 'skillRange') sk(e.skill).range += e.delta;
-      if (e.kind === 'stat') m.stat[e.stat] += e.pct;
-      if (e.kind === 'allDmg') m.allDmg += e.pct;
-      if (e.kind === 'lifesteal') m.lifesteal += e.pct;
-      if (e.kind === 'crit') m.crit += e.pct;
-      if (e.kind === 'petAtk') m.petAtk += e.pct;
-      if (e.kind === 'stunPlus') m.stunPlus += e.turns;
-      if (e.kind === 'poisonMul') m.poisonMul *= e.mul;
-      if (e.kind === 'typeBonus') m.typeBonus += e.pct;
+  for (const [nid, rank] of Object.entries(s.heroes[id].nodes)) {
+    const node = TREES[id]?.find((n) => n.id === nid);
+    for (const e of node?.per ?? []) {
+      if (e.kind === 'skillDmg') sk(e.skill).dmg += e.pct * rank;
+      if (e.kind === 'skillCd') sk(e.skill).cd += e.delta * rank;
+      if (e.kind === 'skillRange') sk(e.skill).range += e.delta * rank;
+      if (e.kind === 'stat') m.stat[e.stat] += e.pct * rank;
+      if (e.kind === 'allDmg') m.allDmg += e.pct * rank;
+      if (e.kind === 'lifesteal') m.lifesteal += e.pct * rank;
+      if (e.kind === 'crit') m.crit += e.pct * rank;
+      if (e.kind === 'petAtk') m.petAtk += e.pct * rank;
+      if (e.kind === 'stunPlus') m.stunPlus += e.turns * rank;
+      if (e.kind === 'poisonMul') m.poisonMul *= Math.pow(e.mul, rank);
+      if (e.kind === 'typeBonus') m.typeBonus += e.pct * rank;
     }
   }
+  m.stunPlus = Math.floor(m.stunPlus);
   return m;
 }
 
@@ -240,19 +242,30 @@ export function treeMods(s: RpgState, id = s.heroId) {
 export function skillOf(s: RpgState, id: string): SkillDef {
   const base = SKILLS[id];
   const t = treeMods(s).skill[id];
-  return t ? { ...base, range: base.range + t.range, cd: Math.max(0, base.cd + t.cd) } : base;
+  return t ? { ...base, range: base.range + Math.floor(t.range), cd: Math.max(1, Math.round(base.cd + t.cd)) * (base.cd ? 1 : 0) } : base;
 }
 
-export function learnNode(s: RpgState, nodeId: string): string | null {
+export const rankOf = (s: RpgState, nodeId: string) => s.heroes[s.heroId].nodes[nodeId] ?? 0;
+
+/** 찍을 수 있으면 null, 아니면 이유 */
+export function nodeBlock(s: RpgState, nodeId: string): string | null {
   const h = s.heroes[s.heroId];
   const node = TREES[s.heroId].find((n) => n.id === nodeId);
   if (!node) return '없는 기술';
-  if (h.nodes.includes(nodeId)) return '이미 배웠어요';
-  if (h.level < node.level) return `Lv${node.level}부터 배울 수 있어요`;
-  if (node.pre && !h.nodes.includes(node.pre)) return fixJosa(`먼저 [${TREES[s.heroId].find((n) => n.id === node.pre)!.name}]을(를) 배워야 해요`);
-  if (h.skillPts <= 0) return '기술 포인트가 없어요 (레벨업하면 1개)';
+  if (rankOf(s, nodeId) >= node.maxRank) return '최대 랭크예요';
+  if (h.level < node.level) return `Lv${node.level}부터 찍을 수 있어요`;
+  if (node.pre && rankOf(s, node.pre) < (node.preRanks ?? 1)) return fixJosa(`[${TREES[s.heroId].find((n) => n.id === node.pre)!.name}]에 ${node.preRanks}포인트를 넣으면 열려요`);
+  if (h.skillPts <= 0) return '기술 포인트가 없어요 (레벨업마다 1개)';
+  return null;
+}
+
+/** 기술 포인트 1개를 노드에 넣는다 (랭크 +1) */
+export function learnNode(s: RpgState, nodeId: string): string | null {
+  const err = nodeBlock(s, nodeId);
+  if (err) return err;
+  const h = s.heroes[s.heroId];
   h.skillPts--;
-  h.nodes.push(nodeId);
+  h.nodes[nodeId] = rankOf(s, nodeId) + 1;
   h.hp = Math.min(heroStats(s).hp, h.hp);
   return null;
 }
@@ -340,6 +353,12 @@ export const monAt = (s: RpgState, c: number, r: number) => s.monsters.find((m) 
 export const petAt = (s: RpgState, c: number, r: number) => s.pets.find((p) => !p.dead && p.c === c && p.r === r);
 const heroAt = (s: RpgState, c: number, r: number) => s.pos.c === c && s.pos.r === r;
 const freeCell = (s: RpgState, c: number, r: number) => isFloor(c, r) && !monAt(s, c, r) && !petAt(s, c, r) && !heroAt(s, c, r);
+
+/** 전투 기록 (화면 아래 줄에 보임, 알림은 안 띄움) */
+function blog(s: RpgState, text: string) {
+  s.log.unshift(fixJosa(text));
+  s.log = s.log.slice(0, 40);
+}
 
 function msg(s: RpgState, fx: Fx[], text: string) {
   const t = fixJosa(text);
@@ -500,7 +519,9 @@ function hit(s: RpgState, fx: Fx[], sk: SkillDef, m: Mon, mul = 1) {
   const crit = rand(s, m.id * 7 + 1) < critP;
   const amount = Math.max(1, Math.round(est.dmg * mul * (crit ? 1.5 : 1) * (0.9 + rand(s, m.id * 7 + 2) * 0.2)));
   m.hp -= amount;
+  fx.push({ k: 'hit', from: { ...s.pos }, to: { c: m.c, r: m.r }, who: 'hero', element: sk.element });
   fx.push({ k: 'dmg', c: m.c, r: m.r, amount, eff: est.type > 1 ? 'strong' : est.type < 1 ? 'weak' : null, blocked: est.blocked, crit });
+  blog(s, `아렌 ${sk.name} → ${monName(m)} -${amount}${est.type > 1 ? ' (유리!)' : ''}${crit ? ' 치명타!' : ''}`);
   for (const x of s.monsters) if (x.pack === m.pack) x.aggro = true;
   if (tm.lifesteal) {
     const h = s.heroes[s.heroId];
@@ -706,7 +727,9 @@ function petHit(s: RpgState, fx: Fx[], p: Pet, m: Mon, mul: number) {
   const roll = 0.9 + rand(s, m.id * 31 + ELEMENTS.indexOf(p.element)) * 0.2;
   const amount = Math.max(1, Math.round(ps.atk * mul * t * (BAL.defK / (BAL.defK + (ms.def + ms.res) / 2)) * BAL.heroDmg * roll));
   m.hp -= amount;
+  fx.push({ k: 'hit', from: { c: p.c, r: p.r }, to: { c: m.c, r: m.r }, who: 'pet', element: p.element });
   fx.push({ k: 'dmg', c: m.c, r: m.r, amount, eff: t > 1 ? 'strong' : t < 1 ? 'weak' : null, blocked: false, crit: false });
+  blog(s, `${EL_ICON[p.element]}${SPIRITS[p.element].name} → ${monName(m)} -${amount}${t > 1 ? ' (유리!)' : ''}`);
   for (const x of s.monsters) if (x.pack === m.pack) x.aggro = true;
   const lv = lvOf(s, p.element);
   if (m.hp > 0 && lv >= 3) {
@@ -775,13 +798,17 @@ function monAttack(s: RpgState, fx: Fx[], m: Mon, t: Target) {
     const amount = Math.max(1, Math.round(ms.atk * (BAL.defK / (BAL.defK + guard)) * spiritBonus(s, d.element).guard * roll * monDmgMul(s)));
     const h = s.heroes[s.heroId];
     h.hp = Math.max(0, h.hp - amount);
+    fx.push({ k: 'hit', from: { c: m.c, r: m.r }, to: { ...s.pos }, who: 'mon', element: d.element });
     fx.push({ k: 'dmg', c: s.pos.c, r: s.pos.r, amount, eff: null, blocked: false, crit: false, onHero: true });
+    blog(s, `${monName(m)}${d.range > 1 ? `(${dist(m, s.pos)}칸 원거리)` : ''} → 아렌 -${amount}`);
   } else {
     const p = t.pet;
     const ps = petStats(s, p.element);
     const amount = Math.max(1, Math.round(ms.atk * (BAL.defK / (BAL.defK + ps.def)) * typeMul(d.element, p.element) * roll * monDmgMul(s)));
     p.hp -= amount;
+    fx.push({ k: 'hit', from: { c: m.c, r: m.r }, to: { c: p.c, r: p.r }, who: 'mon', element: d.element });
     fx.push({ k: 'dmg', c: p.c, r: p.r, amount, eff: null, blocked: false, crit: false, onPet: true });
+    blog(s, `${monName(m)} → ${EL_ICON[p.element]}${SPIRITS[p.element].name} -${amount}`);
     if (p.hp <= 0) {
       p.hp = 0;
       p.dead = true;
@@ -932,3 +959,55 @@ export function stageInfo(s: RpgState) {
 }
 
 export { beats };
+
+// ───────── 헥사 눌러 이동 (D86) ─────────
+
+/** 목표 칸까지 가는 첫 걸음 방향. 몬스터 칸은 막힘(목표가 몬스터면 그 옆까지 가서 공격). 길이 없으면 null */
+export function stepToward(s: RpgState, goal: { c: number; r: number }): Dir | null {
+  const start = key(s.pos.c, s.pos.r);
+  const gk = key(goal.c, goal.r);
+  if (start === gk) return null;
+  const prev = new Map<string, [string, Dir]>();
+  const q = [s.pos];
+  const seen = new Set([start]);
+  const DIRS: Dir[] = ['E', 'W', 'NE', 'NW', 'SE', 'SW'];
+  while (q.length) {
+    const p = q.shift()!;
+    const pk = key(p.c, p.r);
+    if (pk === gk) {
+      let k = gk;
+      let d: Dir | null = null;
+      while (k !== start) {
+        const [bk, bd] = prev.get(k)!;
+        d = bd;
+        k = bk;
+      }
+      return d;
+    }
+    for (const d of DIRS) {
+      const n = step(p.c, p.r, d);
+      const k = key(n.c, n.r);
+      if (seen.has(k) || !isFloor(n.c, n.r)) continue;
+      if (monAt(s, n.c, n.r) && k !== gk) continue;
+      seen.add(k);
+      prev.set(k, [pk, d]);
+      q.push(n);
+    }
+  }
+  return null;
+}
+
+/** 목표까지 남은 길 (화면에 점으로 표시) */
+export function pathTo(s: RpgState, goal: { c: number; r: number }, max = 30): { c: number; r: number }[] {
+  const sim = { ...s, pos: { ...s.pos } };
+  const out: { c: number; r: number }[] = [];
+  for (let i = 0; i < max; i++) {
+    const d = stepToward(sim as RpgState, goal);
+    if (!d) break;
+    const n = step(sim.pos.c, sim.pos.r, d);
+    out.push(n);
+    if (monAt(s, n.c, n.r)) break;
+    sim.pos = n;
+  }
+  return out;
+}
