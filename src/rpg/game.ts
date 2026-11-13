@@ -253,7 +253,7 @@ export function nodeBlock(s: RpgState, nodeId: string): string | null {
   const node = TREES[s.heroId].find((n) => n.id === nodeId);
   if (!node) return '없는 기술';
   if (rankOf(s, nodeId) >= node.maxRank) return '최대 랭크예요';
-  if (h.level < node.level) return `Lv${node.level}부터 찍을 수 있어요`;
+  if (h.level < node.level) return `레벨 ${node.level}부터 찍을 수 있어요`;
   if (node.pre && rankOf(s, node.pre) < (node.preRanks ?? 1)) return fixJosa(`[${TREES[s.heroId].find((n) => n.id === node.pre)!.name}]에 ${node.preRanks}포인트를 넣으면 열려요`);
   if (h.skillPts <= 0) return '기술 포인트가 없어요 (레벨업마다 1개)';
   return null;

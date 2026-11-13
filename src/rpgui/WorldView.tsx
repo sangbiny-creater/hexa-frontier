@@ -86,12 +86,11 @@ export function WorldView({
     const fullW = HW * (COLS + 1.2);
     width = HW * 7.3; // 가로 7칸
     viewH = width * aspect;
-    // 주인공을 화면 60% 높이에 두고 pan(줄 단위)만큼 위아래로
+    // 주인공을 화면 위 58% 높이에 둔다. 지도 맨 아래(시작)에서는 지도 아래 끝이 아래쪽 버튼(화면 아래 28%) 바로 위에 오도록 멈추고,
+    // 맨 위(출구)는 위쪽 정보 창 아래까지 내려오게. 그 밖으로 보이는 곳은 숲으로 채운다(검은 빈 곳 없음).
     const camRow = Math.max(0, Math.min(w.rows - 1, pos.r + pan.y));
     tX = Math.max(0, Math.min(fullW - width, hero.x + pan.x - width / 2));
-    const topRaw = -camRow * ROW_H - viewH * 0.6;
-    // 맨 위(출구)는 화면 안쪽까지 내려오게 위에 여유
-    tY = Math.min(S * 1.3 - viewH, Math.max(-(w.rows + 1) * ROW_H - S * 2.2, topRaw));
+    tY = Math.max(-(w.rows - 1) * ROW_H - viewH * 0.3, Math.min(S * 1.2 - viewH * 0.72, -camRow * ROW_H - viewH * 0.58));
   }
   // 카메라가 한 칸씩 툭툭 튀지 않게 부드럽게 따라간다
   const cam = useRef({ x: tX, y: tY });
@@ -124,6 +123,9 @@ export function WorldView({
     const hi = Math.max(top, tY);
     for (let r = Math.floor(-(hi + viewH) / ROW_H) - 1; r <= Math.ceil(-lo / ROW_H) + 2; r++) if (r >= 0 && r < w.rows) rows.push(r);
   }
+  // 지도 밖 장식(숲)으로 채울 줄: 화면에 보이는 모든 줄
+  const decoRows: number[] = [];
+  if (!land) for (let r = Math.floor(-(Math.max(top, tY) + viewH) / ROW_H) - 2; r <= Math.ceil(-Math.min(top, tY) / ROW_H) + 2; r++) decoRows.push(r);
 
   // 손가락을 누르고 있는 동안 화면이 따라 움직이면 손가락 밑 칸도 바뀐다 → 계속 그쪽으로 걷는다(지도 위 조이스틱)
   useEffect(() => {
@@ -240,6 +242,20 @@ export function WorldView({
         drag.current = null;
       }}
     >
+      {/* 지도 밖: 숲 */}
+      {decoRows.flatMap((r) =>
+        Array.from({ length: COLS + 2 }, (_, i) => {
+          const c = i - 1;
+          if (r >= 0 && r < w.rows && c >= 0 && c < COLS) return null;
+          const p = xy(c, r);
+          return (
+            <g key={`o${c},${r}`}>
+              <polygon points={hc(p.x, p.y, S - 0.5)} fill="#16261b" />
+              <image href={img((c + r + 99) % 2 ? 'forest-5' : 'forest-6')} x={p.x - HW * 0.55} y={p.y - S * 1.45} width={HW * 1.1} height={S * 2.3} preserveAspectRatio="xMidYMax meet" opacity={0.8} />
+            </g>
+          );
+        }),
+      )}
       {rows.flatMap((r) =>
         Array.from({ length: COLS }, (_, c) => {
           const cell = w.cells.get(key(c, r))!;

@@ -1,26 +1,29 @@
-// 이동 버튼 (D94): 화면 오른쪽 아래 고정. 6방향 화살표, 누르고 있으면 계속 걷고, 손가락을 미끄러뜨리면 방향이 바뀐다.
+// 이동 버튼 (D94·D98): 화면 오른쪽 아래 고정. 6방향 화살표, 누르고 있으면 계속 걷고, 손가락을 미끄러뜨리면 방향이 바뀐다.
+// 동그라미 밖이라도 오른쪽 아래 영역 어디를 눌러도 먹힌다(방향은 동그라미 가운데 기준).
 // 폰에서 확실히 먹히도록 터치 이벤트를 직접 받는다(passive: false). PC는 마우스.
 // 이 영역 안에서는 지도가 눌리거나 끌리지 않는다.
 import { useEffect, useRef, useState } from 'react';
 
-/** 화살표 각도(0 = 오른쪽, 반시계) — 가로 화면(지도가 왼쪽→오른쪽)의 6방향 */
-export const PAD_ANGLES = [30, 90, 150, 210, 270, 330] as const;
-const ARROW: Record<number, string> = { 30: '↗', 90: '↑', 150: '↖', 210: '↙', 270: '↓', 330: '↘' };
-const R = 46; // 화살표가 놓이는 반지름(px)
-const DEAD = 14; // 가운데 이 안은 '멈춤'
+/** 화살표 각도(0 = 오른쪽, 반시계) — 세로 화면(지도가 아래→위)의 6방향 */
+export const PAD_ANGLES = [0, 60, 120, 180, 240, 300] as const;
+const ARROW: Record<number, string> = { 0: '→', 60: '↗', 120: '↖', 180: '←', 240: '↙', 300: '↘' };
+const R = 52; // 화살표가 놓이는 반지름(px)
+const DEAD = 12; // 가운데 이 안은 '멈춤'
 
 export function HexPad({ onDir }: { onDir: (deg: number | null) => void }) {
   const box = useRef<HTMLDivElement>(null);
+  const zone = useRef<HTMLDivElement>(null);
   const cb = useRef(onDir);
   cb.current = onDir;
   const [on, setOn] = useState<number | null>(null);
 
   useEffect(() => {
-    const el = box.current;
-    if (!el) return;
+    const pad = box.current;
+    const el = zone.current;
+    if (!pad || !el) return;
     let cur: number | null = null;
     const pick = (x: number, y: number) => {
-      const r = el.getBoundingClientRect();
+      const r = pad.getBoundingClientRect();
       const dx = x - (r.left + r.width / 2);
       const dy = (r.top + r.height / 2) - y;
       if (Math.hypot(dx, dy) < DEAD) return null;
@@ -84,7 +87,7 @@ export function HexPad({ onDir }: { onDir: (deg: number | null) => void }) {
   }, []);
 
   return (
-    <div className="g-pad-zone" onPointerDown={(e) => e.stopPropagation()}>
+    <div ref={zone} className="g-pad-zone" onPointerDown={(e) => e.stopPropagation()}>
       <div ref={box} className="hexpad">
         {PAD_ANGLES.map((a) => {
           const rad = (a * Math.PI) / 180;

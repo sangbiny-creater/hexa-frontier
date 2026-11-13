@@ -214,50 +214,43 @@
 .guide-strip .link { color: #8a5a00; font-weight: 800; margin-left: 6px; }
 .best-btn { width: 100%; }
 
-/* ── D94: 가로 화면 전용 · 평범한 게임 배치 (지도 전체 + 네 모서리) ── */
-.rpg { max-width: none; }
+/* ── D98: 세로 화면 · 평범한 게임 배치 (지도 전체 + 네 모서리) ── */
 .rpg.game { display: block; }
 .game .rworld { position: absolute; inset: 0; }
-.game .g-tl { position: absolute; left: calc(env(safe-area-inset-left) + 8px); top: calc(env(safe-area-inset-top) + 8px); display: flex; flex-direction: column; align-items: flex-start; gap: 6px; z-index: 5; }
-.game .rmenu2 { padding: 4px; gap: 2px; background: #0a1411d9; border: 1px solid #ffffff1a; border-radius: 14px; }
-.game .rmenu2 button { flex: none; width: 56px; padding: 3px 0; font-size: 10.5px; }
-.game .rmenu2 .dot { right: 4px; }
+.game .g-tl { position: absolute; left: 8px; top: calc(env(safe-area-inset-top) + 8px); display: flex; flex-direction: column; align-items: flex-start; gap: 6px; z-index: 5; }
+.game .rmenu2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 4px; background: #0a1411d9; border: 1px solid #ffffff1a; border-radius: 14px; }
+.game .rmenu2 button { width: 54px; padding: 3px 0; font-size: 10.5px; }
+.game .rmenu2 button span { font-size: 17px; }
+.game .rmenu2 .dot { right: 2px; }
 .game .state-badge { position: static; }
-.game .g-stage { position: absolute; top: calc(env(safe-area-inset-top) + 8px); left: 50%; transform: translateX(-50%); width: min(230px, 30vw); padding: 4px 10px 5px; background: #0a1411d9; border: 1px solid #ffffff1a; border-radius: 12px; font-size: 10.5px; text-align: center; color: #c9d8cf; z-index: 4; display: flex; flex-direction: column; gap: 3px; }
-.game .g-stage b { color: #fff; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.game .g-stage .sp-bar { margin: 0 8px; }
-.game .g-stage .sp-bar em { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 10px; font-style: normal; }
-.game .g-hero { position: absolute; right: calc(env(safe-area-inset-right) + 8px); top: calc(env(safe-area-inset-top) + 8px); width: 214px; padding: 6px 8px; background: #0a1411d9; border: 1px solid #ffffff1a; border-radius: 14px; z-index: 5; display: flex; flex-direction: column; gap: 5px; }
+.game .g-hero { position: absolute; right: 8px; top: calc(env(safe-area-inset-top) + 8px); width: min(220px, calc(100% - 140px)); padding: 6px 8px; background: #0a1411d9; border: 1px solid #ffffff1a; border-radius: 14px; z-index: 5; display: flex; flex-direction: column; gap: 5px; }
 .game .gh-top { display: flex; gap: 8px; align-items: center; }
 .game .g-hero .rhud-face, .game .g-hero .rhud-face img { width: 40px; height: 40px; }
-.game .g-hero .rhud-face b { white-space: nowrap; }
 .game .gh-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: 800; }
+.game .gh-stage { display: flex; flex-direction: column; gap: 3px; font-size: 10px; color: #c9d8cf; border-top: 1px solid #ffffff14; padding-top: 4px; }
+.game .gh-stage b { color: #fff; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.game .gh-stage .sp-bar { margin: 2px 8px 2px 2px; }
+.game .gh-stage .sp-bar em { position: absolute; top: 50%; transform: translate(-50%, -50%); font-size: 10px; font-style: normal; }
 .game .gh-btns { display: flex; justify-content: space-between; align-items: center; }
 .game .gh-btns .link { font-size: 11px; color: #c9d8cf; font-weight: 700; }
 .game .gh-btns .link:disabled { opacity: 0.35; }
-.game .g-bl { position: absolute; left: calc(env(safe-area-inset-left) + 8px); bottom: calc(env(safe-area-inset-bottom) + 8px); display: flex; align-items: flex-end; gap: 6px; z-index: 5; }
-.game .g-skill { width: 66px; height: 66px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 16px; border: 2px solid; background: #1f3329e6; color: #fff; font-size: 10.5px; }
+.game .g-bl { position: absolute; left: 8px; bottom: calc(env(safe-area-inset-bottom) + 10px); display: flex; flex-direction: column; align-items: flex-start; gap: 6px; z-index: 5; }
+.game .g-pots, .game .g-skills { display: flex; gap: 6px; }
+.game .g-skill { width: 68px; height: 68px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 16px; border: 2px solid; background: #1f3329e6; color: #fff; font-size: 10.5px; }
 .game .g-skill .gs-icon { font-size: 22px; line-height: 1; }
 .game .g-skill small { font-size: 9.5px; color: #c9d8cf; }
 .game .g-skill.off { opacity: 0.5; }
-.game .g-potion { width: 46px; height: 46px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 14px; background: #2a2440e6; border: 2px solid #6a5a99; font-size: 18px; }
-.game .g-potion b { font-size: 11px; }
+.game .g-potion { width: 52px; height: 40px; display: flex; align-items: center; justify-content: center; gap: 3px; border-radius: 12px; background: #2a2440e6; border: 2px solid #6a5a99; font-size: 17px; }
+.game .g-potion b { font-size: 12px; }
 .game .g-potion:disabled { opacity: 0.4; }
-.game .g-pad-zone { position: absolute; right: 0; bottom: 0; width: 200px; height: 190px; z-index: 6; touch-action: none; }
-.game .hexpad { position: absolute; right: calc(env(safe-area-inset-right) + 14px); bottom: calc(env(safe-area-inset-bottom) + 12px); width: 156px; height: 156px; border-radius: 50%; background: #0a1411b3; border: 2px solid #ffffff26; touch-action: none; user-select: none; -webkit-user-select: none; cursor: pointer; }
-.game .hp-btn { position: absolute; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; background: #ffffff1f; border: 1px solid #ffffff33; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 900; color: #fff; pointer-events: none; }
+/* 이동 버튼: 오른쪽 아래 영역 전체가 버튼(지도가 눌리지 않음) */
+.game .g-pad-zone { position: absolute; right: 0; bottom: 0; width: 200px; height: 200px; z-index: 6; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.game .hexpad { position: absolute; right: 12px; bottom: calc(env(safe-area-inset-bottom) + 14px); width: 170px; height: 170px; border-radius: 50%; background: #0a1411b3; border: 2px solid #ffffff26; touch-action: none; cursor: pointer; }
+.game .hp-btn { position: absolute; width: 50px; height: 50px; margin: -25px 0 0 -25px; border-radius: 50%; background: #ffffff1f; border: 1px solid #ffffff33; display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 900; color: #fff; pointer-events: none; }
 .game .hp-btn.on { background: #ffd257; color: #2b2416; }
 .game .hp-mid { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 10px; color: #ffffff88; pointer-events: none; }
-.game .battle-log { left: calc(env(safe-area-inset-left) + 260px); right: calc(env(safe-area-inset-right) + 204px); bottom: calc(env(safe-area-inset-bottom) + 8px); text-align: center; font-size: 10.5px; }
-.game .recenter { top: auto; right: 22px; bottom: 200px; z-index: 6; }
-.game .rtoast.top { top: 74px; }
+.game .battle-log { left: 8px; right: 8px; top: calc(env(safe-area-inset-top) + 160px); bottom: auto; text-align: right; font-size: 10.5px; }
+.game .recenter { top: 45%; right: 8px; z-index: 6; }
+.game .rtoast.top { top: 220px; }
 .tut-card p { margin: 0; font-size: 14px; line-height: 1.55; }
 .tut-card .link { font-size: 12px; color: #8a5a00; }
-.rotate-screen { align-items: center; justify-content: center; gap: 8px; text-align: center; padding: 24px; }
-.rotate-icon { font-size: 54px; animation: rot 1.6s ease-in-out infinite; }
-@keyframes rot { 0%, 30% { transform: rotate(0); } 60%, 100% { transform: rotate(-90deg); } }
-/* 처음 화면·스테이지 목록도 가로로 */
-.intro-screen { display: grid; grid-template-columns: 38% minmax(0, 420px); justify-content: center; align-content: center; column-gap: 24px; row-gap: 6px; text-align: left; }
-.intro-screen .intro-hero { grid-column: 1; grid-row: 1 / span 6; justify-self: center; align-self: center; max-height: 72dvh; max-width: 100%; }
-.intro-screen > :not(.intro-hero) { grid-column: 2; }
-.stage-list { display: grid; grid-template-columns: 1fr 1fr; align-content: start; }
