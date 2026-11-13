@@ -17,13 +17,25 @@ export interface LiveTips {
   ultGuide: boolean;
 }
 
-/** 옆 화면 위치: 열(전/중/후)이 가로, 칸(lane)이 세로 */
-function pos(slot: number, side: 'ally' | 'enemy') {
+// 세로 배치판 (D71: 처음 배치도와 같은 모양): 위쪽 3×3 헥사 = 적, 아래쪽 3×3 = 아군, 전열이 가운데에서 마주 본다.
+const BW = 340;
+const BH = 362;
+const HR = 29;
+function slotXY(slot: number, side: 'ally' | 'enemy') {
   const r = rowOf(slot);
   const l = laneOf(slot);
-  const x = side === 'ally' ? [36, 22, 8][r] : [64, 78, 92][r];
-  const y = [22, 47, 72][l] + (r % 2 ? 10 : 0);
-  return { x, y };
+  return { x: 84 + l * 66 + (r % 2 ? 33 : 0), y: side === 'enemy' ? [150, 98, 46][r] : [224, 276, 328][r] };
+}
+/** 배치판 안의 % 위치 */
+function pos(slot: number, side: 'ally' | 'enemy') {
+  const p = slotXY(slot, side);
+  return { x: (p.x / BW) * 100, y: (p.y / BH) * 100 };
+}
+function hexPts(cx: number, cy: number, r: number) {
+  return Array.from({ length: 6 }, (_, i) => {
+    const a = (Math.PI / 180) * (60 * i - 30);
+    return `${cx + r * Math.cos(a)},${cy + r * Math.sin(a)}`;
+  }).join(' ');
 }
 
 export function LiveBattleView({
@@ -137,7 +149,18 @@ export function LiveBattleView({
       </div>
 
       <div className={`stage ${banner ? `flash-${banner.side}` : ''}`}>
-        <div className="stage-ground" />
+        <div className="board">
+        <svg className="board-hex" viewBox={`0 0 ${BW} ${BH}`}>
+          <rect x={0} y={186} width={BW} height={1.5} fill="#ffffff22" />
+          {(['enemy', 'ally'] as const).flatMap((side) =>
+            Array.from({ length: 9 }, (_, slot) => {
+              const p = slotXY(slot, side);
+              const u = b.units.find((x) => x.snap.side === side && x.snap.slot === slot);
+              const col = u ? ELEMENT_COLOR[u.snap.element] : null;
+              return <polygon key={side + slot} points={hexPts(p.x, p.y, HR)} fill={col ? col + '30' : '#ffffff08'} stroke={col ? (u!.snap.isBoss ? '#ff5a5a' : col) : '#ffffff1a'} strokeWidth={u?.snap.isBoss ? 3 : 1.5} />;
+            }),
+          )}
+        </svg>
         {b.units.map((u) => {
           const p = pos(u.snap.slot, u.snap.side);
           const st = unitHp(b, u.snap.uid);
@@ -185,6 +208,7 @@ export function LiveBattleView({
             {banner.text}
           </div>
         )}
+        </div>
         {tips?.note && <div className="live-note">{tips.note}</div>}
         {tips?.ultGuide && anyReady && !auto && <div className="live-guide">👇 빛나는 초상화를 눌러 <b>필살기</b>! 언제 쓰느냐가 승부를 갈라요</div>}
       </div>

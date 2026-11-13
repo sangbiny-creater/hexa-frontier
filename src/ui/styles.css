@@ -494,3 +494,20 @@ img { user-select: none; -webkit-user-drag: none; }
 .ult-btn { flex: 0 1 84px; }
 .lunit { width: 25%; }
 .lunit.boss { width: 34%; }
+
+/* D71: 세로 헥사 배치판 전투 (위 = 적, 아래 = 아군) */
+.stage { display: flex; align-items: center; justify-content: center; background: radial-gradient(90% 70% at 50% 50%, #2c4a33, #0c1611); }
+.stage-ground { display: none; }
+.board { position: relative; width: 100%; max-width: calc((100dvh - 250px) * 0.94); aspect-ratio: 340 / 362; }
+.board-hex { position: absolute; inset: 0; width: 100%; height: 100%; }
+.lunit { width: 19%; transform: translate(-50%, -62%); }
+.lunit.boss { width: 27%; }
+.lunit.enemy img { transform: none; }
+.lunit.acting.ally img { animation: dashU 0.25s; }
+.lunit.acting.enemy img { animation: dashD 0.25s; }
+.lunit.enemy.hit img { animation: shake 0.25s; }
+@keyframes dashU { 50% { transform: translateY(-12px); } }
+@keyframes dashD { 50% { transform: translateY(12px); } }
+.lhp { margin: 0 18% 2px; }
+.live-note { top: 6px; }
+.live-guide { bottom: 6px; }
