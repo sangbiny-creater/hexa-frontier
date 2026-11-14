@@ -13,7 +13,7 @@ git init -q
 git checkout -q -b gh-pages
 git add -A
 git commit -q -m "deploy $(date '+%Y-%m-%d %H:%M')"
-git push -q -f "$REMOTE" gh-pages
+git -c http.postBuffer=524288000 push -q -f "$REMOTE" gh-pages
 cd - >/dev/null
 rm -rf "$TMP"
 echo "배포 완료: https://sangbiny-creater.github.io/hexa-frontier/"
