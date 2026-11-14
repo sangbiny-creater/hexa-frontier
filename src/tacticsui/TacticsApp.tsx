@@ -196,7 +196,16 @@ export function TacticsApp() {
           <li>💧🔥🌿⛰️🌪️ 속성 상성과 물리·마법</li>
           <li>🏆 이기면 새 스피릿과 장비, 다음 판으로</li>
         </ul>
-        <button className="cta" onClick={() => (b ? (setScreen('battle'), setBrief(false)) : setScreen('camp'))}>
+        <button
+          className="cta"
+          onClick={() => {
+            if (!b) return setScreen('camp');
+            setScreen('battle');
+            setBrief(false);
+            // 이어서 할 때도 아군 쪽을 보여 준다
+            setTimeout(() => focus(b.units.find((x) => x.side === 'ally' && !x.dead)?.uid ?? null, true), 60);
+          }}
+        >
           {b ? '전투 이어서' : hasSave ? '이어서 하기' : '모험 시작'}
         </button>
         {hasSave && (

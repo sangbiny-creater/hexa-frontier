@@ -1,8 +1,8 @@
-// 헥사 전술 전투 (D109·D117) 스테이지 10개: 지형(7×12 헥사), 적 배치, 승리 조건, 보상·합류 스피릿.
-// 좌표: c(0~6 가로), r(0 = 맨 위 ~ 11 = 맨 아래). 홀수 줄은 반 칸 오른쪽(odd-r).
+// 헥사 전술 전투 (D109·D117) 스테이지 10개: 지형(6×12 헥사), 적 배치, 승리 조건, 보상·합류 스피릿.
+// 좌표: c(0~5 가로), r(0 = 맨 위 ~ 11 = 맨 아래). 홀수 줄은 반 칸 오른쪽(odd-r).
 import type { Element, Role, Terrain, UnitDef } from './data';
 
-export const COLS = 7; // D117: 9칸 → 7칸 (칸을 크게)
+export const COLS = 6; // D117·D118: 9칸 → 7칸 → 6칸 (칸을 크게)
 export const ROWS = 12;
 
 /** 적 유닛 정의 (id는 e_로 시작 — 아군 스피릿과 겹치지 않게). 그림은 스피릿 그림의 다른 단계 */
@@ -38,7 +38,7 @@ export interface StageDef {
   n: number;
   name: string;
   story: string;
-  map: string[]; // 12줄 × 7글자: . 평지, f 숲, h 언덕, w 물, # 바위, c 야영지
+  map: string[]; // 12줄 × 6글자: . 평지, f 숲, h 언덕, w 물, # 바위, c 야영지
   deploy: [number, number][]; // 아군 배치 칸
   enemies: EnemySpawn[];
   win: 'rout' | 'boss';
@@ -67,7 +67,7 @@ export const STAGES: StageDef[] = [
     n: 1,
     name: '숲 입구의 첫 싸움',
     story: '숲 입구에 잎새 강아지들이 길을 막았다. 아렌과 스피릿들이 처음으로 함께 싸운다.',
-    map: ['.f...f.', 'f..h..f', '..f....', '..f..#.', '...f...', 'h.....f', '.f..#..', '....f..', '..h....', '.......', 'f.....f', '..c....'],
+    map: ['.f...f', 'f..h..', '..f...', '..f..#', '...f..', 'h.....', '.f..#.', '....f.', '..h...', '......', 'f.....', '..c...'],
     deploy: BOTTOM,
     enemies: [
       { id: 'leafpup', lv: 1, c: 2, r: 4 },
@@ -85,7 +85,7 @@ export const STAGES: StageDef[] = [
     n: 2,
     name: '물안개 여울',
     story: '여울을 건너야 한다. 물결 여우들이 물 위에서 기다린다. 물 속성 적에게는 🌪️바람이 강하다.',
-    map: ['.h...h.', '.......', '.www...', 'wwwww..', '.www.ww', '..w.www', 'f...ww.', '....w..', '.f.....', 'h....f.', '.......', '...c...'],
+    map: ['.h...h', '......', '.www..', 'wwwww.', '.www.w', '..w.ww', 'f...ww', '....w.', '.f....', 'h....f', '......', '...c..'],
     deploy: BOTTOM,
     enemies: [
       { id: 'tidekit', lv: 2, c: 2, r: 3 },
@@ -105,7 +105,7 @@ export const STAGES: StageDef[] = [
     n: 3,
     name: '고목의 뜰',
     story: '숲의 주인 고목 골렘이 깨어났다. 골렘만 쓰러뜨리면 길이 열린다.',
-    map: ['ff...ff', '..f.f..', 'f..h..f', '.f...f.', '...f...', 'f.....f', '.#.f.#.', '.......', 'f..h..f', '.......', '.f...f.', '...c...'],
+    map: ['ff...f', '..f.f.', 'f..h..', '.f...f', '...f..', 'f.....', '.#.f.#', '......', 'f..h..', '......', '.f...f', '...c..'],
     deploy: BOTTOM,
     enemies: [
       { id: 'golem', lv: 5, c: 3, r: 1, boss: true, ai: 'guard' },
@@ -113,7 +113,7 @@ export const STAGES: StageDef[] = [
       { id: 'leafpup', lv: 3, c: 1, r: 4 },
       { id: 'leafpup', lv: 4, c: 5, r: 4 },
       { id: 'leafkit', lv: 3, c: 0, r: 2, ai: 'hold' },
-      { id: 'leafkit', lv: 4, c: 6, r: 2, ai: 'hold' },
+      { id: 'leafkit', lv: 4, c: 5, r: 2, ai: 'hold' },
     ],
     win: 'boss',
     turns: 18,
@@ -126,7 +126,7 @@ export const STAGES: StageDef[] = [
     n: 4,
     name: '바위엄니 고개',
     story: '좁은 고갯길. 바위엄니 무리가 언덕 위에서 내려온다.',
-    map: ['..h.h..', '.......', '#.h.h.#', '.......', '#..#..#', '...h...', '.......', '#.#.#.#', '.......', '..h.h..', '.......', '#..c..#'],
+    map: ['..h.h.', '......', '#.h.h.', '......', '#..#..', '...h..', '......', '#.#.#.', '......', '..h.h.', '......', '#..c..'],
     deploy: BOTTOM,
     enemies: [
       { id: 'boar', lv: 5, c: 2, r: 3 },
@@ -147,14 +147,14 @@ export const STAGES: StageDef[] = [
     n: 5,
     name: '개울 동굴',
     story: '어두운 동굴 속 물길. 해일 여우왕이 동굴 깊은 곳을 지킨다.',
-    map: ['.w...w.', '.ww.ww.', 'w..h..w', '..www..', '.w...w.', '.w.#.w.', 'w.....w', '..w.w..', '.......', '.h...h.', '.......', '...c...'],
+    map: ['.w...w', '.ww.ww', 'w..h..', '..www.', '.w...w', '.w.#.w', 'w.....', '..w.w.', '......', '.h...h', '......', '...c..'],
     deploy: BOTTOM,
     enemies: [
       { id: 'tidelord', lv: 8, c: 3, r: 2, boss: true, ai: 'hold' },
       { id: 'shell', lv: 7, c: 2, r: 3, ai: 'guard' },
       { id: 'shell', lv: 7, c: 4, r: 3, ai: 'guard' },
       { id: 'tidekit', lv: 7, c: 0, r: 5 },
-      { id: 'tidekit', lv: 7, c: 6, r: 5 },
+      { id: 'tidekit', lv: 7, c: 5, r: 5 },
       { id: 'coral', lv: 6, c: 1, r: 1, ai: 'hold' },
       { id: 'coral', lv: 6, c: 5, r: 1, ai: 'hold' },
     ],
@@ -169,7 +169,7 @@ export const STAGES: StageDef[] = [
     n: 6,
     name: '불씨 언덕',
     story: '바위 틈에서 불길이 솟는다. 불꽃새들이 하늘을 덮었다.',
-    map: ['h.h.h.h', '.......', '..#.#..', '..h.h..', '#.....#', '.h.#.h.', '.......', 'h.#.#.h', '.......', '.h...h.', '.......', '...c...'],
+    map: ['h.h.h.', '......', '..#.#.', '..h.h.', '#.....', '.h.#.h', '......', 'h.#.#.', '......', '.h...h', '......', '...c..'],
     deploy: BOTTOM,
     enemies: [
       { id: 'ember', lv: 9, c: 1, r: 1, ai: 'hold' },
@@ -191,14 +191,14 @@ export const STAGES: StageDef[] = [
     n: 7,
     name: '테라스톤 광산',
     story: '거대한 돌 마법사 테라스톤이 광산을 막고 있다.',
-    map: ['#.....#', '..h.h..', '.#...#.', '...h...', '.#.#.#.', '.......', '.h.#.h.', '.......', '.#...#.', '.......', '..h.h..', '#..c..#'],
+    map: ['#.....', '..h.h.', '.#...#', '...h..', '.#.#.#', '......', '.h.#.h', '......', '.#...#', '......', '..h.h.', '#..c..'],
     deploy: BOTTOM,
     enemies: [
       { id: 'terra', lv: 12, c: 3, r: 1, boss: true, ai: 'hold' },
       { id: 'rockguard', lv: 11, c: 2, r: 3, ai: 'guard' },
       { id: 'rockguard', lv: 11, c: 4, r: 3, ai: 'guard' },
       { id: 'boar', lv: 11, c: 0, r: 5 },
-      { id: 'boar', lv: 11, c: 6, r: 5 },
+      { id: 'boar', lv: 11, c: 5, r: 5 },
       { id: 'boar', lv: 12, c: 3, r: 5 },
       { id: 'flame', lv: 11, c: 1, r: 1, ai: 'hold' },
     ],
@@ -213,11 +213,11 @@ export const STAGES: StageDef[] = [
     n: 8,
     name: '폭풍 들판',
     story: '넓은 들판. 돌풍 늑대들이 사방에서 달려든다. 둘러싸이지 않게!',
-    map: ['.......', '.f...f.', '.......', 'f..h..f', '.......', '..f.f..', '.......', 'f..h..f', '.......', '.f...f.', '.......', '...c...'],
+    map: ['......', '.f...f', '......', 'f..h..', '......', '..f.f.', '......', 'f..h..', '......', '.f...f', '......', '...c..'],
     deploy: BOTTOM,
     enemies: [
       { id: 'wolf', lv: 14, c: 0, r: 4 },
-      { id: 'wolf', lv: 14, c: 6, r: 4 },
+      { id: 'wolf', lv: 14, c: 5, r: 4 },
       { id: 'wolf', lv: 14, c: 1, r: 2 },
       { id: 'wolf', lv: 14, c: 5, r: 2 },
       { id: 'gale', lv: 14, c: 2, r: 0, ai: 'hold' },
@@ -235,7 +235,7 @@ export const STAGES: StageDef[] = [
     n: 9,
     name: '얼어붙은 호수',
     story: '호수 한가운데 섬. 물과 바람의 군세가 함께 기다린다.',
-    map: ['ww...ww', 'w.h.h.w', '.......', 'w.www.w', '..www..', 'w.....w', 'ww.h.ww', 'w.....w', '...w...', 'w.....w', '.......', 'w..c..w'],
+    map: ['ww...w', 'w.h.h.', '......', 'w.www.', '..www.', 'w.....', 'ww.h.w', 'w.....', '...w..', 'w.....', '......', 'w..c..'],
     deploy: BOTTOM,
     enemies: [
       { id: 'shell', lv: 16, c: 2, r: 1, ai: 'guard' },
@@ -258,7 +258,7 @@ export const STAGES: StageDef[] = [
     n: 10,
     name: '폭풍의 정상',
     story: '마지막 봉우리. 폭풍 늑대왕이 모든 바람을 거느린다.',
-    map: ['..h.h..', '.......', '.h...h.', '...#...', '.f...f.', '.......', '.h.#.h.', '.......', '.f...f.', '.......', '.......', '#..c..#'],
+    map: ['..h.h.', '......', '.h...h', '...#..', '.f...f', '......', '.h.#.h', '......', '.f...f', '......', '......', '#..c..'],
     deploy: BOTTOM,
     enemies: [
       { id: 'storm', lv: 20, c: 3, r: 1, boss: true, ai: 'hold' },
