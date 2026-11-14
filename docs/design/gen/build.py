@@ -112,6 +112,58 @@ for st in UI_STEPS:
 sections.append(("uiux", "UI·UX 단계별", """한 단계씩 이미지를 받아 보고 결정한 뒤 다음 단계로 갑니다. 앞 단계에서 고른 이미지를 다음 단계에 **첨부**하고 `{choice}`에 고른 안을 적어 주세요.
 특히 **2~3단계(원정 = 실제 접속 화면)**는 지금의 100판 목록을 완전히 대체합니다. 하단 탭은 **원정 · 부대 · 도감 · 상점 · 더보기** 5개로 제안합니다.""", ui_items))
 
+# 8 Copilot 에이전트 키트 (D133)
+import agent as AG
+def _sp(s):
+    el, role, code, ko, en, kind, atk, desc = s
+    return SPIRIT_SHEET.format(attack=atk, role_hint=ROLE_HINT[role], code=code, en=en, ko=ko, el=EL_EN[el], role_en=ROLE_KIND.get((role, kind), ROLE_EN[role]), desc=desc)
+def _lu(el):
+    lst = [s for s in SPIRITS if s[0] == el]
+    return ELEMENT_LINEUP.format(el_en=EL_EN[el], sample=lst[0][2], lst="\n".join(f"{i + 1}. {s[2]} {s[4]} ({s[1]}): {s[7].split(';')[0]}" for i, s in enumerate(lst)))
+def _boss(b, chap):
+    if not chap:
+        st, el, ko, en, desc = b
+        return BOSS_SHEET.format(kind="ELITE MID-BOSS", en=en, ko=ko, stage=st, el=el, desc=desc, extra="ENRAGED IDLE (glowing eyes, aura flaring)")
+    st, el, ko, en, desc, ph = b
+    return BOSS_SHEET.format(kind="FINAL BOSS" if st == 100 else "CHAPTER BOSS", en=en, ko=ko, stage=st, el=el, desc=desc, extra="PHASE 2 IDLE (rift armor broken, crystals blazing)" if st == 100 else "ENRAGED IDLE (glowing eyes, aura flaring)")
+JOBS = AG.build_jobs(
+    _sp,
+    lambda h: HERO_SHEET.format(en=h[2], ko=h[1], ref=h[3], attack=h[4], skill=h[5], desc=h[6]),
+    lambda el, i, m: MONSTER_SHEET.format(en=m[1], ko=m[0], el=EL_EN[el], role=MON_ROLES[i], desc=m[2]),
+    _boss, _lu,
+    PORTRAIT.format(a="Lv.1 form", b="Lv.10 form", c="Lv.25 form"),
+    PORTRAIT.format(a="calm / normal", b="angry or serious (elite version for monsters)", c="happy or enraged (pick what fits the character)"),
+    lambda d, c: EFFECT.format(desc=d, color=c),
+    lambda bm: TILESET.format(n=bm[2].count(",") + 1, biome=bm[1], tiles=bm[2]),
+    lambda st: UI.format(body=st["body"]),
+)
+KIT = os.path.join(OUT, "copilot-agent")
+os.makedirs(KIT, exist_ok=True)
+INSTR = AG.instructions(JOBS)
+open(os.path.join(KIT, "HEXA_작업목록.txt"), "w", encoding="utf-8").write(AG.queue_text(JOBS))
+open(os.path.join(KIT, "지침.txt"), "w", encoding="utf-8").write(INSTR)
+open(os.path.join(KIT, "이름_설명_시작문구.txt"), "w", encoding="utf-8").write(f"이름: {AG.NAME}\n\n설명: {AG.DESC}\n\n시작 문구:\n" + "\n".join(f"- {t}: {m}" for t, m in AG.STARTERS))
+assert len(INSTR) <= 8000, len(INSTR)
+summ = "\n".join(f"| {p} | {a} ~ {b} | {n} |" for p, a, b, n in AG.phase_summary(JOBS))
+sections.append(("agent", "Copilot 에이전트", f"""프롬프트를 하나씩 붙여 넣지 않고, **Copilot 에이전트에게 '다음'만 누르면** 작업 목록 순서대로 한 장씩 만들게 하는 방법입니다. 작업 {len(JOBS)}개(초상 포함)가 지식 파일 하나에 들어 있습니다.
+
+**만드는 법 (Microsoft 365 Copilot → 에이전트 만들기 → 구성)**
+- **이름·설명**: 아래 첫 카드 복사.
+- **지침**: 아래 '지침' 카드 복사해서 붙여 넣기.
+- **지식**: `hexa-frontier-v2/docs/design/copilot-agent/HEXA_작업목록.txt` 업로드. 그림 파일도 받아 주면 `C01.png`, `C02.png`, `Tile_Set.png`, `S0x-xxx.png`도 같이 올리기(안 받으면 대화창에 첨부).
+- **기능**: '이미지 생성' 켜기.
+- **시작 문구**: 아래 카드의 6개.
+- 대화에서 **'시작' → '처음부터'**, 그다음은 마음에 들면 **'다음'**, 아니면 **'다시'** 또는 **'수정: …'**.
+- 이미지는 답 첫 줄의 **저장 이름**으로 받아서 한 폴더에 모아 주세요. 제가 마젠타 배경을 지우고 잘라서 게임에 넣습니다.
+
+| 단계 | 작업 | 개수 |
+|---|---|---|
+{summ}""", [
+    dict(title="이름 · 설명", note="에이전트 만들기 화면의 이름/설명 칸", prompt=f"이름: {AG.NAME}\n\n설명: {AG.DESC}"),
+    dict(title=f"지침 ({len(INSTR)}자)", note="지침 칸에 통째로 붙여 넣기 (8,000자 이하)", prompt=INSTR),
+    dict(title="시작 문구 6개", note="제목 / 메시지", prompt="\n".join(f"{t} / {m}" for t, m in AG.STARTERS)),
+]))
+
 # ── 마크다운 ──
 md = ["# HEXA FRONTIER 디자인 · GPT 이미지 프롬프트 (D127)", "", "content.py에서 만들어짐 — 고칠 때는 `docs/design/gen/content.py`를 고치고 `python3 docs/design/gen/build.py`.", ""]
 for sid, title, intro, items in sections:
@@ -220,7 +272,7 @@ pre {{ margin: 8px 0 0; padding: 12px; border-radius: 8px; background: var(--cod
   <div class="top">
     <div class="eyebrow">HEXA FRONTIER · ART DIRECTION</div>
     <h1>헥사 프론티어 프롬프트 북</h1>
-    <p>GPT 이미지용 프롬프트 <span class="count">{total}</span>개 — 스피릿 60종 전부 새로, 주인공 2, 몬스터 30, 보스 20, 이펙트, 전투 요소, UI·UX 12단계. 각 카드의 [복사]를 눌러 그대로 붙여 넣으세요.</p>
+    <p>GPT 이미지용 프롬프트 <span class="count">{total}</span>개 — 스피릿 60종 전부 새로, 주인공 2, 몬스터 30, 보스 20, 이펙트, 전투 요소, UI·UX 12단계, Copilot 에이전트 키트. 각 카드의 [복사]를 눌러 그대로 붙여 넣으세요.</p>
   </div>
   <nav aria-label="섹션">{nav}</nav>
   {"".join(body)}
