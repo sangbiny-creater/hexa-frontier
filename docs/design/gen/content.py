@@ -1,48 +1,74 @@
 # -*- coding: utf-8 -*-
-"""HEXA FRONTIER 디자인용 GPT 이미지 프롬프트 묶음 (D127).
+"""HEXA FRONTIER 디자인용 GPT 이미지 프롬프트 묶음 (D127, D132 전면 신규).
 여기를 고치고 `python3 docs/design/gen/build.py` 를 실행하면 마크다운과 HTML이 함께 만들어진다."""
 
-STYLE = """[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+STYLE = """[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it."""
 
-SPIRIT_SHEET = """Create one HEXA FRONTIER MONSTER COLLECTION character sheet, 1536x1024 landscape, matching the layout of the attached reference sheet (for example S03-T01 Shellknight) panel for panel:
-- TOP LEFT header: element emblem, role badge "{badge}", large name "{en}", small epithet "{epithet}", element + role tags, a 2-line flavor description.
-- TOP CENTER "EVOLUTION": three full-body poses side by side labeled "Lv.1", "Lv.10", "Lv.25" (small and cute -> grown -> majestic with more armor and ornaments; same species and color identity at every stage).
-- TOP RIGHT "PORTRAIT & ICON": three rounded-square face portraits (Lv.1 / Lv.10 / Lv.25) on element-colored backgrounds, then a round element icon, then a character icon.
-- Under the portraits "IN-GAME HEX TILE (IDLE)": the three evolution stages each standing on its own isometric hex tile, evenly spaced, nothing overlapping.
-- BOTTOM "ANIMATION POSES & IN-GAME TILES": a grid with rows Lv.1 / Lv.10 / Lv.25 and columns IDLE, SKILL, WALK, HURT, KO/DEFEATED, every cell a small hex-tile sprite.
-- Keep generous empty space between every panel item (they will be cut out automatically). Plain flat panel backgrounds.
-Creature ({ko}): {desc}
-It is a creature companion (an animal / beast / elemental being). It is NOT a wizard or mage: no robes, no pointed hats, no staffs, no spell books."""
+SPRITE_GRID = """- Canvas 1536x1024, TRANSPARENT background, an invisible grid of {cols} columns x {rows} rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell."""
 
-MONSTER_SHEET = """Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "{badge}", name "{en}", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster ({ko}, element {el}, role {role}): {desc}"""
+SPIRIT_SHEET = """Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+""" + SPRITE_GRID.format(cols=4, rows=3) + """
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its {attack}), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- {role_hint}
+Spirit {code} "{en}" ({ko}) — {el} element, {role_en}.
+Design: {desc}
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans."""
 
-BOSS_SHEET = """Create one HEXA FRONTIER {kind} sheet, 1536x1024 landscape, same rendering style as the attached reference sheets, epic and readable:
-- LEFT: header with a crown/skull boss badge "{badge}", name "{en}", epithet, element tags.
-- CENTER: one large full-body key art of the boss in a dynamic pose (about 45% of the sheet width).
-- RIGHT TOP: two rounded-square face portraits (calm / enraged).
-- RIGHT MIDDLE "IN-GAME HEX TILE": the boss standing on ONE isometric hex tile but drawn 1.5x larger than a normal unit, with a glowing gold-violet boss rim on the tile.
-- BOTTOM: hex-tile sprites: IDLE, ATTACK, SKILL, HURT, KO{phase}.
-- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a boss aura.
-- Generous empty space between items, plain flat panel backgrounds.
-Boss ({ko}, stage {stage}, element {el}): {desc}"""
+ROLE_HINT = {
+    "탱커": "Tank: sturdy, wide, heavy silhouette, protective shell/plates.",
+    "근딜": "Melee dealer: agile, aggressive stance, claws/horns/blade-like body parts.",
+    "원딜": "Ranged dealer: keeps distance, shoots from its own body parts (no man-made guns or bows unless the design says so).",
+    "힐러": "Healer: soft round silhouette, gentle face, glowing healing motif.",
+    "서포터": "Supporter: charming, expressive, carries a natural buff/debuff motif (song, pollen, drum, bubbles).",
+}
+
+PORTRAIT = """Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
+- Canvas 1536x1024, TRANSPARENT background, three head-and-shoulders portraits side by side in an invisible 3-column grid: left = {a}, center = {b}, right = {c}.
+- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+- No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait."""
+
+ELEMENT_LINEUP = """Create a DESIGN LINEUP of all 12 {el_en} spirits of HEXA FRONTIER in their Lv.1 baby forms, to lock the designs and the relative scale before making individual sprite sheets.
+- Canvas 1536x1024, TRANSPARENT background, two rows of 6 creatures, all standing on the same invisible baseline per row, all at the same scale (tanks slightly bigger, supporters slightly smaller), plenty of space between them.
+- Under each creature a small plain label with its code only (e.g. "{sample}").
+- No ground, no tiles, no shadows.
+Creatures in order (row 1 then row 2):
+{lst}"""
+
+MONSTER_SHEET = """Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+""" + SPRITE_GRID.format(cols=4, rows=2) + """
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "{en}" ({ko}) — {el} element, role {role}: {desc}"""
+
+BOSS_SHEET = """Create the GAME SPRITE SHEET for one HEXA FRONTIER {kind} (game-ready asset, epic but readable).
+""" + SPRITE_GRID.format(cols=3, rows=2) + """
+- Cells: row 1 = IDLE, ATTACK, SKILL (signature move, strongest pose); row 2 = HURT, KO, {extra}.
+- The boss fills about 88% of the cell height in every cell (it is shown 1.5x larger than normal units in the game).
+- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a subtle boss aura that stays close to the body (no aura filling the cell).
+Boss "{en}" ({ko}) — stage {stage}, element {el}: {desc}"""
+
+HERO_SHEET = """Create the GAME SPRITE SHEET for the HEXA FRONTIER main hero "{en}" ({ko}). Use the attached character reference ({ref}) ONLY for the face, hair, outfit and colors — redraw the character as a clean game sprite in the STYLE BIBLE, without any base, tile or background from the reference.
+""" + SPRITE_GRID.format(cols=4, rows=2) + """
+- Character about 80% of the cell height in every cell, SD proportions matching the spirits (head 1:2).
+- Row 1: IDLE, WALK (mid-step), ATTACK ({attack}), SKILL ({skill}). Row 2: HURT, KO (kneeling down, exhausted), VICTORY (cheerful pose), COMMAND (raising a hand/weapon to rally allies, small golden glow).
+Hero: {desc}"""
 
 EFFECT = """Create a game skill effect sprite sheet, 1536x1024, TRANSPARENT background, a 4 x 2 grid of 8 animation frames read left-to-right, top-to-bottom (each frame 384x512), effect centered in every frame and the same scale in every frame.
-Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small hex-tile unit (unit occupies the lower-middle of the frame).
+Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small chibi unit standing on a hex (the unit occupies the lower-middle of the frame).
 Effect: {desc}
 Colors: {color}"""
 
@@ -57,82 +83,78 @@ Use the HEXA FRONTIER UI chrome language: deep navy panels, warm gold trim, parc
 All visible UI text must be KOREAN (Hangul), short and legible. Show realistic content, not lorem ipsum.
 {body}"""
 
-# ───────────────────────── 스피릿 60 ─────────────────────────
-# (속성, 역할, 코드, 한글, 영문, 출처/설명, 새로 만들기?)
+# ───────────────────────── 스피릿 60 (D132: 전부 새로 그림, 기존 시트 재사용 없음) ─────────────────────────
+# (속성, 역할, 코드, 한글, 영문, 물리/마법 p|m, 공격 동작, 디자인: "기본형; Lv.10; Lv.25")
 SPIRITS = [
     # 숲
-    ("숲", "탱커", "F-T1", "그로브골렘", "Ancient Grove Golem", "S01-T01", False),
-    ("숲", "탱커", "F-T2", "쏜쉘 가디언", "Thornshell Guardian", "S01-T02", False),
-    ("숲", "탱커", "F-T3", "모스백", "Mossback", "a sturdy mossy tortoise with a small living tree and mushrooms on its domed shell; Lv.10 the shell becomes layered bark armor; Lv.25 an ancient guardian whose tree crown blossoms with glowing green runes. Quadruped tank.", True),
-    ("숲", "근딜", "F-M1", "블레이드워든", "Bladewarden", "S01-M01", False),
-    ("숲", "근딜", "F-M2", "레이저보어", "Razorboar", "S01-M02", False),
-    ("숲", "근딜", "F-M3", "쏜클로", "Thornclaw", "S01-M03", False),
-    ("숲", "원딜", "F-R1", "실반 아처", "Sylvan Archer", "S01-R01", False),
-    ("숲", "원딜", "F-R2", "시드샷", "Seedshot", "a fluffy squirrel with an acorn-cap helmet that flings exploding seed pods from a vine slingshot held in its paws; Lv.10 leaf bandolier of seed pods; Lv.25 sleek forest ranger squirrel with a living-vine slingshot. (Replaces Mossmage.)", True),
-    ("숲", "원딜", "F-R3", "쏜비틀", "Thornbeetle", "a round rhinoceros beetle whose back opens like a turret and shoots thorn spikes; Lv.10 armored stag beetle; Lv.25 heavy stag beetle with a thorn-cannon horn and moss armor.", True),
-    ("숲", "힐러", "F-H1", "블루멜", "Bloomel", "S01-H01", False),
-    ("숲", "서포터", "F-S1", "윌로위스프", "Willowisp", "S01-S01", False),
-    ("숲", "서포터", "F-S2", "페탈모스", "Petalmoth", "a round fuzzy moth with flower-petal wings that scatters glowing pollen to empower allies; Lv.10 larger patterned wings; Lv.25 majestic luna-moth with a flower crown and trailing pollen ribbons.", True),
+    ("숲", "탱커", "F-T1", "모스백", "Mossback", "p", "shell bash", "a sturdy mossy tortoise with a tiny sapling and mushrooms on its domed shell; Lv.10 the shell becomes layered bark armor; Lv.25 an ancient guardian tortoise whose tree crown blossoms with glowing green runes"),
+    ("숲", "탱커", "F-T2", "스텀프배저", "Stumpbadger", "p", "shoulder charge", "a chubby badger with bark-plated shoulders and a leafy tuft, standing on its hind legs; Lv.10 thick log pauldrons and moss cloak; Lv.25 broad bark-armored badger chief with a ring of mushrooms on its back"),
+    ("숲", "탱커", "F-T3", "루트라이노", "Rootrhino", "p", "horn ram", "a baby rhino whose hide is woven from living roots, with a smooth wooden horn; Lv.10 vine-wrapped armor and a sprouting horn; Lv.25 massive rhino with a blooming tree-horn and root greaves"),
+    ("숲", "근딜", "F-M1", "리프링스", "Leaflynx", "p", "leaf-blade claw swipe", "a lynx kitten whose ear tufts and tail tip are sharp leaf blades; Lv.10 leaf-blade forearms; Lv.25 sleek forest lynx with a mane of razor leaves"),
+    ("숲", "근딜", "F-M2", "브램블울프", "Bramblewolf", "p", "thorn bite lunge", "a wolf pup with a bramble-thorn mane and green eyes; Lv.10 thorn spikes along the spine; Lv.25 proud alpha wolf with a crown of blooming thorns"),
+    ("숲", "근딜", "F-M3", "바인폭스", "Vinefox", "m", "glowing vine-tail whip", "a fox kit with two tails made of glowing green vines that whip with nature magic; Lv.10 three vine tails with flower buds; Lv.25 elegant fox with five luminous vine tails blooming at the tips"),
+    ("숲", "원딜", "F-R1", "시드샷", "Seedshot", "p", "seed-pod sling shot", "a fluffy squirrel with an acorn-cap helmet that flings exploding seed pods from a little vine slingshot; Lv.10 leaf bandolier of seed pods; Lv.25 forest ranger squirrel with a living-vine slingshot"),
+    ("숲", "원딜", "F-R2", "글로우프로그", "Glowfrog", "m", "green energy bubble blast from its throat sac", "a round tree frog with a glowing green throat sac and leaf-pad hands; Lv.10 glowing spots along its back; Lv.25 large crowned frog with a lotus on its head and radiant markings"),
+    ("숲", "원딜", "F-R3", "쏜비틀", "Thornbeetle", "p", "thorn spike volley from its opened back", "a round rhinoceros beetle whose back opens like a turret to shoot thorn spikes; Lv.10 armored with mossy plates; Lv.25 heavy stag beetle with a thorn-cannon horn"),
+    ("숲", "힐러", "F-H1", "블룸디어", "Bloomdeer", "m", "petal shower (healing)", "a gentle spotted fawn with small flower-bud antlers; Lv.10 antlers in full bloom with hanging petals; Lv.25 graceful white-green deer with glowing blossom antlers and a flower garland"),
+    ("숲", "서포터", "F-S1", "페탈모스", "Petalmoth", "m", "glowing pollen burst (ally buff)", "a round fuzzy moth with flower-petal wings scattering glowing pollen; Lv.10 larger patterned wings; Lv.25 majestic luna-moth with a flower crown and trailing pollen ribbons"),
+    ("숲", "서포터", "F-S2", "모스로스", "Mossloth", "m", "sleepy pollen yawn (enemy debuff)", "a sleepy baby sloth with mossy fur and tiny sprouting leaves; Lv.10 hanging flower vines on its arms; Lv.25 serene sloth with a small garden growing on its back"),
     # 불
-    ("불", "탱커", "Fi-T1", "이그나골렘", "Igna Golem", "S02-T01", False),
-    ("불", "탱커", "Fi-T2", "플레임벌워크", "Flamebulwark", "S02-T02", False),
-    ("불", "탱커", "Fi-T3", "마그마크랩", "Magmacrab", "a hermit crab carrying a volcanic rock shell with glowing lava cracks and one oversized claw used as a shield; Lv.10 obsidian plating; Lv.25 fortress crab whose shell is a small erupting volcano.", True),
-    ("불", "근딜", "Fi-M1", "플레임클로", "Flameclaw", "S02-M01", False),
-    ("불", "근딜", "Fi-M2", "블레이즈혼", "Blazehorn", "S02-M02", False),
-    ("불", "근딜", "Fi-M3", "신더팽", "Cinderfang", "a bipedal salamander lizard warrior with ember-tipped claws and a burning tail; Lv.10 scale armor; Lv.25 dragon-like salamander with obsidian armor plates and twin flame claws.", True),
-    ("불", "원딜", "Fi-R1", "엠버윙", "Emberwing", "S02-R01", False),
-    ("불", "원딜", "Fi-R2", "스파크호그", "Sparkhog", "a hedgehog whose quills are flaming spikes it fires at enemies; Lv.10 longer glowing quills; Lv.25 porcupine with a blazing quill crown. (Replaces Cinder Mage.)", True),
-    ("불", "원딜", "Fi-R3", "애쉬드레이크", "Ashdrake", "a small round dragon with ash-grey scales and a glowing magma belly that spits fireballs; Lv.10 bigger wings; Lv.25 proud drake with molten horn crest.", True),
-    ("불", "힐러", "Fi-H1", "플라모라", "Flamora", "S02-H01", False),
-    ("불", "서포터", "Fi-S1", "하스펍", "Hearthpup", "a chubby puppy carrying a glowing hearth-lantern on its back whose warmth boosts allies; Lv.10 lantern becomes a small brazier saddle; Lv.25 noble hound with a phoenix-shaped hearth. (Replaces Pyronomad.)", True),
-    ("불", "서포터", "Fi-S2", "킨들핀치", "Kindlefinch", "a bright songbird with ember feathers whose song raises morale; Lv.10 longer flame tail; Lv.25 phoenix-like songbird with flaming tail ribbons.", True),
+    ("불", "탱커", "Fi-T1", "마그마크랩", "Magmacrab", "p", "big-claw slam", "a hermit crab carrying a volcanic rock shell with glowing lava cracks and one oversized shield claw; Lv.10 obsidian plating; Lv.25 fortress crab whose shell is a small erupting volcano"),
+    ("불", "탱커", "Fi-T2", "신더록스", "Cinderox", "p", "horn charge", "a stocky ox calf with basalt-plated horns and a smoldering mane; Lv.10 obsidian shoulder plates; Lv.25 huge ox with molten-cracked armor and flaming horn tips"),
+    ("불", "탱커", "Fi-T3", "킬른골렘", "Kilngolem", "p", "heavy fist pound", "a small round clay-kiln golem with a cozy fire glowing through a window in its belly; Lv.10 iron bands and a little chimney; Lv.25 massive forge golem with chimney shoulders and a roaring furnace core"),
+    ("불", "근딜", "Fi-M1", "신더팽", "Cinderfang", "p", "ember-claw slash", "a bipedal salamander kid with ember-tipped claws and a burning tail tip; Lv.10 scale armor; Lv.25 dragon-like salamander warrior with obsidian plates and twin flame claws"),
+    ("불", "근딜", "Fi-M2", "차르보어", "Charboar", "p", "molten tusk gore", "a piglet boar with glowing molten tusks and a soot-black bristle crest; Lv.10 longer tusks and ember back spikes; Lv.25 giant war boar with magma-veined tusks"),
+    ("불", "근딜", "Fi-M3", "파이로타이거", "Pyrotiger", "m", "fire-magic claw combo", "a tiger cub whose stripes burn like living flame; Lv.10 fiery mane and flame paws; Lv.25 majestic blazing tiger with a halo of fire stripes"),
+    ("불", "원딜", "Fi-R1", "스파크호그", "Sparkhog", "p", "flaming quill shot", "a hedgehog whose quills are flaming spikes it fires at enemies; Lv.10 longer glowing quills; Lv.25 porcupine with a blazing quill crown"),
+    ("불", "원딜", "Fi-R2", "애쉬드레이크", "Ashdrake", "m", "fireball breath", "a small round dragon with ash-grey scales and a glowing magma belly; Lv.10 bigger wings; Lv.25 proud drake with a molten horn crest"),
+    ("불", "원딜", "Fi-R3", "플레어카멜레온", "Flarechameleon", "p", "ember dart spit", "a chameleon with a curled flame tail that spits ember darts; Lv.10 glowing color-shifting scales; Lv.25 regal chameleon with a frill of flames"),
+    ("불", "힐러", "Fi-H1", "엠버판다", "Emberpanda", "m", "warm tail glow (healing)", "a red panda with a softly glowing warm tail like a hearth; Lv.10 lantern-like tail rings; Lv.25 serene red panda with a phoenix-flame tail"),
+    ("불", "서포터", "Fi-S1", "하스펍", "Hearthpup", "m", "warm howl (ally buff)", "a chubby puppy carrying a glowing hearth-lantern on its back; Lv.10 the lantern becomes a small brazier saddle; Lv.25 noble hound with a phoenix-shaped hearth"),
+    ("불", "서포터", "Fi-S2", "킨들핀치", "Kindlefinch", "m", "rallying song", "a bright songbird with ember feathers; Lv.10 longer flame tail; Lv.25 phoenix-like songbird with flaming tail ribbons"),
     # 물
-    ("물", "탱커", "W-T1", "쉘나이트", "Shellknight", "S03-T01", False),
-    ("물", "탱커", "W-T2", "타이드가드", "Tide Guard", "S03-T02", False),
-    ("물", "탱커", "W-T3", "아쿠아골렘", "Aqua Golem", "S03-T03", False),
-    ("물", "근딜", "W-M1", "웨이브팽", "Wavefang", "S03-M01", False),
-    ("물", "근딜", "W-M2", "마리실", "Marisyl", "S03-M02", False),
-    ("물", "근딜", "W-M3", "코랄스트라이크", "Coralstrike", "S03-M03", False),
-    ("물", "원딜", "W-R1", "타이드킷", "Tidekit", "S03-R01", False),
-    ("물", "원딜", "W-R2", "퍼퍼샷", "Puffershot", "a pufferfish floating inside a water bubble that shoots water spikes; Lv.10 coral armor spines; Lv.25 armored puffer with coral cannons. (Replaces Neritha.)", True),
-    ("물", "원딜", "W-R3", "아쿠아룬", "Aqualune", "S03-R03 (check: keep only if it is a creature, not a mage)", False),
-    ("물", "힐러", "W-H1", "아쿠아린", "Aqualyn", "S03-H01", False),
-    ("물", "서포터", "W-S1", "아쿠아드론", "Aquadron", "S03-S01", False),
-    ("물", "서포터", "W-S2", "버블롯", "Bubblot", "a sea otter holding a shell that blows protective bubble shields over allies; Lv.10 kelp scarf; Lv.25 otter with a glowing pearl and a bubble halo.", True),
+    ("물", "탱커", "W-T1", "터스크월러스", "Tuskwalrus", "p", "tusk slam", "a chubby walrus pup with pearl-white tusks and shell pauldrons; Lv.10 coral armor plates; Lv.25 mighty walrus with ice-coral tusks and a barnacle-shield back"),
+    ("물", "탱커", "W-T2", "클램가드", "Clamguard", "p", "shell snap", "a big clam creature with stubby legs and curious eyes peeking from its shell; Lv.10 spiked shell edges; Lv.25 giant pearl-clam guardian with a glowing pearl core"),
+    ("물", "탱커", "W-T3", "하이드로히포", "Hydrohippo", "p", "body splash slam", "a baby hippo with a water-sheened hide and lily pads on its back; Lv.10 water-armor plates; Lv.25 huge hippo wearing flowing tidal armor"),
+    ("물", "근딜", "W-M1", "오르카", "Orcablade", "p", "fin-blade slash", "a bipedal baby orca with fin-shaped forearm blades; Lv.10 coral gauntlets; Lv.25 orca champion with tidal fin blades and shell armor"),
+    ("물", "근딜", "W-M2", "클로스터", "Clawster", "p", "pincer crush", "a bright blue lobster with oversized pincers; Lv.10 spiked shell; Lv.25 armored lobster knight with huge crushing claws"),
+    ("물", "근딜", "W-M3", "타이드아홀로틀", "Tidelotl", "m", "water-magic tail whip", "an axolotl with glowing frilly gills and a water-ribbon tail; Lv.10 longer luminous gills; Lv.25 graceful axolotl with flowing tide ribbons orbiting it"),
+    ("물", "원딜", "W-R1", "퍼퍼샷", "Puffershot", "p", "water spike volley", "a pufferfish floating inside a water bubble that shoots water spikes; Lv.10 coral armor spines; Lv.25 armored puffer with coral cannons"),
+    ("물", "원딜", "W-R2", "나르왈", "Narwhorn", "m", "water beam from its horn", "a floating narwhal calf with a spiral crystal horn; Lv.10 glowing horn and fin rings; Lv.25 majestic narwhal with a radiant tidal horn"),
+    ("물", "원딜", "W-R3", "스냅쉬림프", "Snapshrimp", "p", "snapping shockwave bubble", "a pistol shrimp with one oversized snapping claw; Lv.10 armored carapace; Lv.25 heavy shrimp gunner with a glowing cannon claw"),
+    ("물", "힐러", "W-H1", "타이드포니", "Tidepony", "m", "pearl bubble healing", "a seahorse with a pearl on its forehead floating in a small water swirl; Lv.10 flowing fins; Lv.25 elegant seahorse with a pearl crown and healing water ribbons"),
+    ("물", "서포터", "W-S1", "버블롯", "Bubblot", "m", "protective bubble blow", "a sea otter holding a shell that blows protective bubble shields; Lv.10 kelp scarf; Lv.25 otter with a glowing pearl and a bubble halo"),
+    ("물", "서포터", "W-S2", "펭드럼", "Pengdrum", "m", "belly drum (enemy debuff)", "a round penguin chick that drums on its belly; Lv.10 shell drum and scarf; Lv.25 proud emperor penguin with a frost-crystal drum"),
     # 바람
-    ("바람", "탱커", "Wi-T1", "클라우드터스크", "Cloudtusk", "S04-T01", False),
-    ("바람", "탱커", "Wi-T2", "템페스트가드", "Tempest Guard", "S04-T02", False),
-    ("바람", "탱커", "Wi-T3", "님버스램", "Nimbusram", "a ram whose wool is a thick storm cloud and whose curled horns crackle with tiny sparks; Lv.10 bigger cloud mane; Lv.25 thunderhead ram with lightning-etched horns.", True),
-    ("바람", "근딜", "Wi-M1", "에어로리스", "Aerolith", "S04-M01", False),
-    ("바람", "근딜", "Wi-M2", "스카이워든", "Skywarden", "S04-M02", False),
-    ("바람", "근딜", "Wi-M3", "스카이블레이드", "Skyblade", "S04-M03", False),
-    ("바람", "원딜", "Wi-R1", "에어랄리스", "Aeralis", "S04-R01", False),
-    ("바람", "원딜", "Wi-R2", "제피라", "Zephyra", "S04-R02 (check: keep only if it is a creature, not a mage)", False),
-    ("바람", "원딜", "Wi-R3", "스톰카이트", "Stormkite", "a kite-shaped flying sky ray that slices wind blades from its fins; Lv.10 longer tail ribbons; Lv.25 thunder-striped sky ray with glowing fin edges.", True),
-    ("바람", "힐러", "Wi-H1", "실피아", "Sylphia", "S04-H01", False),
-    ("바람", "서포터", "Wi-S1", "클라우디언", "Cloudavian", "S04-S01", False),
-    ("바람", "서포터", "Wi-S2", "윈드차임", "Windchime", "a small round owl whose tail feathers are wind chimes that ring to cheer allies; Lv.10 crystal chimes; Lv.25 great owl with a halo of floating chimes.", True),
+    ("바람", "탱커", "Wi-T1", "님버스램", "Nimbusram", "p", "horn ram", "a ram whose wool is a thick storm cloud and whose curled horns crackle with tiny sparks; Lv.10 bigger cloud mane; Lv.25 thunderhead ram with lightning-etched horns"),
+    ("바람", "탱커", "Wi-T2", "스카이웨일", "Skywhale", "p", "body slam", "a floating baby whale with cloud-puff fins; Lv.10 cloud armor on its back; Lv.25 huge sky whale with a cloud fortress on its back"),
+    ("바람", "탱커", "Wi-T3", "게일베어", "Galebear", "p", "wind-guard paw slam", "a fluffy white bear cub with a feathered mantle around its shoulders; Lv.10 feather pauldrons; Lv.25 great storm bear with wing-like feather armor"),
+    ("바람", "근딜", "Wi-M1", "게일헤어", "Galehare", "p", "wind kick", "a rabbit with sickle-shaped ears that kicks wind blades; Lv.10 wind wraps on its legs; Lv.25 swift hare with crescent ears and a gale scarf"),
+    ("바람", "근딜", "Wi-M2", "블레이드크레인", "Bladecrane", "p", "sword-wing strike", "a crane chick with sword-like wing feathers; Lv.10 longer steel-sheen feathers; Lv.25 elegant crane with blade wings and a red crest"),
+    ("바람", "근딜", "Wi-M3", "볼트펍", "Voltpup", "m", "lightning-magic pounce", "a weasel-dog pup crackling with tiny lightning; Lv.10 lightning-bolt tail; Lv.25 sleek thunder beast with a storm-cloud mane"),
+    ("바람", "원딜", "Wi-R1", "페더스위프트", "Featherswift", "p", "feather dart shot", "a swallow that shoots sharp feather darts; Lv.10 forked tail streamers; Lv.25 swift swallow with gleaming dart feathers"),
+    ("바람", "원딜", "Wi-R2", "스톰카이트", "Stormkite", "m", "wind blade slice from its fins", "a kite-shaped flying sky ray; Lv.10 longer tail ribbons; Lv.25 thunder-striped sky ray with glowing fin edges"),
+    ("바람", "원딜", "Wi-R3", "게일플라이", "Galefly", "p", "air bolt shot", "a big-eyed dragonfly with crystal wings that fires compressed air bolts; Lv.10 four glowing wings; Lv.25 royal dragonfly with jewel-like wings"),
+    ("바람", "힐러", "Wi-H1", "클라우드파카", "Cloudpaca", "m", "soft healing mist", "an alpaca with fluffy cloud wool; Lv.10 rainbow-tinted wool tufts; Lv.25 serene alpaca with a halo of drifting clouds"),
+    ("바람", "서포터", "Wi-S1", "윈드차임", "Windchime", "m", "chime ring (ally buff)", "a small round owl whose tail feathers are wind chimes; Lv.10 crystal chimes; Lv.25 great owl with a halo of floating chimes"),
+    ("바람", "서포터", "Wi-S2", "브리즈글라이더", "Breezeglider", "m", "gust swirl (enemy debuff)", "a sugar glider with mint gliding membranes trailing breezes; Lv.10 wind-ribbon tail; Lv.25 graceful glider with shimmering wing membranes"),
     # 대지
-    ("대지", "탱커", "E-T1", "테라스톤", "Terrastone", "S05-T01", False),
-    ("대지", "탱커", "E-T2", "테라벌워크", "Terra Bulwark", "S05-T02", False),
-    ("대지", "탱커", "E-T3", "아이언딜로", "Irondillo", "an armadillo with iron-ore plated shell that curls into a rolling fortress; Lv.10 studded plates; Lv.25 massive armadillo with amber crystal spikes.", True),
-    ("대지", "근딜", "E-M1", "락터스크", "Rocktusk", "S05-M01", False),
-    ("대지", "근딜", "E-M2", "시로코 알파", "Sirocco Alpha", "S05-M02", False),
-    ("대지", "근딜", "E-M3", "쿼츠맨티스", "Quartzmantis", "a praying mantis with quartz-crystal scythe arms; Lv.10 crystal armor; Lv.25 amethyst-blade mantis master.", True),
-    ("대지", "원딜", "E-R1", "페블린", "Pebblin", "S05-R01", False),
-    ("대지", "원딜", "E-R2", "볼더몰", "Bouldermole", "a mole wearing a little mining helmet who hurls boulders; Lv.10 rock gauntlets; Lv.25 drill-gauntlet mole with an ore backpack. (Replaces Sandseer.)", True),
-    ("대지", "원딜", "E-R3", "지오드스콜피온", "Geodescorp", "a scorpion whose tail tip is a cracked geode that fires crystal shards; Lv.10 crystal plating; Lv.25 amber-crystal scorpion.", True),
-    ("대지", "힐러", "E-H1", "테라위스프", "Terrawisp", "S05-H01", False),
-    ("대지", "서포터", "E-S1", "럼블렛", "Rumblet", "S05-S02", False),
-    ("대지", "서포터", "E-S2", "듄페넥", "Dunefennec", "a fennec fox with a sand drum strapped to its back whose rhythm weakens enemies; Lv.10 bigger drum with charms; Lv.25 desert fennec with a golden sun-drum. (Replaces Geomancer.)", True),
+    ("대지", "탱커", "E-T1", "아이언딜로", "Irondillo", "p", "rolling tackle", "an armadillo with iron-ore plated shell that curls into a rolling fortress; Lv.10 studded plates; Lv.25 massive armadillo with amber crystal spikes"),
+    ("대지", "탱커", "E-T2", "스톤펀트", "Stonephant", "p", "trunk-and-tusk stomp", "a baby elephant with stone plating on its back and forehead; Lv.10 rock tusks; Lv.25 colossal stone elephant with amber-crystal armor"),
+    ("대지", "탱커", "E-T3", "안킬로", "Ankylo", "p", "crystal club tail swing", "a little ankylosaur with a crystal club tail; Lv.10 spiked rock plates; Lv.25 giant ankylosaur with an amber-crystal club"),
+    ("대지", "근딜", "E-M1", "볼더에이프", "Boulderape", "p", "stone fist punch", "a bipedal gorilla kid with stone fists; Lv.10 rock gauntlets and shoulder plates; Lv.25 mighty gorilla with boulder fists and a crystal crest"),
+    ("대지", "근딜", "E-M2", "락조", "Rockjaw", "p", "chomping bite", "a small crocodile with stone back plates and a big grin; Lv.10 spiked stone armor; Lv.25 armored crocodile with a granite jaw"),
+    ("대지", "근딜", "E-M3", "쿼츠맨티스", "Quartzmantis", "m", "crystal scythe slash", "a praying mantis with quartz-crystal scythe arms; Lv.10 crystal armor; Lv.25 amethyst-blade mantis master"),
+    ("대지", "원딜", "E-R1", "볼더몰", "Bouldermole", "p", "boulder throw", "a mole wearing a little mining helmet who hurls boulders; Lv.10 rock gauntlets; Lv.25 drill-gauntlet mole with an ore backpack"),
+    ("대지", "원딜", "E-R2", "지오드스콜피온", "Geodescorp", "m", "crystal shard shot from its tail", "a scorpion whose tail tip is a cracked geode; Lv.10 crystal plating; Lv.25 amber-crystal scorpion"),
+    ("대지", "원딜", "E-R3", "샌드카멜", "Sandcamel", "p", "sand ball spit", "a baby camel that spits hardened sand balls; Lv.10 woven saddle with rock pouches; Lv.25 sturdy desert camel with crystal-studded humps"),
+    ("대지", "힐러", "E-H1", "클레이바라", "Claybara", "m", "warm clay healing", "a calm capybara with a little mud-spa bowl and a pebble on its head; Lv.10 amber pebbles on its back; Lv.25 serene capybara with a glowing amber hot-spring halo"),
+    ("대지", "서포터", "E-S1", "듄페넥", "Dunefennec", "m", "sand drum rhythm (enemy debuff)", "a fennec fox with a sand drum strapped to its back; Lv.10 bigger drum with charms; Lv.25 desert fennec with a golden sun-drum"),
+    ("대지", "서포터", "E-S2", "쿼츠햄", "Quartzham", "m", "crystal shield raise (ally buff)", "a hamster that builds tiny crystal shields with its paws; Lv.10 crystal cheek pouches; Lv.25 proud hamster with a floating ring of crystal shields"),
 ]
-REMOVED = [
-    ("S01-R02", "Mossmage", "숲 원딜 → 시드샷"),
-    ("S02-R02", "Cinder Mage", "불 원딜 → 스파크호그"),
-    ("S02-S01", "Pyronomad", "불 서포터 → 하스펍"),
-    ("S03-R02", "Neritha", "물 원딜 → 퍼퍼샷"),
-    ("S05-R02", "Sandseer", "대지 원딜 → 볼더몰"),
-    ("S05-S01", "Geomancer", "대지 서포터 → 듄페넥"),
+HEROES = [
+    ("C01", "아렌", "Aren", "C01.png", "sword slash", "a rising sword strike with a golden arc", "a young boy adventurer with a sword, physical melee dealer, brave and cheerful"),
+    ("C02", "리아", "Lia", "C02.png", "star-orb throw", "a shooting-star spell from her staff tip", "a young girl adventurer with a staff, magic ranged dealer, bright and kind"),
 ]
 EL_EN = {"숲": "FOREST", "불": "FIRE", "물": "WATER", "바람": "WIND", "대지": "EARTH"}
 ROLE_EN = {"탱커": "TANKER", "근딜": "MELEE DEALER", "원딜": "RANGED DEALER", "힐러": "HEALER", "서포터": "SUPPORTER"}
@@ -304,7 +326,7 @@ Bottom panel: selected unit card (portrait, name 웨이브팽, level, role, elem
         "decide": ["승리 연출 강도", "보상 표시 순서", "새 스피릿 합류 연출"],
         "body": """Draw THREE result screens side by side in one 1536x1024 landscape image:
 (1) VICTORY: gold banner "승리!", stage "27 · 마그마 굴", stars 3/3, rewards (🪙 +276, item icon, 🔶 성장의 결정), level-up list with portraits ("웨이브팽 21 → 22").
-(2) NEW SPIRIT JOINS: a dramatic reveal of a new spirit "퍼퍼샷 합류!" with its full art on a hex pedestal, element and role tags, button "부대에서 보기".
+(2) NEW SPIRIT JOINS: a dramatic reveal of a new spirit "퍼퍼샷 합류!" with its full art standing in a burst of light, element and role tags, button "부대에서 보기".
 (3) DEFEAT: muted banner "패배…", reason line, and helpful next-step buttons: "앞 판에서 경험치 벌기", "편성 바꾸기 (▲상성 추천)", "장비 바꾸기", "다시 도전".""",
     },
     {
@@ -312,7 +334,7 @@ Bottom panel: selected unit card (portrait, name 웨이브팽, level, role, elem
         "decide": ["목록 정렬·필터(속성/역할)", "진화 단계 보여 주기", "장비 3칸·성장의 결정 위치"],
         "body": """Draw TWO phone screens side by side (1536x1024 landscape):
 (1) 부대 list: filter chips by element (💧🔥🌿⛰️🌪️) and role (탱커/근딜/원딜/힐러/서포터), a 4-column grid of spirit cards (portrait, level, element dot, role icon, small "출전" badge on party members).
-(2) Spirit detail for "쉘나이트": large art on a hex pedestal with evolution track (Lv.1 → Lv.10 → Lv.25, current stage highlighted), stats (체력, 공격, 방어, 마법방어, 이동력, 사거리, SP), two skills (one locked until Lv.5), equipment slots (무기/갑옷/장신구), XP bar, button "🔶 성장의 결정 쓰기".""",
+(2) Spirit detail for "터스크월러스": large full-body art on a soft light circle with evolution track (Lv.1 → Lv.10 → Lv.25, current stage highlighted), stats (체력, 공격, 방어, 마법방어, 이동력, 사거리, SP), two skills (one locked until Lv.5), equipment slots (무기/갑옷/장신구), XP bar, button "🔶 성장의 결정 쓰기".""",
     },
     {
         "id": "ui9", "title": "9단계 · 도감 탭 (스피릿 60종)",

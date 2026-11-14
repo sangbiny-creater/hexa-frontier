@@ -4,22 +4,26 @@ content.py에서 만들어짐 — 고칠 때는 `docs/design/gen/content.py`를 
 
 ## 사용법
 
-GPT(이미지 생성)에 **프롬프트를 그대로 붙여 넣기 전에 레퍼런스를 함께 첨부**하세요. 일관성은 레퍼런스가 거의 다 정합니다.
+**모든 캐릭터는 게임 전용 스프라이트로 새로 그립니다.** 기존 S0x 시트는 바닥에 헥사가 붙어 있어 이동할 때 헥사 모양이 바뀌고 깨지므로 **하나도 쓰지 않고, 레퍼런스로도 첨부하지 않습니다.**
 
-- **스피릿·몬스터·보스**: 기존 시트 2~3장(예: `S03-T01.png`, `S02-M01.png`, `S04-R01.png`)을 함께 첨부 → "첨부 시트와 같은 화풍·같은 배치로".
-- **주인공이 나오는 화면**: `C01.png`(아렌), `C02.png`(리아) 첨부.
+- **스프라이트 규칙**: 투명 배경, 받침·헥사·그림자·글자 없음, 모든 칸 같은 카메라·같은 바닥선(칸 높이 88%). 헥사 바닥과 그림자는 게임이 그립니다. 그래서 어떤 지형 위에서도, 이동 중에도 모양이 변하지 않습니다.
+- **일관성 순서**: ① 속성 라인업 1장(예: 물)을 먼저 받아 화풍·비율을 정함 → ② 마음에 드는 라인업과 **처음 승인한 스프라이트 시트 1장**을 이후 모든 생성에 첨부("첨부 이미지와 같은 화풍·같은 크기·같은 바닥선").
+- **초상**: 스프라이트 시트가 확정되면 그 시트를 첨부하고 '초상 세트' 프롬프트(하나로 공용)를 붙여 넣으면 됩니다.
+- **주인공**: `C01.png`(아렌), `C02.png`(리아)는 얼굴·옷·색만 참고하고 받침 없이 다시 그립니다.
 - **UI 단계**: 앞 단계에서 고른 이미지를 다음 단계에 첨부하고, 프롬프트의 `{choice}` 자리에 고른 안(예: "B 헥사 대륙 지도")을 적어 주세요.
-- 모든 프롬프트 맨 위의 **[STYLE BIBLE]** 블록은 지우지 말고 그대로 두세요 (같은 대화 안에서도 매번 넣는 게 일관성에 좋습니다).
-- 글자: 게임 안의 버튼·패널·배너 원본은 **글자 없이** 받고(게임이 한글을 얹음), 화면 시안(UI 1~11단계)만 한글을 넣어 받습니다. GPT가 한글을 틀리게 쓰면 시안 판단용으로만 보시면 됩니다.
-- 크기: 시트·세트는 1536×1024(가로), 화면 시안은 1024×1536(세로). 투명 배경은 "TRANSPARENT background"가 들어간 것만.
+- 모든 프롬프트 맨 위의 **[STYLE BIBLE]** 블록은 지우지 말고 그대로 두세요.
+- 글자: 게임 안의 버튼·패널·배너 원본은 **글자 없이**, 화면 시안(UI 1~11단계)만 한글을 넣어 받습니다.
+- 투명 배경이 안 나오면 GPT에 "배경을 투명하게(PNG 알파) 다시"라고 한 번 더 요청하세요. 그래도 안 되면 단색 배경(#FF00FF)으로 받아도 제가 지웁니다.
 
 **받은 파일 이름 (이렇게 저장해 주시면 바로 잘라서 넣습니다)**
 
 | 종류 | 이름 규칙 | 예 |
 |---|---|---|
-| 새 스피릿 시트 | 표의 코드 | `F-T3.png`, `Fi-S1.png` |
-| 몬스터 시트 | `MON-속성코드-번호` | `MON-F-1.png` (숲 1번) |
-| 중간보스 / 보스 | `MID-판`, `BOSS-판` | `MID-25.png`, `BOSS-100.png` |
+| 속성 라인업 | `LINEUP-속성코드` | `LINEUP-W.png` |
+| 스피릿 스프라이트 / 초상 | `코드` / `코드-P` | `F-T1.png`, `F-T1-P.png` |
+| 주인공 | `C01`, `C02` (+`-P`) | `C01.png`, `C02-P.png` |
+| 몬스터 | `MON-속성코드-번호` (+`-P`) | `MON-F-1.png` |
+| 중간보스 / 보스 | `MID-판`, `BOSS-판` (+`-P`) | `MID-25.png`, `BOSS-100-P.png` |
 | 기술 이펙트 | `FX-이름(-속성)` | `FX-whirl.png`, `FX-blast-fire.png` |
 | 지형 타일 | `TILE-장` | `TILE-ch3.png` |
 | 전투 요소 | 표의 제목 | `UI-overlay.png` |
@@ -28,1718 +32,3178 @@ GPT(이미지 생성)에 **프롬프트를 그대로 붙여 넣기 전에 레퍼
 
 ## 스타일 바이블
 
-모든 프롬프트 맨 위에 들어가는 공통 블록입니다. 색·빛·비율·배경을 고정해서 60종 스피릿, 몬스터, UI가 한 게임처럼 보이게 합니다.
+모든 프롬프트 맨 위에 들어가는 공통 블록입니다. 화풍·빛·카메라·**받침 없는 투명 스프라이트 규칙**을 고정해서 60종 스피릿, 몬스터, 보스, UI가 한 게임처럼 보이게 합니다.
 
 ### 공통 STYLE BIBLE
 
 > 모든 프롬프트에 이미 포함되어 있어요. 따로 쓸 때만 복사.
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 ```
 
-## 스피릿 60종
+### 초상 세트 (공용) — 스피릿 Lv.1/10/25
 
-속성마다 **탱커 3 · 근딜 3 · 원딜 3 · 힐러 1 · 서포터 2 = 12종**, 5속성 × 12 = **60종**.
-기존 레퍼런스 시트 중 생물 디자인은 그대로 쓰고(40종), 마법사처럼 보이는 캐릭터는 모두 빼고 동물·짐승형으로 새로 만듭니다(**새로 만들 20종**).
+> 확정된 스프라이트 시트를 첨부하고 그대로 붙여 넣기 → `코드-P.png`
 
-**뺀 마법사형 (다시 만듦)**
-- ~~S01-R02 Mossmage~~ → 숲 원딜 → 시드샷
-- ~~S02-R02 Cinder Mage~~ → 불 원딜 → 스파크호그
-- ~~S02-S01 Pyronomad~~ → 불 서포터 → 하스펍
-- ~~S03-R02 Neritha~~ → 물 원딜 → 퍼퍼샷
-- ~~S05-R02 Sandseer~~ → 대지 원딜 → 볼더몰
-- ~~S05-S01 Geomancer~~ → 대지 서포터 → 듄페넥
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-'확인 필요'는 시트를 다시 보고 마법사 느낌이면 같은 방식으로 새로 만들 후보입니다.
+Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
+- Canvas 1536x1024, TRANSPARENT background, three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+- No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
+```
 
-| 코드 | 속성 | 역할 | 이름 | 그림 |
+### 초상 세트 (공용) — 몬스터·보스·주인공
+
+> 몬스터: 일반/정예/정예 화남 · 보스·주인공: 평소/화남(진지)/웃음
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
+- Canvas 1536x1024, TRANSPARENT background, three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+- No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
+```
+
+## 스피릿 60종 (전부 새로)
+
+속성마다 **탱커 3 · 근딜 3 · 원딜 3 · 힐러 1 · 서포터 2 = 12종**, 5속성 × 12 = **60종 모두 새 디자인**입니다. 기존 시트는 재사용하지 않습니다.
+모두 동물·짐승·원소 생물이고 마법사형은 없습니다. 한 장 = **스프라이트 시트**(진화 3단계 × 대기·공격·피격·쓰러짐 4동작, 투명 배경, 받침 없음). 초상은 확정된 시트를 첨부해 '초상 세트' 공용 프롬프트로 받습니다.
+**순서**: 속성 라인업 5장 → 마음에 들면 개별 시트 60장.
+
+| 코드 | 속성 | 역할 | 이름 | 모습 (기본형) |
 |---|---|---|---|---|
-| F-T1 | 숲 | 탱커 | 그로브골렘 (Ancient Grove Golem) | 기존 S01-T01 |
-| F-T2 | 숲 | 탱커 | 쏜쉘 가디언 (Thornshell Guardian) | 기존 S01-T02 |
-| F-T3 | 숲 | 탱커 | 모스백 (Mossback) | 🆕 새로 만들기 |
-| F-M1 | 숲 | 근딜 | 블레이드워든 (Bladewarden) | 기존 S01-M01 |
-| F-M2 | 숲 | 근딜 | 레이저보어 (Razorboar) | 기존 S01-M02 |
-| F-M3 | 숲 | 근딜 | 쏜클로 (Thornclaw) | 기존 S01-M03 |
-| F-R1 | 숲 | 원딜 | 실반 아처 (Sylvan Archer) | 기존 S01-R01 |
-| F-R2 | 숲 | 원딜 | 시드샷 (Seedshot) | 🆕 새로 만들기 |
-| F-R3 | 숲 | 원딜 | 쏜비틀 (Thornbeetle) | 🆕 새로 만들기 |
-| F-H1 | 숲 | 힐러 | 블루멜 (Bloomel) | 기존 S01-H01 |
-| F-S1 | 숲 | 서포터 | 윌로위스프 (Willowisp) | 기존 S01-S01 |
-| F-S2 | 숲 | 서포터 | 페탈모스 (Petalmoth) | 🆕 새로 만들기 |
-| Fi-T1 | 불 | 탱커 | 이그나골렘 (Igna Golem) | 기존 S02-T01 |
-| Fi-T2 | 불 | 탱커 | 플레임벌워크 (Flamebulwark) | 기존 S02-T02 |
-| Fi-T3 | 불 | 탱커 | 마그마크랩 (Magmacrab) | 🆕 새로 만들기 |
-| Fi-M1 | 불 | 근딜 | 플레임클로 (Flameclaw) | 기존 S02-M01 |
-| Fi-M2 | 불 | 근딜 | 블레이즈혼 (Blazehorn) | 기존 S02-M02 |
-| Fi-M3 | 불 | 근딜 | 신더팽 (Cinderfang) | 🆕 새로 만들기 |
-| Fi-R1 | 불 | 원딜 | 엠버윙 (Emberwing) | 기존 S02-R01 |
-| Fi-R2 | 불 | 원딜 | 스파크호그 (Sparkhog) | 🆕 새로 만들기 |
-| Fi-R3 | 불 | 원딜 | 애쉬드레이크 (Ashdrake) | 🆕 새로 만들기 |
-| Fi-H1 | 불 | 힐러 | 플라모라 (Flamora) | 기존 S02-H01 |
-| Fi-S1 | 불 | 서포터 | 하스펍 (Hearthpup) | 🆕 새로 만들기 |
-| Fi-S2 | 불 | 서포터 | 킨들핀치 (Kindlefinch) | 🆕 새로 만들기 |
-| W-T1 | 물 | 탱커 | 쉘나이트 (Shellknight) | 기존 S03-T01 |
-| W-T2 | 물 | 탱커 | 타이드가드 (Tide Guard) | 기존 S03-T02 |
-| W-T3 | 물 | 탱커 | 아쿠아골렘 (Aqua Golem) | 기존 S03-T03 |
-| W-M1 | 물 | 근딜 | 웨이브팽 (Wavefang) | 기존 S03-M01 |
-| W-M2 | 물 | 근딜 | 마리실 (Marisyl) | 기존 S03-M02 |
-| W-M3 | 물 | 근딜 | 코랄스트라이크 (Coralstrike) | 기존 S03-M03 |
-| W-R1 | 물 | 원딜 | 타이드킷 (Tidekit) | 기존 S03-R01 |
-| W-R2 | 물 | 원딜 | 퍼퍼샷 (Puffershot) | 🆕 새로 만들기 |
-| W-R3 | 물 | 원딜 | 아쿠아룬 (Aqualune) | 기존 S03-R03 · 확인 필요 |
-| W-H1 | 물 | 힐러 | 아쿠아린 (Aqualyn) | 기존 S03-H01 |
-| W-S1 | 물 | 서포터 | 아쿠아드론 (Aquadron) | 기존 S03-S01 |
-| W-S2 | 물 | 서포터 | 버블롯 (Bubblot) | 🆕 새로 만들기 |
-| Wi-T1 | 바람 | 탱커 | 클라우드터스크 (Cloudtusk) | 기존 S04-T01 |
-| Wi-T2 | 바람 | 탱커 | 템페스트가드 (Tempest Guard) | 기존 S04-T02 |
-| Wi-T3 | 바람 | 탱커 | 님버스램 (Nimbusram) | 🆕 새로 만들기 |
-| Wi-M1 | 바람 | 근딜 | 에어로리스 (Aerolith) | 기존 S04-M01 |
-| Wi-M2 | 바람 | 근딜 | 스카이워든 (Skywarden) | 기존 S04-M02 |
-| Wi-M3 | 바람 | 근딜 | 스카이블레이드 (Skyblade) | 기존 S04-M03 |
-| Wi-R1 | 바람 | 원딜 | 에어랄리스 (Aeralis) | 기존 S04-R01 |
-| Wi-R2 | 바람 | 원딜 | 제피라 (Zephyra) | 기존 S04-R02 · 확인 필요 |
-| Wi-R3 | 바람 | 원딜 | 스톰카이트 (Stormkite) | 🆕 새로 만들기 |
-| Wi-H1 | 바람 | 힐러 | 실피아 (Sylphia) | 기존 S04-H01 |
-| Wi-S1 | 바람 | 서포터 | 클라우디언 (Cloudavian) | 기존 S04-S01 |
-| Wi-S2 | 바람 | 서포터 | 윈드차임 (Windchime) | 🆕 새로 만들기 |
-| E-T1 | 대지 | 탱커 | 테라스톤 (Terrastone) | 기존 S05-T01 |
-| E-T2 | 대지 | 탱커 | 테라벌워크 (Terra Bulwark) | 기존 S05-T02 |
-| E-T3 | 대지 | 탱커 | 아이언딜로 (Irondillo) | 🆕 새로 만들기 |
-| E-M1 | 대지 | 근딜 | 락터스크 (Rocktusk) | 기존 S05-M01 |
-| E-M2 | 대지 | 근딜 | 시로코 알파 (Sirocco Alpha) | 기존 S05-M02 |
-| E-M3 | 대지 | 근딜 | 쿼츠맨티스 (Quartzmantis) | 🆕 새로 만들기 |
-| E-R1 | 대지 | 원딜 | 페블린 (Pebblin) | 기존 S05-R01 |
-| E-R2 | 대지 | 원딜 | 볼더몰 (Bouldermole) | 🆕 새로 만들기 |
-| E-R3 | 대지 | 원딜 | 지오드스콜피온 (Geodescorp) | 🆕 새로 만들기 |
-| E-H1 | 대지 | 힐러 | 테라위스프 (Terrawisp) | 기존 S05-H01 |
-| E-S1 | 대지 | 서포터 | 럼블렛 (Rumblet) | 기존 S05-S02 |
-| E-S2 | 대지 | 서포터 | 듄페넥 (Dunefennec) | 🆕 새로 만들기 |
+| F-T1 | 숲 | 탱커 | 모스백 (Mossback) | a sturdy mossy tortoise with a tiny sapling and mushrooms on its domed shell |
+| F-T2 | 숲 | 탱커 | 스텀프배저 (Stumpbadger) | a chubby badger with bark-plated shoulders and a leafy tuft, standing on its hind legs |
+| F-T3 | 숲 | 탱커 | 루트라이노 (Rootrhino) | a baby rhino whose hide is woven from living roots, with a smooth wooden horn |
+| F-M1 | 숲 | 근딜(물리) | 리프링스 (Leaflynx) | a lynx kitten whose ear tufts and tail tip are sharp leaf blades |
+| F-M2 | 숲 | 근딜(물리) | 브램블울프 (Bramblewolf) | a wolf pup with a bramble-thorn mane and green eyes |
+| F-M3 | 숲 | 근딜(마법) | 바인폭스 (Vinefox) | a fox kit with two tails made of glowing green vines that whip with nature magic |
+| F-R1 | 숲 | 원딜(물리) | 시드샷 (Seedshot) | a fluffy squirrel with an acorn-cap helmet that flings exploding seed pods from a little vine slingshot |
+| F-R2 | 숲 | 원딜(마법) | 글로우프로그 (Glowfrog) | a round tree frog with a glowing green throat sac and leaf-pad hands |
+| F-R3 | 숲 | 원딜(물리) | 쏜비틀 (Thornbeetle) | a round rhinoceros beetle whose back opens like a turret to shoot thorn spikes |
+| F-H1 | 숲 | 힐러 | 블룸디어 (Bloomdeer) | a gentle spotted fawn with small flower-bud antlers |
+| F-S1 | 숲 | 서포터 | 페탈모스 (Petalmoth) | a round fuzzy moth with flower-petal wings scattering glowing pollen |
+| F-S2 | 숲 | 서포터 | 모스로스 (Mossloth) | a sleepy baby sloth with mossy fur and tiny sprouting leaves |
+| Fi-T1 | 불 | 탱커 | 마그마크랩 (Magmacrab) | a hermit crab carrying a volcanic rock shell with glowing lava cracks and one oversized shield claw |
+| Fi-T2 | 불 | 탱커 | 신더록스 (Cinderox) | a stocky ox calf with basalt-plated horns and a smoldering mane |
+| Fi-T3 | 불 | 탱커 | 킬른골렘 (Kilngolem) | a small round clay-kiln golem with a cozy fire glowing through a window in its belly |
+| Fi-M1 | 불 | 근딜(물리) | 신더팽 (Cinderfang) | a bipedal salamander kid with ember-tipped claws and a burning tail tip |
+| Fi-M2 | 불 | 근딜(물리) | 차르보어 (Charboar) | a piglet boar with glowing molten tusks and a soot-black bristle crest |
+| Fi-M3 | 불 | 근딜(마법) | 파이로타이거 (Pyrotiger) | a tiger cub whose stripes burn like living flame |
+| Fi-R1 | 불 | 원딜(물리) | 스파크호그 (Sparkhog) | a hedgehog whose quills are flaming spikes it fires at enemies |
+| Fi-R2 | 불 | 원딜(마법) | 애쉬드레이크 (Ashdrake) | a small round dragon with ash-grey scales and a glowing magma belly |
+| Fi-R3 | 불 | 원딜(물리) | 플레어카멜레온 (Flarechameleon) | a chameleon with a curled flame tail that spits ember darts |
+| Fi-H1 | 불 | 힐러 | 엠버판다 (Emberpanda) | a red panda with a softly glowing warm tail like a hearth |
+| Fi-S1 | 불 | 서포터 | 하스펍 (Hearthpup) | a chubby puppy carrying a glowing hearth-lantern on its back |
+| Fi-S2 | 불 | 서포터 | 킨들핀치 (Kindlefinch) | a bright songbird with ember feathers |
+| W-T1 | 물 | 탱커 | 터스크월러스 (Tuskwalrus) | a chubby walrus pup with pearl-white tusks and shell pauldrons |
+| W-T2 | 물 | 탱커 | 클램가드 (Clamguard) | a big clam creature with stubby legs and curious eyes peeking from its shell |
+| W-T3 | 물 | 탱커 | 하이드로히포 (Hydrohippo) | a baby hippo with a water-sheened hide and lily pads on its back |
+| W-M1 | 물 | 근딜(물리) | 오르카 (Orcablade) | a bipedal baby orca with fin-shaped forearm blades |
+| W-M2 | 물 | 근딜(물리) | 클로스터 (Clawster) | a bright blue lobster with oversized pincers |
+| W-M3 | 물 | 근딜(마법) | 타이드아홀로틀 (Tidelotl) | an axolotl with glowing frilly gills and a water-ribbon tail |
+| W-R1 | 물 | 원딜(물리) | 퍼퍼샷 (Puffershot) | a pufferfish floating inside a water bubble that shoots water spikes |
+| W-R2 | 물 | 원딜(마법) | 나르왈 (Narwhorn) | a floating narwhal calf with a spiral crystal horn |
+| W-R3 | 물 | 원딜(물리) | 스냅쉬림프 (Snapshrimp) | a pistol shrimp with one oversized snapping claw |
+| W-H1 | 물 | 힐러 | 타이드포니 (Tidepony) | a seahorse with a pearl on its forehead floating in a small water swirl |
+| W-S1 | 물 | 서포터 | 버블롯 (Bubblot) | a sea otter holding a shell that blows protective bubble shields |
+| W-S2 | 물 | 서포터 | 펭드럼 (Pengdrum) | a round penguin chick that drums on its belly |
+| Wi-T1 | 바람 | 탱커 | 님버스램 (Nimbusram) | a ram whose wool is a thick storm cloud and whose curled horns crackle with tiny sparks |
+| Wi-T2 | 바람 | 탱커 | 스카이웨일 (Skywhale) | a floating baby whale with cloud-puff fins |
+| Wi-T3 | 바람 | 탱커 | 게일베어 (Galebear) | a fluffy white bear cub with a feathered mantle around its shoulders |
+| Wi-M1 | 바람 | 근딜(물리) | 게일헤어 (Galehare) | a rabbit with sickle-shaped ears that kicks wind blades |
+| Wi-M2 | 바람 | 근딜(물리) | 블레이드크레인 (Bladecrane) | a crane chick with sword-like wing feathers |
+| Wi-M3 | 바람 | 근딜(마법) | 볼트펍 (Voltpup) | a weasel-dog pup crackling with tiny lightning |
+| Wi-R1 | 바람 | 원딜(물리) | 페더스위프트 (Featherswift) | a swallow that shoots sharp feather darts |
+| Wi-R2 | 바람 | 원딜(마법) | 스톰카이트 (Stormkite) | a kite-shaped flying sky ray |
+| Wi-R3 | 바람 | 원딜(물리) | 게일플라이 (Galefly) | a big-eyed dragonfly with crystal wings that fires compressed air bolts |
+| Wi-H1 | 바람 | 힐러 | 클라우드파카 (Cloudpaca) | an alpaca with fluffy cloud wool |
+| Wi-S1 | 바람 | 서포터 | 윈드차임 (Windchime) | a small round owl whose tail feathers are wind chimes |
+| Wi-S2 | 바람 | 서포터 | 브리즈글라이더 (Breezeglider) | a sugar glider with mint gliding membranes trailing breezes |
+| E-T1 | 대지 | 탱커 | 아이언딜로 (Irondillo) | an armadillo with iron-ore plated shell that curls into a rolling fortress |
+| E-T2 | 대지 | 탱커 | 스톤펀트 (Stonephant) | a baby elephant with stone plating on its back and forehead |
+| E-T3 | 대지 | 탱커 | 안킬로 (Ankylo) | a little ankylosaur with a crystal club tail |
+| E-M1 | 대지 | 근딜(물리) | 볼더에이프 (Boulderape) | a bipedal gorilla kid with stone fists |
+| E-M2 | 대지 | 근딜(물리) | 락조 (Rockjaw) | a small crocodile with stone back plates and a big grin |
+| E-M3 | 대지 | 근딜(마법) | 쿼츠맨티스 (Quartzmantis) | a praying mantis with quartz-crystal scythe arms |
+| E-R1 | 대지 | 원딜(물리) | 볼더몰 (Bouldermole) | a mole wearing a little mining helmet who hurls boulders |
+| E-R2 | 대지 | 원딜(마법) | 지오드스콜피온 (Geodescorp) | a scorpion whose tail tip is a cracked geode |
+| E-R3 | 대지 | 원딜(물리) | 샌드카멜 (Sandcamel) | a baby camel that spits hardened sand balls |
+| E-H1 | 대지 | 힐러 | 클레이바라 (Claybara) | a calm capybara with a little mud-spa bowl and a pebble on its head |
+| E-S1 | 대지 | 서포터 | 듄페넥 (Dunefennec) | a fennec fox with a sand drum strapped to its back |
+| E-S2 | 대지 | 서포터 | 쿼츠햄 (Quartzham) | a hamster that builds tiny crystal shields with its paws |
 
-### F-T3 · 모스백 (Mossback) — 숲 탱커
+### LINEUP-W · 물 속성 12종 라인업
+
+> 물 라인업부터 받아서 화풍·비율을 먼저 확정하세요
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER MONSTER COLLECTION character sheet, 1536x1024 landscape, matching the layout of the attached reference sheet (for example S03-T01 Shellknight) panel for panel:
-- TOP LEFT header: element emblem, role badge "FOREST TANKER 3", large name "Mossback", small epithet "(invent a short epithet)", element + role tags, a 2-line flavor description.
-- TOP CENTER "EVOLUTION": three full-body poses side by side labeled "Lv.1", "Lv.10", "Lv.25" (small and cute -> grown -> majestic with more armor and ornaments; same species and color identity at every stage).
-- TOP RIGHT "PORTRAIT & ICON": three rounded-square face portraits (Lv.1 / Lv.10 / Lv.25) on element-colored backgrounds, then a round element icon, then a character icon.
-- Under the portraits "IN-GAME HEX TILE (IDLE)": the three evolution stages each standing on its own isometric hex tile, evenly spaced, nothing overlapping.
-- BOTTOM "ANIMATION POSES & IN-GAME TILES": a grid with rows Lv.1 / Lv.10 / Lv.25 and columns IDLE, SKILL, WALK, HURT, KO/DEFEATED, every cell a small hex-tile sprite.
-- Keep generous empty space between every panel item (they will be cut out automatically). Plain flat panel backgrounds.
-Creature (모스백): a sturdy mossy tortoise with a small living tree and mushrooms on its domed shell; Lv.10 the shell becomes layered bark armor; Lv.25 an ancient guardian whose tree crown blossoms with glowing green runes. Quadruped tank.
-It is a creature companion (an animal / beast / elemental being). It is NOT a wizard or mage: no robes, no pointed hats, no staffs, no spell books.
+Create a DESIGN LINEUP of all 12 WATER spirits of HEXA FRONTIER in their Lv.1 baby forms, to lock the designs and the relative scale before making individual sprite sheets.
+- Canvas 1536x1024, TRANSPARENT background, two rows of 6 creatures, all standing on the same invisible baseline per row, all at the same scale (tanks slightly bigger, supporters slightly smaller), plenty of space between them.
+- Under each creature a small plain label with its code only (e.g. "W-T1").
+- No ground, no tiles, no shadows.
+Creatures in order (row 1 then row 2):
+1. W-T1 Tuskwalrus (탱커): a chubby walrus pup with pearl-white tusks and shell pauldrons
+2. W-T2 Clamguard (탱커): a big clam creature with stubby legs and curious eyes peeking from its shell
+3. W-T3 Hydrohippo (탱커): a baby hippo with a water-sheened hide and lily pads on its back
+4. W-M1 Orcablade (근딜): a bipedal baby orca with fin-shaped forearm blades
+5. W-M2 Clawster (근딜): a bright blue lobster with oversized pincers
+6. W-M3 Tidelotl (근딜): an axolotl with glowing frilly gills and a water-ribbon tail
+7. W-R1 Puffershot (원딜): a pufferfish floating inside a water bubble that shoots water spikes
+8. W-R2 Narwhorn (원딜): a floating narwhal calf with a spiral crystal horn
+9. W-R3 Snapshrimp (원딜): a pistol shrimp with one oversized snapping claw
+10. W-H1 Tidepony (힐러): a seahorse with a pearl on its forehead floating in a small water swirl
+11. W-S1 Bubblot (서포터): a sea otter holding a shell that blows protective bubble shields
+12. W-S2 Pengdrum (서포터): a round penguin chick that drums on its belly
 ```
 
-### F-R2 · 시드샷 (Seedshot) — 숲 원딜
+### LINEUP-Fi · 불 속성 12종 라인업
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER MONSTER COLLECTION character sheet, 1536x1024 landscape, matching the layout of the attached reference sheet (for example S03-T01 Shellknight) panel for panel:
-- TOP LEFT header: element emblem, role badge "FOREST RANGED DEALER 2", large name "Seedshot", small epithet "(invent a short epithet)", element + role tags, a 2-line flavor description.
-- TOP CENTER "EVOLUTION": three full-body poses side by side labeled "Lv.1", "Lv.10", "Lv.25" (small and cute -> grown -> majestic with more armor and ornaments; same species and color identity at every stage).
-- TOP RIGHT "PORTRAIT & ICON": three rounded-square face portraits (Lv.1 / Lv.10 / Lv.25) on element-colored backgrounds, then a round element icon, then a character icon.
-- Under the portraits "IN-GAME HEX TILE (IDLE)": the three evolution stages each standing on its own isometric hex tile, evenly spaced, nothing overlapping.
-- BOTTOM "ANIMATION POSES & IN-GAME TILES": a grid with rows Lv.1 / Lv.10 / Lv.25 and columns IDLE, SKILL, WALK, HURT, KO/DEFEATED, every cell a small hex-tile sprite.
-- Keep generous empty space between every panel item (they will be cut out automatically). Plain flat panel backgrounds.
-Creature (시드샷): a fluffy squirrel with an acorn-cap helmet that flings exploding seed pods from a vine slingshot held in its paws; Lv.10 leaf bandolier of seed pods; Lv.25 sleek forest ranger squirrel with a living-vine slingshot. (Replaces Mossmage.)
-It is a creature companion (an animal / beast / elemental being). It is NOT a wizard or mage: no robes, no pointed hats, no staffs, no spell books.
+Create a DESIGN LINEUP of all 12 FIRE spirits of HEXA FRONTIER in their Lv.1 baby forms, to lock the designs and the relative scale before making individual sprite sheets.
+- Canvas 1536x1024, TRANSPARENT background, two rows of 6 creatures, all standing on the same invisible baseline per row, all at the same scale (tanks slightly bigger, supporters slightly smaller), plenty of space between them.
+- Under each creature a small plain label with its code only (e.g. "Fi-T1").
+- No ground, no tiles, no shadows.
+Creatures in order (row 1 then row 2):
+1. Fi-T1 Magmacrab (탱커): a hermit crab carrying a volcanic rock shell with glowing lava cracks and one oversized shield claw
+2. Fi-T2 Cinderox (탱커): a stocky ox calf with basalt-plated horns and a smoldering mane
+3. Fi-T3 Kilngolem (탱커): a small round clay-kiln golem with a cozy fire glowing through a window in its belly
+4. Fi-M1 Cinderfang (근딜): a bipedal salamander kid with ember-tipped claws and a burning tail tip
+5. Fi-M2 Charboar (근딜): a piglet boar with glowing molten tusks and a soot-black bristle crest
+6. Fi-M3 Pyrotiger (근딜): a tiger cub whose stripes burn like living flame
+7. Fi-R1 Sparkhog (원딜): a hedgehog whose quills are flaming spikes it fires at enemies
+8. Fi-R2 Ashdrake (원딜): a small round dragon with ash-grey scales and a glowing magma belly
+9. Fi-R3 Flarechameleon (원딜): a chameleon with a curled flame tail that spits ember darts
+10. Fi-H1 Emberpanda (힐러): a red panda with a softly glowing warm tail like a hearth
+11. Fi-S1 Hearthpup (서포터): a chubby puppy carrying a glowing hearth-lantern on its back
+12. Fi-S2 Kindlefinch (서포터): a bright songbird with ember feathers
+```
+
+### LINEUP-F · 숲 속성 12종 라인업
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create a DESIGN LINEUP of all 12 FOREST spirits of HEXA FRONTIER in their Lv.1 baby forms, to lock the designs and the relative scale before making individual sprite sheets.
+- Canvas 1536x1024, TRANSPARENT background, two rows of 6 creatures, all standing on the same invisible baseline per row, all at the same scale (tanks slightly bigger, supporters slightly smaller), plenty of space between them.
+- Under each creature a small plain label with its code only (e.g. "F-T1").
+- No ground, no tiles, no shadows.
+Creatures in order (row 1 then row 2):
+1. F-T1 Mossback (탱커): a sturdy mossy tortoise with a tiny sapling and mushrooms on its domed shell
+2. F-T2 Stumpbadger (탱커): a chubby badger with bark-plated shoulders and a leafy tuft, standing on its hind legs
+3. F-T3 Rootrhino (탱커): a baby rhino whose hide is woven from living roots, with a smooth wooden horn
+4. F-M1 Leaflynx (근딜): a lynx kitten whose ear tufts and tail tip are sharp leaf blades
+5. F-M2 Bramblewolf (근딜): a wolf pup with a bramble-thorn mane and green eyes
+6. F-M3 Vinefox (근딜): a fox kit with two tails made of glowing green vines that whip with nature magic
+7. F-R1 Seedshot (원딜): a fluffy squirrel with an acorn-cap helmet that flings exploding seed pods from a little vine slingshot
+8. F-R2 Glowfrog (원딜): a round tree frog with a glowing green throat sac and leaf-pad hands
+9. F-R3 Thornbeetle (원딜): a round rhinoceros beetle whose back opens like a turret to shoot thorn spikes
+10. F-H1 Bloomdeer (힐러): a gentle spotted fawn with small flower-bud antlers
+11. F-S1 Petalmoth (서포터): a round fuzzy moth with flower-petal wings scattering glowing pollen
+12. F-S2 Mossloth (서포터): a sleepy baby sloth with mossy fur and tiny sprouting leaves
+```
+
+### LINEUP-E · 대지 속성 12종 라인업
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create a DESIGN LINEUP of all 12 EARTH spirits of HEXA FRONTIER in their Lv.1 baby forms, to lock the designs and the relative scale before making individual sprite sheets.
+- Canvas 1536x1024, TRANSPARENT background, two rows of 6 creatures, all standing on the same invisible baseline per row, all at the same scale (tanks slightly bigger, supporters slightly smaller), plenty of space between them.
+- Under each creature a small plain label with its code only (e.g. "E-T1").
+- No ground, no tiles, no shadows.
+Creatures in order (row 1 then row 2):
+1. E-T1 Irondillo (탱커): an armadillo with iron-ore plated shell that curls into a rolling fortress
+2. E-T2 Stonephant (탱커): a baby elephant with stone plating on its back and forehead
+3. E-T3 Ankylo (탱커): a little ankylosaur with a crystal club tail
+4. E-M1 Boulderape (근딜): a bipedal gorilla kid with stone fists
+5. E-M2 Rockjaw (근딜): a small crocodile with stone back plates and a big grin
+6. E-M3 Quartzmantis (근딜): a praying mantis with quartz-crystal scythe arms
+7. E-R1 Bouldermole (원딜): a mole wearing a little mining helmet who hurls boulders
+8. E-R2 Geodescorp (원딜): a scorpion whose tail tip is a cracked geode
+9. E-R3 Sandcamel (원딜): a baby camel that spits hardened sand balls
+10. E-H1 Claybara (힐러): a calm capybara with a little mud-spa bowl and a pebble on its head
+11. E-S1 Dunefennec (서포터): a fennec fox with a sand drum strapped to its back
+12. E-S2 Quartzham (서포터): a hamster that builds tiny crystal shields with its paws
+```
+
+### LINEUP-Wi · 바람 속성 12종 라인업
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create a DESIGN LINEUP of all 12 WIND spirits of HEXA FRONTIER in their Lv.1 baby forms, to lock the designs and the relative scale before making individual sprite sheets.
+- Canvas 1536x1024, TRANSPARENT background, two rows of 6 creatures, all standing on the same invisible baseline per row, all at the same scale (tanks slightly bigger, supporters slightly smaller), plenty of space between them.
+- Under each creature a small plain label with its code only (e.g. "Wi-T1").
+- No ground, no tiles, no shadows.
+Creatures in order (row 1 then row 2):
+1. Wi-T1 Nimbusram (탱커): a ram whose wool is a thick storm cloud and whose curled horns crackle with tiny sparks
+2. Wi-T2 Skywhale (탱커): a floating baby whale with cloud-puff fins
+3. Wi-T3 Galebear (탱커): a fluffy white bear cub with a feathered mantle around its shoulders
+4. Wi-M1 Galehare (근딜): a rabbit with sickle-shaped ears that kicks wind blades
+5. Wi-M2 Bladecrane (근딜): a crane chick with sword-like wing feathers
+6. Wi-M3 Voltpup (근딜): a weasel-dog pup crackling with tiny lightning
+7. Wi-R1 Featherswift (원딜): a swallow that shoots sharp feather darts
+8. Wi-R2 Stormkite (원딜): a kite-shaped flying sky ray
+9. Wi-R3 Galefly (원딜): a big-eyed dragonfly with crystal wings that fires compressed air bolts
+10. Wi-H1 Cloudpaca (힐러): an alpaca with fluffy cloud wool
+11. Wi-S1 Windchime (서포터): a small round owl whose tail feathers are wind chimes
+12. Wi-S2 Breezeglider (서포터): a sugar glider with mint gliding membranes trailing breezes
+```
+
+### F-T1 · 모스백 (Mossback) — 숲 탱커
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its shell bash), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Tank: sturdy, wide, heavy silhouette, protective shell/plates.
+Spirit F-T1 "Mossback" (모스백) — FOREST element, TANKER.
+Design: a sturdy mossy tortoise with a tiny sapling and mushrooms on its domed shell; Lv.10 the shell becomes layered bark armor; Lv.25 an ancient guardian tortoise whose tree crown blossoms with glowing green runes
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### F-T2 · 스텀프배저 (Stumpbadger) — 숲 탱커
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its shoulder charge), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Tank: sturdy, wide, heavy silhouette, protective shell/plates.
+Spirit F-T2 "Stumpbadger" (스텀프배저) — FOREST element, TANKER.
+Design: a chubby badger with bark-plated shoulders and a leafy tuft, standing on its hind legs; Lv.10 thick log pauldrons and moss cloak; Lv.25 broad bark-armored badger chief with a ring of mushrooms on its back
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### F-T3 · 루트라이노 (Rootrhino) — 숲 탱커
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its horn ram), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Tank: sturdy, wide, heavy silhouette, protective shell/plates.
+Spirit F-T3 "Rootrhino" (루트라이노) — FOREST element, TANKER.
+Design: a baby rhino whose hide is woven from living roots, with a smooth wooden horn; Lv.10 vine-wrapped armor and a sprouting horn; Lv.25 massive rhino with a blooming tree-horn and root greaves
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### F-M1 · 리프링스 (Leaflynx) — 숲 근딜
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its leaf-blade claw swipe), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Melee dealer: agile, aggressive stance, claws/horns/blade-like body parts.
+Spirit F-M1 "Leaflynx" (리프링스) — FOREST element, PHYSICAL MELEE DEALER.
+Design: a lynx kitten whose ear tufts and tail tip are sharp leaf blades; Lv.10 leaf-blade forearms; Lv.25 sleek forest lynx with a mane of razor leaves
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### F-M2 · 브램블울프 (Bramblewolf) — 숲 근딜
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its thorn bite lunge), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Melee dealer: agile, aggressive stance, claws/horns/blade-like body parts.
+Spirit F-M2 "Bramblewolf" (브램블울프) — FOREST element, PHYSICAL MELEE DEALER.
+Design: a wolf pup with a bramble-thorn mane and green eyes; Lv.10 thorn spikes along the spine; Lv.25 proud alpha wolf with a crown of blooming thorns
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### F-M3 · 바인폭스 (Vinefox) — 숲 근딜
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its glowing vine-tail whip), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Melee dealer: agile, aggressive stance, claws/horns/blade-like body parts.
+Spirit F-M3 "Vinefox" (바인폭스) — FOREST element, MAGIC MELEE DEALER.
+Design: a fox kit with two tails made of glowing green vines that whip with nature magic; Lv.10 three vine tails with flower buds; Lv.25 elegant fox with five luminous vine tails blooming at the tips
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### F-R1 · 시드샷 (Seedshot) — 숲 원딜
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its seed-pod sling shot), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Ranged dealer: keeps distance, shoots from its own body parts (no man-made guns or bows unless the design says so).
+Spirit F-R1 "Seedshot" (시드샷) — FOREST element, PHYSICAL RANGED DEALER.
+Design: a fluffy squirrel with an acorn-cap helmet that flings exploding seed pods from a little vine slingshot; Lv.10 leaf bandolier of seed pods; Lv.25 forest ranger squirrel with a living-vine slingshot
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### F-R2 · 글로우프로그 (Glowfrog) — 숲 원딜
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its green energy bubble blast from its throat sac), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Ranged dealer: keeps distance, shoots from its own body parts (no man-made guns or bows unless the design says so).
+Spirit F-R2 "Glowfrog" (글로우프로그) — FOREST element, MAGIC RANGED DEALER.
+Design: a round tree frog with a glowing green throat sac and leaf-pad hands; Lv.10 glowing spots along its back; Lv.25 large crowned frog with a lotus on its head and radiant markings
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
 ```
 
 ### F-R3 · 쏜비틀 (Thornbeetle) — 숲 원딜
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER MONSTER COLLECTION character sheet, 1536x1024 landscape, matching the layout of the attached reference sheet (for example S03-T01 Shellknight) panel for panel:
-- TOP LEFT header: element emblem, role badge "FOREST RANGED DEALER 3", large name "Thornbeetle", small epithet "(invent a short epithet)", element + role tags, a 2-line flavor description.
-- TOP CENTER "EVOLUTION": three full-body poses side by side labeled "Lv.1", "Lv.10", "Lv.25" (small and cute -> grown -> majestic with more armor and ornaments; same species and color identity at every stage).
-- TOP RIGHT "PORTRAIT & ICON": three rounded-square face portraits (Lv.1 / Lv.10 / Lv.25) on element-colored backgrounds, then a round element icon, then a character icon.
-- Under the portraits "IN-GAME HEX TILE (IDLE)": the three evolution stages each standing on its own isometric hex tile, evenly spaced, nothing overlapping.
-- BOTTOM "ANIMATION POSES & IN-GAME TILES": a grid with rows Lv.1 / Lv.10 / Lv.25 and columns IDLE, SKILL, WALK, HURT, KO/DEFEATED, every cell a small hex-tile sprite.
-- Keep generous empty space between every panel item (they will be cut out automatically). Plain flat panel backgrounds.
-Creature (쏜비틀): a round rhinoceros beetle whose back opens like a turret and shoots thorn spikes; Lv.10 armored stag beetle; Lv.25 heavy stag beetle with a thorn-cannon horn and moss armor.
-It is a creature companion (an animal / beast / elemental being). It is NOT a wizard or mage: no robes, no pointed hats, no staffs, no spell books.
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its thorn spike volley from its opened back), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Ranged dealer: keeps distance, shoots from its own body parts (no man-made guns or bows unless the design says so).
+Spirit F-R3 "Thornbeetle" (쏜비틀) — FOREST element, PHYSICAL RANGED DEALER.
+Design: a round rhinoceros beetle whose back opens like a turret to shoot thorn spikes; Lv.10 armored with mossy plates; Lv.25 heavy stag beetle with a thorn-cannon horn
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
 ```
 
-### F-S2 · 페탈모스 (Petalmoth) — 숲 서포터
+### F-H1 · 블룸디어 (Bloomdeer) — 숲 힐러
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER MONSTER COLLECTION character sheet, 1536x1024 landscape, matching the layout of the attached reference sheet (for example S03-T01 Shellknight) panel for panel:
-- TOP LEFT header: element emblem, role badge "FOREST SUPPORTER 2", large name "Petalmoth", small epithet "(invent a short epithet)", element + role tags, a 2-line flavor description.
-- TOP CENTER "EVOLUTION": three full-body poses side by side labeled "Lv.1", "Lv.10", "Lv.25" (small and cute -> grown -> majestic with more armor and ornaments; same species and color identity at every stage).
-- TOP RIGHT "PORTRAIT & ICON": three rounded-square face portraits (Lv.1 / Lv.10 / Lv.25) on element-colored backgrounds, then a round element icon, then a character icon.
-- Under the portraits "IN-GAME HEX TILE (IDLE)": the three evolution stages each standing on its own isometric hex tile, evenly spaced, nothing overlapping.
-- BOTTOM "ANIMATION POSES & IN-GAME TILES": a grid with rows Lv.1 / Lv.10 / Lv.25 and columns IDLE, SKILL, WALK, HURT, KO/DEFEATED, every cell a small hex-tile sprite.
-- Keep generous empty space between every panel item (they will be cut out automatically). Plain flat panel backgrounds.
-Creature (페탈모스): a round fuzzy moth with flower-petal wings that scatters glowing pollen to empower allies; Lv.10 larger patterned wings; Lv.25 majestic luna-moth with a flower crown and trailing pollen ribbons.
-It is a creature companion (an animal / beast / elemental being). It is NOT a wizard or mage: no robes, no pointed hats, no staffs, no spell books.
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its petal shower (healing)), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Healer: soft round silhouette, gentle face, glowing healing motif.
+Spirit F-H1 "Bloomdeer" (블룸디어) — FOREST element, HEALER.
+Design: a gentle spotted fawn with small flower-bud antlers; Lv.10 antlers in full bloom with hanging petals; Lv.25 graceful white-green deer with glowing blossom antlers and a flower garland
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
 ```
 
-### Fi-T3 · 마그마크랩 (Magmacrab) — 불 탱커
+### F-S1 · 페탈모스 (Petalmoth) — 숲 서포터
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER MONSTER COLLECTION character sheet, 1536x1024 landscape, matching the layout of the attached reference sheet (for example S03-T01 Shellknight) panel for panel:
-- TOP LEFT header: element emblem, role badge "FIRE TANKER 3", large name "Magmacrab", small epithet "(invent a short epithet)", element + role tags, a 2-line flavor description.
-- TOP CENTER "EVOLUTION": three full-body poses side by side labeled "Lv.1", "Lv.10", "Lv.25" (small and cute -> grown -> majestic with more armor and ornaments; same species and color identity at every stage).
-- TOP RIGHT "PORTRAIT & ICON": three rounded-square face portraits (Lv.1 / Lv.10 / Lv.25) on element-colored backgrounds, then a round element icon, then a character icon.
-- Under the portraits "IN-GAME HEX TILE (IDLE)": the three evolution stages each standing on its own isometric hex tile, evenly spaced, nothing overlapping.
-- BOTTOM "ANIMATION POSES & IN-GAME TILES": a grid with rows Lv.1 / Lv.10 / Lv.25 and columns IDLE, SKILL, WALK, HURT, KO/DEFEATED, every cell a small hex-tile sprite.
-- Keep generous empty space between every panel item (they will be cut out automatically). Plain flat panel backgrounds.
-Creature (마그마크랩): a hermit crab carrying a volcanic rock shell with glowing lava cracks and one oversized claw used as a shield; Lv.10 obsidian plating; Lv.25 fortress crab whose shell is a small erupting volcano.
-It is a creature companion (an animal / beast / elemental being). It is NOT a wizard or mage: no robes, no pointed hats, no staffs, no spell books.
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its glowing pollen burst (ally buff)), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Supporter: charming, expressive, carries a natural buff/debuff motif (song, pollen, drum, bubbles).
+Spirit F-S1 "Petalmoth" (페탈모스) — FOREST element, SUPPORTER.
+Design: a round fuzzy moth with flower-petal wings scattering glowing pollen; Lv.10 larger patterned wings; Lv.25 majestic luna-moth with a flower crown and trailing pollen ribbons
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
 ```
 
-### Fi-M3 · 신더팽 (Cinderfang) — 불 근딜
+### F-S2 · 모스로스 (Mossloth) — 숲 서포터
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER MONSTER COLLECTION character sheet, 1536x1024 landscape, matching the layout of the attached reference sheet (for example S03-T01 Shellknight) panel for panel:
-- TOP LEFT header: element emblem, role badge "FIRE MELEE DEALER 3", large name "Cinderfang", small epithet "(invent a short epithet)", element + role tags, a 2-line flavor description.
-- TOP CENTER "EVOLUTION": three full-body poses side by side labeled "Lv.1", "Lv.10", "Lv.25" (small and cute -> grown -> majestic with more armor and ornaments; same species and color identity at every stage).
-- TOP RIGHT "PORTRAIT & ICON": three rounded-square face portraits (Lv.1 / Lv.10 / Lv.25) on element-colored backgrounds, then a round element icon, then a character icon.
-- Under the portraits "IN-GAME HEX TILE (IDLE)": the three evolution stages each standing on its own isometric hex tile, evenly spaced, nothing overlapping.
-- BOTTOM "ANIMATION POSES & IN-GAME TILES": a grid with rows Lv.1 / Lv.10 / Lv.25 and columns IDLE, SKILL, WALK, HURT, KO/DEFEATED, every cell a small hex-tile sprite.
-- Keep generous empty space between every panel item (they will be cut out automatically). Plain flat panel backgrounds.
-Creature (신더팽): a bipedal salamander lizard warrior with ember-tipped claws and a burning tail; Lv.10 scale armor; Lv.25 dragon-like salamander with obsidian armor plates and twin flame claws.
-It is a creature companion (an animal / beast / elemental being). It is NOT a wizard or mage: no robes, no pointed hats, no staffs, no spell books.
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its sleepy pollen yawn (enemy debuff)), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Supporter: charming, expressive, carries a natural buff/debuff motif (song, pollen, drum, bubbles).
+Spirit F-S2 "Mossloth" (모스로스) — FOREST element, SUPPORTER.
+Design: a sleepy baby sloth with mossy fur and tiny sprouting leaves; Lv.10 hanging flower vines on its arms; Lv.25 serene sloth with a small garden growing on its back
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
 ```
 
-### Fi-R2 · 스파크호그 (Sparkhog) — 불 원딜
+### Fi-T1 · 마그마크랩 (Magmacrab) — 불 탱커
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER MONSTER COLLECTION character sheet, 1536x1024 landscape, matching the layout of the attached reference sheet (for example S03-T01 Shellknight) panel for panel:
-- TOP LEFT header: element emblem, role badge "FIRE RANGED DEALER 2", large name "Sparkhog", small epithet "(invent a short epithet)", element + role tags, a 2-line flavor description.
-- TOP CENTER "EVOLUTION": three full-body poses side by side labeled "Lv.1", "Lv.10", "Lv.25" (small and cute -> grown -> majestic with more armor and ornaments; same species and color identity at every stage).
-- TOP RIGHT "PORTRAIT & ICON": three rounded-square face portraits (Lv.1 / Lv.10 / Lv.25) on element-colored backgrounds, then a round element icon, then a character icon.
-- Under the portraits "IN-GAME HEX TILE (IDLE)": the three evolution stages each standing on its own isometric hex tile, evenly spaced, nothing overlapping.
-- BOTTOM "ANIMATION POSES & IN-GAME TILES": a grid with rows Lv.1 / Lv.10 / Lv.25 and columns IDLE, SKILL, WALK, HURT, KO/DEFEATED, every cell a small hex-tile sprite.
-- Keep generous empty space between every panel item (they will be cut out automatically). Plain flat panel backgrounds.
-Creature (스파크호그): a hedgehog whose quills are flaming spikes it fires at enemies; Lv.10 longer glowing quills; Lv.25 porcupine with a blazing quill crown. (Replaces Cinder Mage.)
-It is a creature companion (an animal / beast / elemental being). It is NOT a wizard or mage: no robes, no pointed hats, no staffs, no spell books.
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its big-claw slam), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Tank: sturdy, wide, heavy silhouette, protective shell/plates.
+Spirit Fi-T1 "Magmacrab" (마그마크랩) — FIRE element, TANKER.
+Design: a hermit crab carrying a volcanic rock shell with glowing lava cracks and one oversized shield claw; Lv.10 obsidian plating; Lv.25 fortress crab whose shell is a small erupting volcano
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
 ```
 
-### Fi-R3 · 애쉬드레이크 (Ashdrake) — 불 원딜
+### Fi-T2 · 신더록스 (Cinderox) — 불 탱커
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER MONSTER COLLECTION character sheet, 1536x1024 landscape, matching the layout of the attached reference sheet (for example S03-T01 Shellknight) panel for panel:
-- TOP LEFT header: element emblem, role badge "FIRE RANGED DEALER 3", large name "Ashdrake", small epithet "(invent a short epithet)", element + role tags, a 2-line flavor description.
-- TOP CENTER "EVOLUTION": three full-body poses side by side labeled "Lv.1", "Lv.10", "Lv.25" (small and cute -> grown -> majestic with more armor and ornaments; same species and color identity at every stage).
-- TOP RIGHT "PORTRAIT & ICON": three rounded-square face portraits (Lv.1 / Lv.10 / Lv.25) on element-colored backgrounds, then a round element icon, then a character icon.
-- Under the portraits "IN-GAME HEX TILE (IDLE)": the three evolution stages each standing on its own isometric hex tile, evenly spaced, nothing overlapping.
-- BOTTOM "ANIMATION POSES & IN-GAME TILES": a grid with rows Lv.1 / Lv.10 / Lv.25 and columns IDLE, SKILL, WALK, HURT, KO/DEFEATED, every cell a small hex-tile sprite.
-- Keep generous empty space between every panel item (they will be cut out automatically). Plain flat panel backgrounds.
-Creature (애쉬드레이크): a small round dragon with ash-grey scales and a glowing magma belly that spits fireballs; Lv.10 bigger wings; Lv.25 proud drake with molten horn crest.
-It is a creature companion (an animal / beast / elemental being). It is NOT a wizard or mage: no robes, no pointed hats, no staffs, no spell books.
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its horn charge), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Tank: sturdy, wide, heavy silhouette, protective shell/plates.
+Spirit Fi-T2 "Cinderox" (신더록스) — FIRE element, TANKER.
+Design: a stocky ox calf with basalt-plated horns and a smoldering mane; Lv.10 obsidian shoulder plates; Lv.25 huge ox with molten-cracked armor and flaming horn tips
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### Fi-T3 · 킬른골렘 (Kilngolem) — 불 탱커
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its heavy fist pound), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Tank: sturdy, wide, heavy silhouette, protective shell/plates.
+Spirit Fi-T3 "Kilngolem" (킬른골렘) — FIRE element, TANKER.
+Design: a small round clay-kiln golem with a cozy fire glowing through a window in its belly; Lv.10 iron bands and a little chimney; Lv.25 massive forge golem with chimney shoulders and a roaring furnace core
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### Fi-M1 · 신더팽 (Cinderfang) — 불 근딜
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its ember-claw slash), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Melee dealer: agile, aggressive stance, claws/horns/blade-like body parts.
+Spirit Fi-M1 "Cinderfang" (신더팽) — FIRE element, PHYSICAL MELEE DEALER.
+Design: a bipedal salamander kid with ember-tipped claws and a burning tail tip; Lv.10 scale armor; Lv.25 dragon-like salamander warrior with obsidian plates and twin flame claws
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### Fi-M2 · 차르보어 (Charboar) — 불 근딜
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its molten tusk gore), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Melee dealer: agile, aggressive stance, claws/horns/blade-like body parts.
+Spirit Fi-M2 "Charboar" (차르보어) — FIRE element, PHYSICAL MELEE DEALER.
+Design: a piglet boar with glowing molten tusks and a soot-black bristle crest; Lv.10 longer tusks and ember back spikes; Lv.25 giant war boar with magma-veined tusks
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### Fi-M3 · 파이로타이거 (Pyrotiger) — 불 근딜
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its fire-magic claw combo), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Melee dealer: agile, aggressive stance, claws/horns/blade-like body parts.
+Spirit Fi-M3 "Pyrotiger" (파이로타이거) — FIRE element, MAGIC MELEE DEALER.
+Design: a tiger cub whose stripes burn like living flame; Lv.10 fiery mane and flame paws; Lv.25 majestic blazing tiger with a halo of fire stripes
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### Fi-R1 · 스파크호그 (Sparkhog) — 불 원딜
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its flaming quill shot), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Ranged dealer: keeps distance, shoots from its own body parts (no man-made guns or bows unless the design says so).
+Spirit Fi-R1 "Sparkhog" (스파크호그) — FIRE element, PHYSICAL RANGED DEALER.
+Design: a hedgehog whose quills are flaming spikes it fires at enemies; Lv.10 longer glowing quills; Lv.25 porcupine with a blazing quill crown
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### Fi-R2 · 애쉬드레이크 (Ashdrake) — 불 원딜
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its fireball breath), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Ranged dealer: keeps distance, shoots from its own body parts (no man-made guns or bows unless the design says so).
+Spirit Fi-R2 "Ashdrake" (애쉬드레이크) — FIRE element, MAGIC RANGED DEALER.
+Design: a small round dragon with ash-grey scales and a glowing magma belly; Lv.10 bigger wings; Lv.25 proud drake with a molten horn crest
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### Fi-R3 · 플레어카멜레온 (Flarechameleon) — 불 원딜
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its ember dart spit), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Ranged dealer: keeps distance, shoots from its own body parts (no man-made guns or bows unless the design says so).
+Spirit Fi-R3 "Flarechameleon" (플레어카멜레온) — FIRE element, PHYSICAL RANGED DEALER.
+Design: a chameleon with a curled flame tail that spits ember darts; Lv.10 glowing color-shifting scales; Lv.25 regal chameleon with a frill of flames
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### Fi-H1 · 엠버판다 (Emberpanda) — 불 힐러
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its warm tail glow (healing)), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Healer: soft round silhouette, gentle face, glowing healing motif.
+Spirit Fi-H1 "Emberpanda" (엠버판다) — FIRE element, HEALER.
+Design: a red panda with a softly glowing warm tail like a hearth; Lv.10 lantern-like tail rings; Lv.25 serene red panda with a phoenix-flame tail
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
 ```
 
 ### Fi-S1 · 하스펍 (Hearthpup) — 불 서포터
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER MONSTER COLLECTION character sheet, 1536x1024 landscape, matching the layout of the attached reference sheet (for example S03-T01 Shellknight) panel for panel:
-- TOP LEFT header: element emblem, role badge "FIRE SUPPORTER 1", large name "Hearthpup", small epithet "(invent a short epithet)", element + role tags, a 2-line flavor description.
-- TOP CENTER "EVOLUTION": three full-body poses side by side labeled "Lv.1", "Lv.10", "Lv.25" (small and cute -> grown -> majestic with more armor and ornaments; same species and color identity at every stage).
-- TOP RIGHT "PORTRAIT & ICON": three rounded-square face portraits (Lv.1 / Lv.10 / Lv.25) on element-colored backgrounds, then a round element icon, then a character icon.
-- Under the portraits "IN-GAME HEX TILE (IDLE)": the three evolution stages each standing on its own isometric hex tile, evenly spaced, nothing overlapping.
-- BOTTOM "ANIMATION POSES & IN-GAME TILES": a grid with rows Lv.1 / Lv.10 / Lv.25 and columns IDLE, SKILL, WALK, HURT, KO/DEFEATED, every cell a small hex-tile sprite.
-- Keep generous empty space between every panel item (they will be cut out automatically). Plain flat panel backgrounds.
-Creature (하스펍): a chubby puppy carrying a glowing hearth-lantern on its back whose warmth boosts allies; Lv.10 lantern becomes a small brazier saddle; Lv.25 noble hound with a phoenix-shaped hearth. (Replaces Pyronomad.)
-It is a creature companion (an animal / beast / elemental being). It is NOT a wizard or mage: no robes, no pointed hats, no staffs, no spell books.
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its warm howl (ally buff)), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Supporter: charming, expressive, carries a natural buff/debuff motif (song, pollen, drum, bubbles).
+Spirit Fi-S1 "Hearthpup" (하스펍) — FIRE element, SUPPORTER.
+Design: a chubby puppy carrying a glowing hearth-lantern on its back; Lv.10 the lantern becomes a small brazier saddle; Lv.25 noble hound with a phoenix-shaped hearth
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
 ```
 
 ### Fi-S2 · 킨들핀치 (Kindlefinch) — 불 서포터
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER MONSTER COLLECTION character sheet, 1536x1024 landscape, matching the layout of the attached reference sheet (for example S03-T01 Shellknight) panel for panel:
-- TOP LEFT header: element emblem, role badge "FIRE SUPPORTER 2", large name "Kindlefinch", small epithet "(invent a short epithet)", element + role tags, a 2-line flavor description.
-- TOP CENTER "EVOLUTION": three full-body poses side by side labeled "Lv.1", "Lv.10", "Lv.25" (small and cute -> grown -> majestic with more armor and ornaments; same species and color identity at every stage).
-- TOP RIGHT "PORTRAIT & ICON": three rounded-square face portraits (Lv.1 / Lv.10 / Lv.25) on element-colored backgrounds, then a round element icon, then a character icon.
-- Under the portraits "IN-GAME HEX TILE (IDLE)": the three evolution stages each standing on its own isometric hex tile, evenly spaced, nothing overlapping.
-- BOTTOM "ANIMATION POSES & IN-GAME TILES": a grid with rows Lv.1 / Lv.10 / Lv.25 and columns IDLE, SKILL, WALK, HURT, KO/DEFEATED, every cell a small hex-tile sprite.
-- Keep generous empty space between every panel item (they will be cut out automatically). Plain flat panel backgrounds.
-Creature (킨들핀치): a bright songbird with ember feathers whose song raises morale; Lv.10 longer flame tail; Lv.25 phoenix-like songbird with flaming tail ribbons.
-It is a creature companion (an animal / beast / elemental being). It is NOT a wizard or mage: no robes, no pointed hats, no staffs, no spell books.
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its rallying song), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Supporter: charming, expressive, carries a natural buff/debuff motif (song, pollen, drum, bubbles).
+Spirit Fi-S2 "Kindlefinch" (킨들핀치) — FIRE element, SUPPORTER.
+Design: a bright songbird with ember feathers; Lv.10 longer flame tail; Lv.25 phoenix-like songbird with flaming tail ribbons
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
 ```
 
-### W-R2 · 퍼퍼샷 (Puffershot) — 물 원딜
+### W-T1 · 터스크월러스 (Tuskwalrus) — 물 탱커
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER MONSTER COLLECTION character sheet, 1536x1024 landscape, matching the layout of the attached reference sheet (for example S03-T01 Shellknight) panel for panel:
-- TOP LEFT header: element emblem, role badge "WATER RANGED DEALER 2", large name "Puffershot", small epithet "(invent a short epithet)", element + role tags, a 2-line flavor description.
-- TOP CENTER "EVOLUTION": three full-body poses side by side labeled "Lv.1", "Lv.10", "Lv.25" (small and cute -> grown -> majestic with more armor and ornaments; same species and color identity at every stage).
-- TOP RIGHT "PORTRAIT & ICON": three rounded-square face portraits (Lv.1 / Lv.10 / Lv.25) on element-colored backgrounds, then a round element icon, then a character icon.
-- Under the portraits "IN-GAME HEX TILE (IDLE)": the three evolution stages each standing on its own isometric hex tile, evenly spaced, nothing overlapping.
-- BOTTOM "ANIMATION POSES & IN-GAME TILES": a grid with rows Lv.1 / Lv.10 / Lv.25 and columns IDLE, SKILL, WALK, HURT, KO/DEFEATED, every cell a small hex-tile sprite.
-- Keep generous empty space between every panel item (they will be cut out automatically). Plain flat panel backgrounds.
-Creature (퍼퍼샷): a pufferfish floating inside a water bubble that shoots water spikes; Lv.10 coral armor spines; Lv.25 armored puffer with coral cannons. (Replaces Neritha.)
-It is a creature companion (an animal / beast / elemental being). It is NOT a wizard or mage: no robes, no pointed hats, no staffs, no spell books.
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its tusk slam), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Tank: sturdy, wide, heavy silhouette, protective shell/plates.
+Spirit W-T1 "Tuskwalrus" (터스크월러스) — WATER element, TANKER.
+Design: a chubby walrus pup with pearl-white tusks and shell pauldrons; Lv.10 coral armor plates; Lv.25 mighty walrus with ice-coral tusks and a barnacle-shield back
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
 ```
 
-### W-S2 · 버블롯 (Bubblot) — 물 서포터
+### W-T2 · 클램가드 (Clamguard) — 물 탱커
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER MONSTER COLLECTION character sheet, 1536x1024 landscape, matching the layout of the attached reference sheet (for example S03-T01 Shellknight) panel for panel:
-- TOP LEFT header: element emblem, role badge "WATER SUPPORTER 2", large name "Bubblot", small epithet "(invent a short epithet)", element + role tags, a 2-line flavor description.
-- TOP CENTER "EVOLUTION": three full-body poses side by side labeled "Lv.1", "Lv.10", "Lv.25" (small and cute -> grown -> majestic with more armor and ornaments; same species and color identity at every stage).
-- TOP RIGHT "PORTRAIT & ICON": three rounded-square face portraits (Lv.1 / Lv.10 / Lv.25) on element-colored backgrounds, then a round element icon, then a character icon.
-- Under the portraits "IN-GAME HEX TILE (IDLE)": the three evolution stages each standing on its own isometric hex tile, evenly spaced, nothing overlapping.
-- BOTTOM "ANIMATION POSES & IN-GAME TILES": a grid with rows Lv.1 / Lv.10 / Lv.25 and columns IDLE, SKILL, WALK, HURT, KO/DEFEATED, every cell a small hex-tile sprite.
-- Keep generous empty space between every panel item (they will be cut out automatically). Plain flat panel backgrounds.
-Creature (버블롯): a sea otter holding a shell that blows protective bubble shields over allies; Lv.10 kelp scarf; Lv.25 otter with a glowing pearl and a bubble halo.
-It is a creature companion (an animal / beast / elemental being). It is NOT a wizard or mage: no robes, no pointed hats, no staffs, no spell books.
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its shell snap), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Tank: sturdy, wide, heavy silhouette, protective shell/plates.
+Spirit W-T2 "Clamguard" (클램가드) — WATER element, TANKER.
+Design: a big clam creature with stubby legs and curious eyes peeking from its shell; Lv.10 spiked shell edges; Lv.25 giant pearl-clam guardian with a glowing pearl core
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
 ```
 
-### Wi-T3 · 님버스램 (Nimbusram) — 바람 탱커
+### W-T3 · 하이드로히포 (Hydrohippo) — 물 탱커
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER MONSTER COLLECTION character sheet, 1536x1024 landscape, matching the layout of the attached reference sheet (for example S03-T01 Shellknight) panel for panel:
-- TOP LEFT header: element emblem, role badge "WIND TANKER 3", large name "Nimbusram", small epithet "(invent a short epithet)", element + role tags, a 2-line flavor description.
-- TOP CENTER "EVOLUTION": three full-body poses side by side labeled "Lv.1", "Lv.10", "Lv.25" (small and cute -> grown -> majestic with more armor and ornaments; same species and color identity at every stage).
-- TOP RIGHT "PORTRAIT & ICON": three rounded-square face portraits (Lv.1 / Lv.10 / Lv.25) on element-colored backgrounds, then a round element icon, then a character icon.
-- Under the portraits "IN-GAME HEX TILE (IDLE)": the three evolution stages each standing on its own isometric hex tile, evenly spaced, nothing overlapping.
-- BOTTOM "ANIMATION POSES & IN-GAME TILES": a grid with rows Lv.1 / Lv.10 / Lv.25 and columns IDLE, SKILL, WALK, HURT, KO/DEFEATED, every cell a small hex-tile sprite.
-- Keep generous empty space between every panel item (they will be cut out automatically). Plain flat panel backgrounds.
-Creature (님버스램): a ram whose wool is a thick storm cloud and whose curled horns crackle with tiny sparks; Lv.10 bigger cloud mane; Lv.25 thunderhead ram with lightning-etched horns.
-It is a creature companion (an animal / beast / elemental being). It is NOT a wizard or mage: no robes, no pointed hats, no staffs, no spell books.
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its body splash slam), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Tank: sturdy, wide, heavy silhouette, protective shell/plates.
+Spirit W-T3 "Hydrohippo" (하이드로히포) — WATER element, TANKER.
+Design: a baby hippo with a water-sheened hide and lily pads on its back; Lv.10 water-armor plates; Lv.25 huge hippo wearing flowing tidal armor
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
 ```
 
-### Wi-R3 · 스톰카이트 (Stormkite) — 바람 원딜
+### W-M1 · 오르카 (Orcablade) — 물 근딜
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER MONSTER COLLECTION character sheet, 1536x1024 landscape, matching the layout of the attached reference sheet (for example S03-T01 Shellknight) panel for panel:
-- TOP LEFT header: element emblem, role badge "WIND RANGED DEALER 3", large name "Stormkite", small epithet "(invent a short epithet)", element + role tags, a 2-line flavor description.
-- TOP CENTER "EVOLUTION": three full-body poses side by side labeled "Lv.1", "Lv.10", "Lv.25" (small and cute -> grown -> majestic with more armor and ornaments; same species and color identity at every stage).
-- TOP RIGHT "PORTRAIT & ICON": three rounded-square face portraits (Lv.1 / Lv.10 / Lv.25) on element-colored backgrounds, then a round element icon, then a character icon.
-- Under the portraits "IN-GAME HEX TILE (IDLE)": the three evolution stages each standing on its own isometric hex tile, evenly spaced, nothing overlapping.
-- BOTTOM "ANIMATION POSES & IN-GAME TILES": a grid with rows Lv.1 / Lv.10 / Lv.25 and columns IDLE, SKILL, WALK, HURT, KO/DEFEATED, every cell a small hex-tile sprite.
-- Keep generous empty space between every panel item (they will be cut out automatically). Plain flat panel backgrounds.
-Creature (스톰카이트): a kite-shaped flying sky ray that slices wind blades from its fins; Lv.10 longer tail ribbons; Lv.25 thunder-striped sky ray with glowing fin edges.
-It is a creature companion (an animal / beast / elemental being). It is NOT a wizard or mage: no robes, no pointed hats, no staffs, no spell books.
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its fin-blade slash), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Melee dealer: agile, aggressive stance, claws/horns/blade-like body parts.
+Spirit W-M1 "Orcablade" (오르카) — WATER element, PHYSICAL MELEE DEALER.
+Design: a bipedal baby orca with fin-shaped forearm blades; Lv.10 coral gauntlets; Lv.25 orca champion with tidal fin blades and shell armor
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
 ```
 
-### Wi-S2 · 윈드차임 (Windchime) — 바람 서포터
+### W-M2 · 클로스터 (Clawster) — 물 근딜
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER MONSTER COLLECTION character sheet, 1536x1024 landscape, matching the layout of the attached reference sheet (for example S03-T01 Shellknight) panel for panel:
-- TOP LEFT header: element emblem, role badge "WIND SUPPORTER 2", large name "Windchime", small epithet "(invent a short epithet)", element + role tags, a 2-line flavor description.
-- TOP CENTER "EVOLUTION": three full-body poses side by side labeled "Lv.1", "Lv.10", "Lv.25" (small and cute -> grown -> majestic with more armor and ornaments; same species and color identity at every stage).
-- TOP RIGHT "PORTRAIT & ICON": three rounded-square face portraits (Lv.1 / Lv.10 / Lv.25) on element-colored backgrounds, then a round element icon, then a character icon.
-- Under the portraits "IN-GAME HEX TILE (IDLE)": the three evolution stages each standing on its own isometric hex tile, evenly spaced, nothing overlapping.
-- BOTTOM "ANIMATION POSES & IN-GAME TILES": a grid with rows Lv.1 / Lv.10 / Lv.25 and columns IDLE, SKILL, WALK, HURT, KO/DEFEATED, every cell a small hex-tile sprite.
-- Keep generous empty space between every panel item (they will be cut out automatically). Plain flat panel backgrounds.
-Creature (윈드차임): a small round owl whose tail feathers are wind chimes that ring to cheer allies; Lv.10 crystal chimes; Lv.25 great owl with a halo of floating chimes.
-It is a creature companion (an animal / beast / elemental being). It is NOT a wizard or mage: no robes, no pointed hats, no staffs, no spell books.
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its pincer crush), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Melee dealer: agile, aggressive stance, claws/horns/blade-like body parts.
+Spirit W-M2 "Clawster" (클로스터) — WATER element, PHYSICAL MELEE DEALER.
+Design: a bright blue lobster with oversized pincers; Lv.10 spiked shell; Lv.25 armored lobster knight with huge crushing claws
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
 ```
 
-### E-T3 · 아이언딜로 (Irondillo) — 대지 탱커
+### W-M3 · 타이드아홀로틀 (Tidelotl) — 물 근딜
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER MONSTER COLLECTION character sheet, 1536x1024 landscape, matching the layout of the attached reference sheet (for example S03-T01 Shellknight) panel for panel:
-- TOP LEFT header: element emblem, role badge "EARTH TANKER 3", large name "Irondillo", small epithet "(invent a short epithet)", element + role tags, a 2-line flavor description.
-- TOP CENTER "EVOLUTION": three full-body poses side by side labeled "Lv.1", "Lv.10", "Lv.25" (small and cute -> grown -> majestic with more armor and ornaments; same species and color identity at every stage).
-- TOP RIGHT "PORTRAIT & ICON": three rounded-square face portraits (Lv.1 / Lv.10 / Lv.25) on element-colored backgrounds, then a round element icon, then a character icon.
-- Under the portraits "IN-GAME HEX TILE (IDLE)": the three evolution stages each standing on its own isometric hex tile, evenly spaced, nothing overlapping.
-- BOTTOM "ANIMATION POSES & IN-GAME TILES": a grid with rows Lv.1 / Lv.10 / Lv.25 and columns IDLE, SKILL, WALK, HURT, KO/DEFEATED, every cell a small hex-tile sprite.
-- Keep generous empty space between every panel item (they will be cut out automatically). Plain flat panel backgrounds.
-Creature (아이언딜로): an armadillo with iron-ore plated shell that curls into a rolling fortress; Lv.10 studded plates; Lv.25 massive armadillo with amber crystal spikes.
-It is a creature companion (an animal / beast / elemental being). It is NOT a wizard or mage: no robes, no pointed hats, no staffs, no spell books.
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its water-magic tail whip), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Melee dealer: agile, aggressive stance, claws/horns/blade-like body parts.
+Spirit W-M3 "Tidelotl" (타이드아홀로틀) — WATER element, MAGIC MELEE DEALER.
+Design: an axolotl with glowing frilly gills and a water-ribbon tail; Lv.10 longer luminous gills; Lv.25 graceful axolotl with flowing tide ribbons orbiting it
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### W-R1 · 퍼퍼샷 (Puffershot) — 물 원딜
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its water spike volley), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Ranged dealer: keeps distance, shoots from its own body parts (no man-made guns or bows unless the design says so).
+Spirit W-R1 "Puffershot" (퍼퍼샷) — WATER element, PHYSICAL RANGED DEALER.
+Design: a pufferfish floating inside a water bubble that shoots water spikes; Lv.10 coral armor spines; Lv.25 armored puffer with coral cannons
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### W-R2 · 나르왈 (Narwhorn) — 물 원딜
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its water beam from its horn), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Ranged dealer: keeps distance, shoots from its own body parts (no man-made guns or bows unless the design says so).
+Spirit W-R2 "Narwhorn" (나르왈) — WATER element, MAGIC RANGED DEALER.
+Design: a floating narwhal calf with a spiral crystal horn; Lv.10 glowing horn and fin rings; Lv.25 majestic narwhal with a radiant tidal horn
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### W-R3 · 스냅쉬림프 (Snapshrimp) — 물 원딜
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its snapping shockwave bubble), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Ranged dealer: keeps distance, shoots from its own body parts (no man-made guns or bows unless the design says so).
+Spirit W-R3 "Snapshrimp" (스냅쉬림프) — WATER element, PHYSICAL RANGED DEALER.
+Design: a pistol shrimp with one oversized snapping claw; Lv.10 armored carapace; Lv.25 heavy shrimp gunner with a glowing cannon claw
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### W-H1 · 타이드포니 (Tidepony) — 물 힐러
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its pearl bubble healing), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Healer: soft round silhouette, gentle face, glowing healing motif.
+Spirit W-H1 "Tidepony" (타이드포니) — WATER element, HEALER.
+Design: a seahorse with a pearl on its forehead floating in a small water swirl; Lv.10 flowing fins; Lv.25 elegant seahorse with a pearl crown and healing water ribbons
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### W-S1 · 버블롯 (Bubblot) — 물 서포터
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its protective bubble blow), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Supporter: charming, expressive, carries a natural buff/debuff motif (song, pollen, drum, bubbles).
+Spirit W-S1 "Bubblot" (버블롯) — WATER element, SUPPORTER.
+Design: a sea otter holding a shell that blows protective bubble shields; Lv.10 kelp scarf; Lv.25 otter with a glowing pearl and a bubble halo
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### W-S2 · 펭드럼 (Pengdrum) — 물 서포터
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its belly drum (enemy debuff)), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Supporter: charming, expressive, carries a natural buff/debuff motif (song, pollen, drum, bubbles).
+Spirit W-S2 "Pengdrum" (펭드럼) — WATER element, SUPPORTER.
+Design: a round penguin chick that drums on its belly; Lv.10 shell drum and scarf; Lv.25 proud emperor penguin with a frost-crystal drum
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### Wi-T1 · 님버스램 (Nimbusram) — 바람 탱커
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its horn ram), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Tank: sturdy, wide, heavy silhouette, protective shell/plates.
+Spirit Wi-T1 "Nimbusram" (님버스램) — WIND element, TANKER.
+Design: a ram whose wool is a thick storm cloud and whose curled horns crackle with tiny sparks; Lv.10 bigger cloud mane; Lv.25 thunderhead ram with lightning-etched horns
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### Wi-T2 · 스카이웨일 (Skywhale) — 바람 탱커
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its body slam), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Tank: sturdy, wide, heavy silhouette, protective shell/plates.
+Spirit Wi-T2 "Skywhale" (스카이웨일) — WIND element, TANKER.
+Design: a floating baby whale with cloud-puff fins; Lv.10 cloud armor on its back; Lv.25 huge sky whale with a cloud fortress on its back
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### Wi-T3 · 게일베어 (Galebear) — 바람 탱커
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its wind-guard paw slam), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Tank: sturdy, wide, heavy silhouette, protective shell/plates.
+Spirit Wi-T3 "Galebear" (게일베어) — WIND element, TANKER.
+Design: a fluffy white bear cub with a feathered mantle around its shoulders; Lv.10 feather pauldrons; Lv.25 great storm bear with wing-like feather armor
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### Wi-M1 · 게일헤어 (Galehare) — 바람 근딜
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its wind kick), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Melee dealer: agile, aggressive stance, claws/horns/blade-like body parts.
+Spirit Wi-M1 "Galehare" (게일헤어) — WIND element, PHYSICAL MELEE DEALER.
+Design: a rabbit with sickle-shaped ears that kicks wind blades; Lv.10 wind wraps on its legs; Lv.25 swift hare with crescent ears and a gale scarf
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### Wi-M2 · 블레이드크레인 (Bladecrane) — 바람 근딜
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its sword-wing strike), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Melee dealer: agile, aggressive stance, claws/horns/blade-like body parts.
+Spirit Wi-M2 "Bladecrane" (블레이드크레인) — WIND element, PHYSICAL MELEE DEALER.
+Design: a crane chick with sword-like wing feathers; Lv.10 longer steel-sheen feathers; Lv.25 elegant crane with blade wings and a red crest
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### Wi-M3 · 볼트펍 (Voltpup) — 바람 근딜
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its lightning-magic pounce), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Melee dealer: agile, aggressive stance, claws/horns/blade-like body parts.
+Spirit Wi-M3 "Voltpup" (볼트펍) — WIND element, MAGIC MELEE DEALER.
+Design: a weasel-dog pup crackling with tiny lightning; Lv.10 lightning-bolt tail; Lv.25 sleek thunder beast with a storm-cloud mane
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### Wi-R1 · 페더스위프트 (Featherswift) — 바람 원딜
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its feather dart shot), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Ranged dealer: keeps distance, shoots from its own body parts (no man-made guns or bows unless the design says so).
+Spirit Wi-R1 "Featherswift" (페더스위프트) — WIND element, PHYSICAL RANGED DEALER.
+Design: a swallow that shoots sharp feather darts; Lv.10 forked tail streamers; Lv.25 swift swallow with gleaming dart feathers
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### Wi-R2 · 스톰카이트 (Stormkite) — 바람 원딜
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its wind blade slice from its fins), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Ranged dealer: keeps distance, shoots from its own body parts (no man-made guns or bows unless the design says so).
+Spirit Wi-R2 "Stormkite" (스톰카이트) — WIND element, MAGIC RANGED DEALER.
+Design: a kite-shaped flying sky ray; Lv.10 longer tail ribbons; Lv.25 thunder-striped sky ray with glowing fin edges
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### Wi-R3 · 게일플라이 (Galefly) — 바람 원딜
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its air bolt shot), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Ranged dealer: keeps distance, shoots from its own body parts (no man-made guns or bows unless the design says so).
+Spirit Wi-R3 "Galefly" (게일플라이) — WIND element, PHYSICAL RANGED DEALER.
+Design: a big-eyed dragonfly with crystal wings that fires compressed air bolts; Lv.10 four glowing wings; Lv.25 royal dragonfly with jewel-like wings
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### Wi-H1 · 클라우드파카 (Cloudpaca) — 바람 힐러
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its soft healing mist), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Healer: soft round silhouette, gentle face, glowing healing motif.
+Spirit Wi-H1 "Cloudpaca" (클라우드파카) — WIND element, HEALER.
+Design: an alpaca with fluffy cloud wool; Lv.10 rainbow-tinted wool tufts; Lv.25 serene alpaca with a halo of drifting clouds
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### Wi-S1 · 윈드차임 (Windchime) — 바람 서포터
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its chime ring (ally buff)), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Supporter: charming, expressive, carries a natural buff/debuff motif (song, pollen, drum, bubbles).
+Spirit Wi-S1 "Windchime" (윈드차임) — WIND element, SUPPORTER.
+Design: a small round owl whose tail feathers are wind chimes; Lv.10 crystal chimes; Lv.25 great owl with a halo of floating chimes
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### Wi-S2 · 브리즈글라이더 (Breezeglider) — 바람 서포터
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its gust swirl (enemy debuff)), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Supporter: charming, expressive, carries a natural buff/debuff motif (song, pollen, drum, bubbles).
+Spirit Wi-S2 "Breezeglider" (브리즈글라이더) — WIND element, SUPPORTER.
+Design: a sugar glider with mint gliding membranes trailing breezes; Lv.10 wind-ribbon tail; Lv.25 graceful glider with shimmering wing membranes
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### E-T1 · 아이언딜로 (Irondillo) — 대지 탱커
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its rolling tackle), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Tank: sturdy, wide, heavy silhouette, protective shell/plates.
+Spirit E-T1 "Irondillo" (아이언딜로) — EARTH element, TANKER.
+Design: an armadillo with iron-ore plated shell that curls into a rolling fortress; Lv.10 studded plates; Lv.25 massive armadillo with amber crystal spikes
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### E-T2 · 스톤펀트 (Stonephant) — 대지 탱커
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its trunk-and-tusk stomp), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Tank: sturdy, wide, heavy silhouette, protective shell/plates.
+Spirit E-T2 "Stonephant" (스톤펀트) — EARTH element, TANKER.
+Design: a baby elephant with stone plating on its back and forehead; Lv.10 rock tusks; Lv.25 colossal stone elephant with amber-crystal armor
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### E-T3 · 안킬로 (Ankylo) — 대지 탱커
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its crystal club tail swing), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Tank: sturdy, wide, heavy silhouette, protective shell/plates.
+Spirit E-T3 "Ankylo" (안킬로) — EARTH element, TANKER.
+Design: a little ankylosaur with a crystal club tail; Lv.10 spiked rock plates; Lv.25 giant ankylosaur with an amber-crystal club
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### E-M1 · 볼더에이프 (Boulderape) — 대지 근딜
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its stone fist punch), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Melee dealer: agile, aggressive stance, claws/horns/blade-like body parts.
+Spirit E-M1 "Boulderape" (볼더에이프) — EARTH element, PHYSICAL MELEE DEALER.
+Design: a bipedal gorilla kid with stone fists; Lv.10 rock gauntlets and shoulder plates; Lv.25 mighty gorilla with boulder fists and a crystal crest
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### E-M2 · 락조 (Rockjaw) — 대지 근딜
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its chomping bite), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Melee dealer: agile, aggressive stance, claws/horns/blade-like body parts.
+Spirit E-M2 "Rockjaw" (락조) — EARTH element, PHYSICAL MELEE DEALER.
+Design: a small crocodile with stone back plates and a big grin; Lv.10 spiked stone armor; Lv.25 armored crocodile with a granite jaw
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
 ```
 
 ### E-M3 · 쿼츠맨티스 (Quartzmantis) — 대지 근딜
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER MONSTER COLLECTION character sheet, 1536x1024 landscape, matching the layout of the attached reference sheet (for example S03-T01 Shellknight) panel for panel:
-- TOP LEFT header: element emblem, role badge "EARTH MELEE DEALER 3", large name "Quartzmantis", small epithet "(invent a short epithet)", element + role tags, a 2-line flavor description.
-- TOP CENTER "EVOLUTION": three full-body poses side by side labeled "Lv.1", "Lv.10", "Lv.25" (small and cute -> grown -> majestic with more armor and ornaments; same species and color identity at every stage).
-- TOP RIGHT "PORTRAIT & ICON": three rounded-square face portraits (Lv.1 / Lv.10 / Lv.25) on element-colored backgrounds, then a round element icon, then a character icon.
-- Under the portraits "IN-GAME HEX TILE (IDLE)": the three evolution stages each standing on its own isometric hex tile, evenly spaced, nothing overlapping.
-- BOTTOM "ANIMATION POSES & IN-GAME TILES": a grid with rows Lv.1 / Lv.10 / Lv.25 and columns IDLE, SKILL, WALK, HURT, KO/DEFEATED, every cell a small hex-tile sprite.
-- Keep generous empty space between every panel item (they will be cut out automatically). Plain flat panel backgrounds.
-Creature (쿼츠맨티스): a praying mantis with quartz-crystal scythe arms; Lv.10 crystal armor; Lv.25 amethyst-blade mantis master.
-It is a creature companion (an animal / beast / elemental being). It is NOT a wizard or mage: no robes, no pointed hats, no staffs, no spell books.
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its crystal scythe slash), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Melee dealer: agile, aggressive stance, claws/horns/blade-like body parts.
+Spirit E-M3 "Quartzmantis" (쿼츠맨티스) — EARTH element, MAGIC MELEE DEALER.
+Design: a praying mantis with quartz-crystal scythe arms; Lv.10 crystal armor; Lv.25 amethyst-blade mantis master
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
 ```
 
-### E-R2 · 볼더몰 (Bouldermole) — 대지 원딜
+### E-R1 · 볼더몰 (Bouldermole) — 대지 원딜
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER MONSTER COLLECTION character sheet, 1536x1024 landscape, matching the layout of the attached reference sheet (for example S03-T01 Shellknight) panel for panel:
-- TOP LEFT header: element emblem, role badge "EARTH RANGED DEALER 2", large name "Bouldermole", small epithet "(invent a short epithet)", element + role tags, a 2-line flavor description.
-- TOP CENTER "EVOLUTION": three full-body poses side by side labeled "Lv.1", "Lv.10", "Lv.25" (small and cute -> grown -> majestic with more armor and ornaments; same species and color identity at every stage).
-- TOP RIGHT "PORTRAIT & ICON": three rounded-square face portraits (Lv.1 / Lv.10 / Lv.25) on element-colored backgrounds, then a round element icon, then a character icon.
-- Under the portraits "IN-GAME HEX TILE (IDLE)": the three evolution stages each standing on its own isometric hex tile, evenly spaced, nothing overlapping.
-- BOTTOM "ANIMATION POSES & IN-GAME TILES": a grid with rows Lv.1 / Lv.10 / Lv.25 and columns IDLE, SKILL, WALK, HURT, KO/DEFEATED, every cell a small hex-tile sprite.
-- Keep generous empty space between every panel item (they will be cut out automatically). Plain flat panel backgrounds.
-Creature (볼더몰): a mole wearing a little mining helmet who hurls boulders; Lv.10 rock gauntlets; Lv.25 drill-gauntlet mole with an ore backpack. (Replaces Sandseer.)
-It is a creature companion (an animal / beast / elemental being). It is NOT a wizard or mage: no robes, no pointed hats, no staffs, no spell books.
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its boulder throw), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Ranged dealer: keeps distance, shoots from its own body parts (no man-made guns or bows unless the design says so).
+Spirit E-R1 "Bouldermole" (볼더몰) — EARTH element, PHYSICAL RANGED DEALER.
+Design: a mole wearing a little mining helmet who hurls boulders; Lv.10 rock gauntlets; Lv.25 drill-gauntlet mole with an ore backpack
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
 ```
 
-### E-R3 · 지오드스콜피온 (Geodescorp) — 대지 원딜
+### E-R2 · 지오드스콜피온 (Geodescorp) — 대지 원딜
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER MONSTER COLLECTION character sheet, 1536x1024 landscape, matching the layout of the attached reference sheet (for example S03-T01 Shellknight) panel for panel:
-- TOP LEFT header: element emblem, role badge "EARTH RANGED DEALER 3", large name "Geodescorp", small epithet "(invent a short epithet)", element + role tags, a 2-line flavor description.
-- TOP CENTER "EVOLUTION": three full-body poses side by side labeled "Lv.1", "Lv.10", "Lv.25" (small and cute -> grown -> majestic with more armor and ornaments; same species and color identity at every stage).
-- TOP RIGHT "PORTRAIT & ICON": three rounded-square face portraits (Lv.1 / Lv.10 / Lv.25) on element-colored backgrounds, then a round element icon, then a character icon.
-- Under the portraits "IN-GAME HEX TILE (IDLE)": the three evolution stages each standing on its own isometric hex tile, evenly spaced, nothing overlapping.
-- BOTTOM "ANIMATION POSES & IN-GAME TILES": a grid with rows Lv.1 / Lv.10 / Lv.25 and columns IDLE, SKILL, WALK, HURT, KO/DEFEATED, every cell a small hex-tile sprite.
-- Keep generous empty space between every panel item (they will be cut out automatically). Plain flat panel backgrounds.
-Creature (지오드스콜피온): a scorpion whose tail tip is a cracked geode that fires crystal shards; Lv.10 crystal plating; Lv.25 amber-crystal scorpion.
-It is a creature companion (an animal / beast / elemental being). It is NOT a wizard or mage: no robes, no pointed hats, no staffs, no spell books.
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its crystal shard shot from its tail), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Ranged dealer: keeps distance, shoots from its own body parts (no man-made guns or bows unless the design says so).
+Spirit E-R2 "Geodescorp" (지오드스콜피온) — EARTH element, MAGIC RANGED DEALER.
+Design: a scorpion whose tail tip is a cracked geode; Lv.10 crystal plating; Lv.25 amber-crystal scorpion
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
 ```
 
-### E-S2 · 듄페넥 (Dunefennec) — 대지 서포터
+### E-R3 · 샌드카멜 (Sandcamel) — 대지 원딜
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER MONSTER COLLECTION character sheet, 1536x1024 landscape, matching the layout of the attached reference sheet (for example S03-T01 Shellknight) panel for panel:
-- TOP LEFT header: element emblem, role badge "EARTH SUPPORTER 2", large name "Dunefennec", small epithet "(invent a short epithet)", element + role tags, a 2-line flavor description.
-- TOP CENTER "EVOLUTION": three full-body poses side by side labeled "Lv.1", "Lv.10", "Lv.25" (small and cute -> grown -> majestic with more armor and ornaments; same species and color identity at every stage).
-- TOP RIGHT "PORTRAIT & ICON": three rounded-square face portraits (Lv.1 / Lv.10 / Lv.25) on element-colored backgrounds, then a round element icon, then a character icon.
-- Under the portraits "IN-GAME HEX TILE (IDLE)": the three evolution stages each standing on its own isometric hex tile, evenly spaced, nothing overlapping.
-- BOTTOM "ANIMATION POSES & IN-GAME TILES": a grid with rows Lv.1 / Lv.10 / Lv.25 and columns IDLE, SKILL, WALK, HURT, KO/DEFEATED, every cell a small hex-tile sprite.
-- Keep generous empty space between every panel item (they will be cut out automatically). Plain flat panel backgrounds.
-Creature (듄페넥): a fennec fox with a sand drum strapped to its back whose rhythm weakens enemies; Lv.10 bigger drum with charms; Lv.25 desert fennec with a golden sun-drum. (Replaces Geomancer.)
-It is a creature companion (an animal / beast / elemental being). It is NOT a wizard or mage: no robes, no pointed hats, no staffs, no spell books.
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its sand ball spit), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Ranged dealer: keeps distance, shoots from its own body parts (no man-made guns or bows unless the design says so).
+Spirit E-R3 "Sandcamel" (샌드카멜) — EARTH element, PHYSICAL RANGED DEALER.
+Design: a baby camel that spits hardened sand balls; Lv.10 woven saddle with rock pouches; Lv.25 sturdy desert camel with crystal-studded humps
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### E-H1 · 클레이바라 (Claybara) — 대지 힐러
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its warm clay healing), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Healer: soft round silhouette, gentle face, glowing healing motif.
+Spirit E-H1 "Claybara" (클레이바라) — EARTH element, HEALER.
+Design: a calm capybara with a little mud-spa bowl and a pebble on its head; Lv.10 amber pebbles on its back; Lv.25 serene capybara with a glowing amber hot-spring halo
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### E-S1 · 듄페넥 (Dunefennec) — 대지 서포터
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its sand drum rhythm (enemy debuff)), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Supporter: charming, expressive, carries a natural buff/debuff motif (song, pollen, drum, bubbles).
+Spirit E-S1 "Dunefennec" (듄페넥) — EARTH element, SUPPORTER.
+Design: a fennec fox with a sand drum strapped to its back; Lv.10 bigger drum with charms; Lv.25 desert fennec with a golden sun-drum
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+### E-S2 · 쿼츠햄 (Quartzham) — 대지 서포터
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for one HEXA FRONTIER spirit (a game-ready asset, not a presentation sheet).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 3 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows = evolution: row 1 "Lv.1" (small, cute baby form), row 2 "Lv.10" (grown, more confident, some armor/ornaments), row 3 "Lv.25" (majestic final form, strongest ornaments). Same species, same colors, same signature features in all three rows.
+- Size by row (relative to the cell height): Lv.1 about 50%, Lv.10 about 68%, Lv.25 about 86%. Keep these sizes identical in every column of the row.
+- Columns = poses: 1 IDLE (neutral ready stance), 2 ATTACK (strongest moment of its crystal shield raise (ally buff)), 3 HURT (flinching back, eyes squeezed), 4 KO (collapsed lying on its side, eyes as swirls).
+- Supporter: charming, expressive, carries a natural buff/debuff motif (song, pollen, drum, bubbles).
+Spirit E-S2 "Quartzham" (쿼츠햄) — EARTH element, SUPPORTER.
+Design: a hamster that builds tiny crystal shields with its paws; Lv.10 crystal cheek pouches; Lv.25 proud hamster with a floating ring of crystal shields
+It is a creature companion (animal / beast / elemental being). NOT a wizard or mage: no robes, no pointed hats, no staffs, no wands, no spell books, no humans.
+```
+
+## 주인공 2명
+
+아렌·리아도 스피릿과 같은 규칙(투명 배경·받침 없음·같은 바닥선)으로 게임 전용 스프라이트를 새로 받습니다.
+
+### C01 · 아렌 (Aren) — 주인공
+
+> `C01.png`를 첨부하세요 (얼굴·옷·색만 참고)
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for the HEXA FRONTIER main hero "Aren" (아렌). Use the attached character reference (C01.png) ONLY for the face, hair, outfit and colors — redraw the character as a clean game sprite in the STYLE BIBLE, without any base, tile or background from the reference.
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Character about 80% of the cell height in every cell, SD proportions matching the spirits (head 1:2).
+- Row 1: IDLE, WALK (mid-step), ATTACK (sword slash), SKILL (a rising sword strike with a golden arc). Row 2: HURT, KO (kneeling down, exhausted), VICTORY (cheerful pose), COMMAND (raising a hand/weapon to rally allies, small golden glow).
+Hero: a young boy adventurer with a sword, physical melee dealer, brave and cheerful
+```
+
+### C02 · 리아 (Lia) — 주인공
+
+> `C02.png`를 첨부하세요 (얼굴·옷·색만 참고)
+
+```
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
+- Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
+- UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
+- No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
+
+Create the GAME SPRITE SHEET for the HEXA FRONTIER main hero "Lia" (리아). Use the attached character reference (C02.png) ONLY for the face, hair, outfit and colors — redraw the character as a clean game sprite in the STYLE BIBLE, without any base, tile or background from the reference.
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Character about 80% of the cell height in every cell, SD proportions matching the spirits (head 1:2).
+- Row 1: IDLE, WALK (mid-step), ATTACK (star-orb throw), SKILL (a shooting-star spell from her staff tip). Row 2: HURT, KO (kneeling down, exhausted), VICTORY (cheerful pose), COMMAND (raising a hand/weapon to rally allies, small golden glow).
+Hero: a young girl adventurer with a staff, magic ranged dealer, bright and kind
 ```
 
 ## 몬스터 30종
 
 스피릿과 헷갈리지 않게 **'균열체'**로 통일: 몸에 보라색 육각 균열과 균열 수정, 붉은보라 눈빛. 비율은 스피릿과 같은 SD.
-속성마다 6역할 — **근접 졸개 · 돌격대 · 방패 · 사수 · 치유체 · 저주체**. 시트에 일반·정예(대장) 두 모습을 함께 받습니다.
+속성마다 6역할 — **근접 졸개 · 돌격대 · 방패 · 사수 · 치유체 · 저주체**. 한 장 = 일반·정예 × 대기·공격·피격·쓰러짐 (투명 배경, 받침 없음).
 
 ### MON-F-1 · 균열 덩굴뱀 (Riftvine Viper) — 숲 근접 졸개
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT FOREST 1", name "Riftvine Viper", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (균열 덩굴뱀, element FOREST, role 근접 졸개): a coiling vine snake with thorn fangs and leaf frills
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Riftvine Viper" (균열 덩굴뱀) — FOREST element, role 근접 졸개: a coiling vine snake with thorn fangs and leaf frills
 ```
 
 ### MON-F-2 · 가시멧돼지 (Brambleboar) — 숲 돌격대
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT FOREST 2", name "Brambleboar", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (가시멧돼지, element FOREST, role 돌격대): a charging boar covered in bramble spikes, charges in straight lines
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Brambleboar" (가시멧돼지) — FOREST element, role 돌격대: a charging boar covered in bramble spikes, charges in straight lines
 ```
 
 ### MON-F-3 · 썩은 그루터기 (Rotstump) — 숲 방패
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT FOREST 3", name "Rotstump", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (썩은 그루터기, element FOREST, role 방패): a walking rotten tree stump with a bark face, very sturdy
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Rotstump" (썩은 그루터기) — FOREST element, role 방패: a walking rotten tree stump with a bark face, very sturdy
 ```
 
 ### MON-F-4 · 포자두꺼비 (Sporetoad) — 숲 사수
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT FOREST 4", name "Sporetoad", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (포자두꺼비, element FOREST, role 사수): a fat toad that spits glowing spore balls from a distance
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Sporetoad" (포자두꺼비) — FOREST element, role 사수: a fat toad that spits glowing spore balls from a distance
 ```
 
 ### MON-F-5 · 이끼달팽이 (Mossnail) — 숲 치유체
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT FOREST 5", name "Mossnail", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (이끼달팽이, element FOREST, role 치유체): a big snail with a mossy shell that oozes healing sap onto allies
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Mossnail" (이끼달팽이) — FOREST element, role 치유체: a big snail with a mossy shell that oozes healing sap onto allies
 ```
 
 ### MON-F-6 · 저주버섯 (Hexshroom) — 숲 저주체
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT FOREST 6", name "Hexshroom", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (저주버섯, element FOREST, role 저주체): a hopping mushroom whose purple spores weaken enemies
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Hexshroom" (저주버섯) — FOREST element, role 저주체: a hopping mushroom whose purple spores weaken enemies
 ```
 
 ### MON-W-1 · 균열 피라냐 (Riftpiranha) — 물 근접 졸개
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT WATER 1", name "Riftpiranha", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (균열 피라냐, element WATER, role 근접 졸개): a piranha with stubby legs that walks on land, big teeth
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Riftpiranha" (균열 피라냐) — WATER element, role 근접 졸개: a piranha with stubby legs that walks on land, big teeth
 ```
 
 ### MON-W-2 · 작살상어 (Harpoon Shark) — 물 돌격대
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT WATER 2", name "Harpoon Shark", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (작살상어, element WATER, role 돌격대): a small shark with a harpoon-shaped snout that dashes forward
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Harpoon Shark" (작살상어) — WATER element, role 돌격대: a small shark with a harpoon-shaped snout that dashes forward
 ```
 
 ### MON-W-3 · 따개비거북 (Barnacle Turtle) — 물 방패
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT WATER 3", name "Barnacle Turtle", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (따개비거북, element WATER, role 방패): a turtle crusted with barnacles, a slow wall
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Barnacle Turtle" (따개비거북) — WATER element, role 방패: a turtle crusted with barnacles, a slow wall
 ```
 
 ### MON-W-4 · 먹물문어 (Inkpus) — 물 사수
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT WATER 4", name "Inkpus", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (먹물문어, element WATER, role 사수): a small octopus that shoots ink blobs from range
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Inkpus" (먹물문어) — WATER element, role 사수: a small octopus that shoots ink blobs from range
 ```
 
 ### MON-W-5 · 물방울해파리 (Dew Jelly) — 물 치유체
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT WATER 5", name "Dew Jelly", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (물방울해파리, element WATER, role 치유체): a floating jellyfish whose glowing drops heal monsters
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Dew Jelly" (물방울해파리) — WATER element, role 치유체: a floating jellyfish whose glowing drops heal monsters
 ```
 
 ### MON-W-6 · 소용돌이장어 (Whirl Eel) — 물 저주체
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT WATER 6", name "Whirl Eel", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (소용돌이장어, element WATER, role 저주체): an eel that spins small whirlpools to weaken defense
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Whirl Eel" (소용돌이장어) — WATER element, role 저주체: an eel that spins small whirlpools to weaken defense
 ```
 
 ### MON-Fi-1 · 불똥도마뱀 (Emberskink) — 불 근접 졸개
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT FIRE 1", name "Emberskink", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (불똥도마뱀, element FIRE, role 근접 졸개): a quick little lizard with a spark tail
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Emberskink" (불똥도마뱀) — FIRE element, role 근접 졸개: a quick little lizard with a spark tail
 ```
 
 ### MON-Fi-2 · 화염코뿔소 (Blaze Rhino) — 불 돌격대
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT FIRE 2", name "Blaze Rhino", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (화염코뿔소, element FIRE, role 돌격대): a stocky rhino with a flaming horn that charges
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Blaze Rhino" (화염코뿔소) — FIRE element, role 돌격대: a stocky rhino with a flaming horn that charges
 ```
 
 ### MON-Fi-3 · 용암덩이 (Magma Chunk) — 불 방패
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT FIRE 3", name "Magma Chunk", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (용암덩이, element FIRE, role 방패): a living lump of cooled lava with a molten core, very tough
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Magma Chunk" (용암덩이) — FIRE element, role 방패: a living lump of cooled lava with a molten core, very tough
 ```
 
 ### MON-Fi-4 · 화산박쥐 (Lava Bat) — 불 사수
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT FIRE 4", name "Lava Bat", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (화산박쥐, element FIRE, role 사수): a bat with magma-veined wings that drops fireballs
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Lava Bat" (화산박쥐) — FIRE element, role 사수: a bat with magma-veined wings that drops fireballs
 ```
 
 ### MON-Fi-5 · 재부엉이 (Ash Owl) — 불 치유체
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT FIRE 5", name "Ash Owl", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (재부엉이, element FIRE, role 치유체): a sooty owl that fans warm embers to mend monsters
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Ash Owl" (재부엉이) — FIRE element, role 치유체: a sooty owl that fans warm embers to mend monsters
 ```
 
 ### MON-Fi-6 · 그을음 정령 (Soot Wisp) — 불 저주체
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT FIRE 6", name "Soot Wisp", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (그을음 정령, element FIRE, role 저주체): a smoky blob with ember eyes whose smoke lowers enemy defense
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Soot Wisp" (그을음 정령) — FIRE element, role 저주체: a smoky blob with ember eyes whose smoke lowers enemy defense
 ```
 
 ### MON-Wi-1 · 칼바람족제비 (Gale Weasel) — 바람 근접 졸개
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT WIND 1", name "Gale Weasel", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (칼바람족제비, element WIND, role 근접 졸개): a ferret with sickle-shaped tail blades
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Gale Weasel" (칼바람족제비) — WIND element, role 근접 졸개: a ferret with sickle-shaped tail blades
 ```
 
 ### MON-Wi-2 · 번개매 (Bolt Falcon) — 바람 돌격대
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT WIND 2", name "Bolt Falcon", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (번개매, element WIND, role 돌격대): a falcon wrapped in tiny lightning that dives fast
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Bolt Falcon" (번개매) — WIND element, role 돌격대: a falcon wrapped in tiny lightning that dives fast
 ```
 
 ### MON-Wi-3 · 구름거북 (Cloud Turtle) — 바람 방패
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT WIND 3", name "Cloud Turtle", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (구름거북, element WIND, role 방패): a turtle floating on a thick cloud, a sturdy blocker
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Cloud Turtle" (구름거북) — WIND element, role 방패: a turtle floating on a thick cloud, a sturdy blocker
 ```
 
 ### MON-Wi-4 · 돌풍벌 (Gust Wasp) — 바람 사수
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT WIND 4", name "Gust Wasp", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (돌풍벌, element WIND, role 사수): a wasp that shoots compressed air stingers from range
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Gust Wasp" (돌풍벌) — WIND element, role 사수: a wasp that shoots compressed air stingers from range
 ```
 
 ### MON-Wi-5 · 깃털박새 (Plume Tit) — 바람 치유체
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT WIND 5", name "Plume Tit", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (깃털박새, element WIND, role 치유체): a fluffy bird whose feather down heals monsters
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Plume Tit" (깃털박새) — WIND element, role 치유체: a fluffy bird whose feather down heals monsters
 ```
 
 ### MON-Wi-6 · 회오리여우 (Whirl Fox) — 바람 저주체
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT WIND 6", name "Whirl Fox", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (회오리여우, element WIND, role 저주체): a fox with a tornado tail that confuses and weakens
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Whirl Fox" (회오리여우) — WIND element, role 저주체: a fox with a tornado tail that confuses and weakens
 ```
 
 ### MON-E-1 · 자갈딱정벌레 (Gravel Beetle) — 대지 근접 졸개
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT EARTH 1", name "Gravel Beetle", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (자갈딱정벌레, element EARTH, role 근접 졸개): a small beetle with a pebble shell
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Gravel Beetle" (자갈딱정벌레) — EARTH element, role 근접 졸개: a small beetle with a pebble shell
 ```
 
 ### MON-E-2 · 암석들소 (Boulder Bison) — 대지 돌격대
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT EARTH 2", name "Boulder Bison", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (암석들소, element EARTH, role 돌격대): a bison with rock horns and a stone hump that charges
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Boulder Bison" (암석들소) — EARTH element, role 돌격대: a bison with rock horns and a stone hump that charges
 ```
 
 ### MON-E-3 · 바위게 (Rock Crab) — 대지 방패
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT EARTH 3", name "Rock Crab", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (바위게, element EARTH, role 방패): a crab with a boulder shell, a solid wall
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Rock Crab" (바위게) — EARTH element, role 방패: a crab with a boulder shell, a solid wall
 ```
 
 ### MON-E-4 · 모래거미 (Sand Spider) — 대지 사수
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT EARTH 4", name "Sand Spider", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (모래거미, element EARTH, role 사수): a spider that flings sand balls and webs from range
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Sand Spider" (모래거미) — EARTH element, role 사수: a spider that flings sand balls and webs from range
 ```
 
 ### MON-E-5 · 진흙도롱뇽 (Mud Newt) — 대지 치유체
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT EARTH 5", name "Mud Newt", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (진흙도롱뇽, element EARTH, role 치유체): a newt that coats monsters in healing mud
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Mud Newt" (진흙도롱뇽) — EARTH element, role 치유체: a newt that coats monsters in healing mud
 ```
 
 ### MON-E-6 · 균열 수정벌레 (Shard Mite) — 대지 저주체
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER RIFT MONSTER sheet, 1536x1024 landscape, same rendering style as the attached spirit reference sheets but clearly an ENEMY:
-- Design language for all Rift monsters: the creature has been corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, slightly menacing eyes (red-violet glow), but still the same cute SD proportions as the spirits. Never a copy of any spirit.
-- LEFT header: role badge "RIFT EARTH 6", name "Shard Mite", epithet, element tag.
-- CENTER: two full-body poses side by side: "NORMAL" and "ELITE" (elite = bigger horns/spikes, gold-violet trim, small crown of rift crystals).
-- RIGHT TOP: two rounded-square face portraits (NORMAL / ELITE).
-- RIGHT MIDDLE "IN-GAME HEX TILE (IDLE)": NORMAL and ELITE each standing on an isometric hex tile with a dark violet rim.
-- BOTTOM: row of hex-tile sprites: IDLE, ATTACK, WALK, HURT, KO (normal version only).
-- Generous empty space between items, plain flat panel backgrounds.
-Monster (균열 수정벌레, element EARTH, role 저주체): a mite with violet crystal shards whose hum weakens enemies
+Create the GAME SPRITE SHEET for one HEXA FRONTIER RIFT MONSTER (enemy unit, game-ready asset).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 4 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Rows: row 1 "NORMAL", row 2 "ELITE" (bigger horns/spikes, gold-violet trim, small crown of rift crystals). NORMAL about 65% of the cell height, ELITE about 85%.
+- Columns: 1 IDLE, 2 ATTACK, 3 HURT, 4 KO (collapsed, rift crystal dimmed).
+- Rift monster design language: corrupted by hex-shaped rifts — glowing violet #8A5CFF cracks on its body, one embedded hexagonal rift crystal, menacing red-violet glowing eyes, but the same cute SD proportions and rendering as the spirits. Never a copy of a spirit.
+Monster "Shard Mite" (균열 수정벌레) — EARTH element, role 저주체: a mite with violet crystal shards whose hum weakens enemies
 ```
 
 ## 중간보스 10 · 보스 10
 
-5판마다 중간보스(대장), 10판마다 장 보스, 100판은 최종 보스(2단계 모습 포함). 게임에서는 한 칸을 차지하지만 1.5배 크게 그립니다.
+5판마다 중간보스(대장), 10판마다 장 보스, 100판은 최종 보스(2단계 모습 포함). 한 장 = 대기·공격·기술·피격·쓰러짐·분노(최종 보스는 2단계). 게임에서는 한 칸을 차지하지만 1.5배 크게 그립니다.
 
 ### MID-5 · 가시멧돼지 대장 (Thornback Alpha) — 5판 중간보스 · 숲
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER ELITE (MID-BOSS) sheet, 1536x1024 landscape, same rendering style as the attached reference sheets, epic and readable:
-- LEFT: header with a crown/skull boss badge "ELITE · STAGE 5", name "Thornback Alpha", epithet, element tags.
-- CENTER: one large full-body key art of the boss in a dynamic pose (about 45% of the sheet width).
-- RIGHT TOP: two rounded-square face portraits (calm / enraged).
-- RIGHT MIDDLE "IN-GAME HEX TILE": the boss standing on ONE isometric hex tile but drawn 1.5x larger than a normal unit, with a glowing gold-violet boss rim on the tile.
-- BOTTOM: hex-tile sprites: IDLE, ATTACK, SKILL, HURT, KO.
-- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a boss aura.
-- Generous empty space between items, plain flat panel backgrounds.
-Boss (가시멧돼지 대장, stage 5, element 숲): a huge bramble boar alpha with a bark-and-thorn mane
+Create the GAME SPRITE SHEET for one HEXA FRONTIER ELITE MID-BOSS (game-ready asset, epic but readable).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 3 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Cells: row 1 = IDLE, ATTACK, SKILL (signature move, strongest pose); row 2 = HURT, KO, ENRAGED IDLE (glowing eyes, aura flaring).
+- The boss fills about 88% of the cell height in every cell (it is shown 1.5x larger than normal units in the game).
+- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a subtle boss aura that stays close to the body (no aura filling the cell).
+Boss "Thornback Alpha" (가시멧돼지 대장) — stage 5, element 숲: a huge bramble boar alpha with a bark-and-thorn mane
 ```
 
 ### MID-15 · 따개비 대왕거북 (Barnacle King) — 15판 중간보스 · 물
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER ELITE (MID-BOSS) sheet, 1536x1024 landscape, same rendering style as the attached reference sheets, epic and readable:
-- LEFT: header with a crown/skull boss badge "ELITE · STAGE 15", name "Barnacle King", epithet, element tags.
-- CENTER: one large full-body key art of the boss in a dynamic pose (about 45% of the sheet width).
-- RIGHT TOP: two rounded-square face portraits (calm / enraged).
-- RIGHT MIDDLE "IN-GAME HEX TILE": the boss standing on ONE isometric hex tile but drawn 1.5x larger than a normal unit, with a glowing gold-violet boss rim on the tile.
-- BOTTOM: hex-tile sprites: IDLE, ATTACK, SKILL, HURT, KO.
-- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a boss aura.
-- Generous empty space between items, plain flat panel backgrounds.
-Boss (따개비 대왕거북, stage 15, element 물): an enormous barnacle turtle with a sunken-ship-wood shell
+Create the GAME SPRITE SHEET for one HEXA FRONTIER ELITE MID-BOSS (game-ready asset, epic but readable).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 3 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Cells: row 1 = IDLE, ATTACK, SKILL (signature move, strongest pose); row 2 = HURT, KO, ENRAGED IDLE (glowing eyes, aura flaring).
+- The boss fills about 88% of the cell height in every cell (it is shown 1.5x larger than normal units in the game).
+- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a subtle boss aura that stays close to the body (no aura filling the cell).
+Boss "Barnacle King" (따개비 대왕거북) — stage 15, element 물: an enormous barnacle turtle with a sunken-ship-wood shell
 ```
 
 ### MID-25 · 화염코뿔소 대장 (Inferno Rhino) — 25판 중간보스 · 불
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER ELITE (MID-BOSS) sheet, 1536x1024 landscape, same rendering style as the attached reference sheets, epic and readable:
-- LEFT: header with a crown/skull boss badge "ELITE · STAGE 25", name "Inferno Rhino", epithet, element tags.
-- CENTER: one large full-body key art of the boss in a dynamic pose (about 45% of the sheet width).
-- RIGHT TOP: two rounded-square face portraits (calm / enraged).
-- RIGHT MIDDLE "IN-GAME HEX TILE": the boss standing on ONE isometric hex tile but drawn 1.5x larger than a normal unit, with a glowing gold-violet boss rim on the tile.
-- BOTTOM: hex-tile sprites: IDLE, ATTACK, SKILL, HURT, KO.
-- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a boss aura.
-- Generous empty space between items, plain flat panel backgrounds.
-Boss (화염코뿔소 대장, stage 25, element 불): a giant rhino with a burning crown horn and magma armor
+Create the GAME SPRITE SHEET for one HEXA FRONTIER ELITE MID-BOSS (game-ready asset, epic but readable).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 3 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Cells: row 1 = IDLE, ATTACK, SKILL (signature move, strongest pose); row 2 = HURT, KO, ENRAGED IDLE (glowing eyes, aura flaring).
+- The boss fills about 88% of the cell height in every cell (it is shown 1.5x larger than normal units in the game).
+- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a subtle boss aura that stays close to the body (no aura filling the cell).
+Boss "Inferno Rhino" (화염코뿔소 대장) — stage 25, element 불: a giant rhino with a burning crown horn and magma armor
 ```
 
 ### MID-35 · 번개매 여왕 (Storm Falcon Queen) — 35판 중간보스 · 바람
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER ELITE (MID-BOSS) sheet, 1536x1024 landscape, same rendering style as the attached reference sheets, epic and readable:
-- LEFT: header with a crown/skull boss badge "ELITE · STAGE 35", name "Storm Falcon Queen", epithet, element tags.
-- CENTER: one large full-body key art of the boss in a dynamic pose (about 45% of the sheet width).
-- RIGHT TOP: two rounded-square face portraits (calm / enraged).
-- RIGHT MIDDLE "IN-GAME HEX TILE": the boss standing on ONE isometric hex tile but drawn 1.5x larger than a normal unit, with a glowing gold-violet boss rim on the tile.
-- BOTTOM: hex-tile sprites: IDLE, ATTACK, SKILL, HURT, KO.
-- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a boss aura.
-- Generous empty space between items, plain flat panel backgrounds.
-Boss (번개매 여왕, stage 35, element 바람): a great falcon with a crest of lightning feathers
+Create the GAME SPRITE SHEET for one HEXA FRONTIER ELITE MID-BOSS (game-ready asset, epic but readable).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 3 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Cells: row 1 = IDLE, ATTACK, SKILL (signature move, strongest pose); row 2 = HURT, KO, ENRAGED IDLE (glowing eyes, aura flaring).
+- The boss fills about 88% of the cell height in every cell (it is shown 1.5x larger than normal units in the game).
+- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a subtle boss aura that stays close to the body (no aura filling the cell).
+Boss "Storm Falcon Queen" (번개매 여왕) — stage 35, element 바람: a great falcon with a crest of lightning feathers
 ```
 
 ### MID-45 · 암석들소 대장 (Granite Bison Chief) — 45판 중간보스 · 대지
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER ELITE (MID-BOSS) sheet, 1536x1024 landscape, same rendering style as the attached reference sheets, epic and readable:
-- LEFT: header with a crown/skull boss badge "ELITE · STAGE 45", name "Granite Bison Chief", epithet, element tags.
-- CENTER: one large full-body key art of the boss in a dynamic pose (about 45% of the sheet width).
-- RIGHT TOP: two rounded-square face portraits (calm / enraged).
-- RIGHT MIDDLE "IN-GAME HEX TILE": the boss standing on ONE isometric hex tile but drawn 1.5x larger than a normal unit, with a glowing gold-violet boss rim on the tile.
-- BOTTOM: hex-tile sprites: IDLE, ATTACK, SKILL, HURT, KO.
-- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a boss aura.
-- Generous empty space between items, plain flat panel backgrounds.
-Boss (암석들소 대장, stage 45, element 대지): a colossal bison with granite horns and crystal hump
+Create the GAME SPRITE SHEET for one HEXA FRONTIER ELITE MID-BOSS (game-ready asset, epic but readable).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 3 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Cells: row 1 = IDLE, ATTACK, SKILL (signature move, strongest pose); row 2 = HURT, KO, ENRAGED IDLE (glowing eyes, aura flaring).
+- The boss fills about 88% of the cell height in every cell (it is shown 1.5x larger than normal units in the game).
+- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a subtle boss aura that stays close to the body (no aura filling the cell).
+Boss "Granite Bison Chief" (암석들소 대장) — stage 45, element 대지: a colossal bison with granite horns and crystal hump
 ```
 
 ### MID-55 · 독포자 두꺼비왕 (Spore Toad King) — 55판 중간보스 · 숲
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER ELITE (MID-BOSS) sheet, 1536x1024 landscape, same rendering style as the attached reference sheets, epic and readable:
-- LEFT: header with a crown/skull boss badge "ELITE · STAGE 55", name "Spore Toad King", epithet, element tags.
-- CENTER: one large full-body key art of the boss in a dynamic pose (about 45% of the sheet width).
-- RIGHT TOP: two rounded-square face portraits (calm / enraged).
-- RIGHT MIDDLE "IN-GAME HEX TILE": the boss standing on ONE isometric hex tile but drawn 1.5x larger than a normal unit, with a glowing gold-violet boss rim on the tile.
-- BOTTOM: hex-tile sprites: IDLE, ATTACK, SKILL, HURT, KO.
-- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a boss aura.
-- Generous empty space between items, plain flat panel backgrounds.
-Boss (독포자 두꺼비왕, stage 55, element 숲): a giant toad crowned with poisonous mushrooms
+Create the GAME SPRITE SHEET for one HEXA FRONTIER ELITE MID-BOSS (game-ready asset, epic but readable).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 3 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Cells: row 1 = IDLE, ATTACK, SKILL (signature move, strongest pose); row 2 = HURT, KO, ENRAGED IDLE (glowing eyes, aura flaring).
+- The boss fills about 88% of the cell height in every cell (it is shown 1.5x larger than normal units in the game).
+- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a subtle boss aura that stays close to the body (no aura filling the cell).
+Boss "Spore Toad King" (독포자 두꺼비왕) — stage 55, element 숲: a giant toad crowned with poisonous mushrooms
 ```
 
 ### MID-65 · 증기 장어 (Steam Eel) — 65판 중간보스 · 물·불
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER ELITE (MID-BOSS) sheet, 1536x1024 landscape, same rendering style as the attached reference sheets, epic and readable:
-- LEFT: header with a crown/skull boss badge "ELITE · STAGE 65", name "Steam Eel", epithet, element tags.
-- CENTER: one large full-body key art of the boss in a dynamic pose (about 45% of the sheet width).
-- RIGHT TOP: two rounded-square face portraits (calm / enraged).
-- RIGHT MIDDLE "IN-GAME HEX TILE": the boss standing on ONE isometric hex tile but drawn 1.5x larger than a normal unit, with a glowing gold-violet boss rim on the tile.
-- BOTTOM: hex-tile sprites: IDLE, ATTACK, SKILL, HURT, KO.
-- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a boss aura.
-- Generous empty space between items, plain flat panel backgrounds.
-Boss (증기 장어, stage 65, element 물·불): a huge eel half water half lava, breathing steam
+Create the GAME SPRITE SHEET for one HEXA FRONTIER ELITE MID-BOSS (game-ready asset, epic but readable).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 3 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Cells: row 1 = IDLE, ATTACK, SKILL (signature move, strongest pose); row 2 = HURT, KO, ENRAGED IDLE (glowing eyes, aura flaring).
+- The boss fills about 88% of the cell height in every cell (it is shown 1.5x larger than normal units in the game).
+- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a subtle boss aura that stays close to the body (no aura filling the cell).
+Boss "Steam Eel" (증기 장어) — stage 65, element 물·불: a huge eel half water half lava, breathing steam
 ```
 
 ### MID-75 · 모래폭풍 전갈 (Duststorm Scorpion) — 75판 중간보스 · 바람·대지
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER ELITE (MID-BOSS) sheet, 1536x1024 landscape, same rendering style as the attached reference sheets, epic and readable:
-- LEFT: header with a crown/skull boss badge "ELITE · STAGE 75", name "Duststorm Scorpion", epithet, element tags.
-- CENTER: one large full-body key art of the boss in a dynamic pose (about 45% of the sheet width).
-- RIGHT TOP: two rounded-square face portraits (calm / enraged).
-- RIGHT MIDDLE "IN-GAME HEX TILE": the boss standing on ONE isometric hex tile but drawn 1.5x larger than a normal unit, with a glowing gold-violet boss rim on the tile.
-- BOTTOM: hex-tile sprites: IDLE, ATTACK, SKILL, HURT, KO.
-- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a boss aura.
-- Generous empty space between items, plain flat panel backgrounds.
-Boss (모래폭풍 전갈, stage 75, element 바람·대지): a giant scorpion trailing a small sandstorm
+Create the GAME SPRITE SHEET for one HEXA FRONTIER ELITE MID-BOSS (game-ready asset, epic but readable).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 3 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Cells: row 1 = IDLE, ATTACK, SKILL (signature move, strongest pose); row 2 = HURT, KO, ENRAGED IDLE (glowing eyes, aura flaring).
+- The boss fills about 88% of the cell height in every cell (it is shown 1.5x larger than normal units in the game).
+- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a subtle boss aura that stays close to the body (no aura filling the cell).
+Boss "Duststorm Scorpion" (모래폭풍 전갈) — stage 75, element 바람·대지: a giant scorpion trailing a small sandstorm
 ```
 
 ### MID-85 · 균열 키메라 새끼 (Chimera Whelp) — 85판 중간보스 · 숲·물·불
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER ELITE (MID-BOSS) sheet, 1536x1024 landscape, same rendering style as the attached reference sheets, epic and readable:
-- LEFT: header with a crown/skull boss badge "ELITE · STAGE 85", name "Chimera Whelp", epithet, element tags.
-- CENTER: one large full-body key art of the boss in a dynamic pose (about 45% of the sheet width).
-- RIGHT TOP: two rounded-square face portraits (calm / enraged).
-- RIGHT MIDDLE "IN-GAME HEX TILE": the boss standing on ONE isometric hex tile but drawn 1.5x larger than a normal unit, with a glowing gold-violet boss rim on the tile.
-- BOTTOM: hex-tile sprites: IDLE, ATTACK, SKILL, HURT, KO.
-- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a boss aura.
-- Generous empty space between items, plain flat panel backgrounds.
-Boss (균열 키메라 새끼, stage 85, element 숲·물·불): a young chimera with leaf, water and fire features
+Create the GAME SPRITE SHEET for one HEXA FRONTIER ELITE MID-BOSS (game-ready asset, epic but readable).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 3 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Cells: row 1 = IDLE, ATTACK, SKILL (signature move, strongest pose); row 2 = HURT, KO, ENRAGED IDLE (glowing eyes, aura flaring).
+- The boss fills about 88% of the cell height in every cell (it is shown 1.5x larger than normal units in the game).
+- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a subtle boss aura that stays close to the body (no aura filling the cell).
+Boss "Chimera Whelp" (균열 키메라 새끼) — stage 85, element 숲·물·불: a young chimera with leaf, water and fire features
 ```
 
 ### MID-95 · 균열 사냥개 (Rift Warhound) — 95판 중간보스 · 모든 속성
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER ELITE (MID-BOSS) sheet, 1536x1024 landscape, same rendering style as the attached reference sheets, epic and readable:
-- LEFT: header with a crown/skull boss badge "ELITE · STAGE 95", name "Rift Warhound", epithet, element tags.
-- CENTER: one large full-body key art of the boss in a dynamic pose (about 45% of the sheet width).
-- RIGHT TOP: two rounded-square face portraits (calm / enraged).
-- RIGHT MIDDLE "IN-GAME HEX TILE": the boss standing on ONE isometric hex tile but drawn 1.5x larger than a normal unit, with a glowing gold-violet boss rim on the tile.
-- BOTTOM: hex-tile sprites: IDLE, ATTACK, SKILL, HURT, KO.
-- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a boss aura.
-- Generous empty space between items, plain flat panel backgrounds.
-Boss (균열 사냥개, stage 95, element 모든 속성): a large armored hound made of rift crystal with five element gems
+Create the GAME SPRITE SHEET for one HEXA FRONTIER ELITE MID-BOSS (game-ready asset, epic but readable).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 3 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Cells: row 1 = IDLE, ATTACK, SKILL (signature move, strongest pose); row 2 = HURT, KO, ENRAGED IDLE (glowing eyes, aura flaring).
+- The boss fills about 88% of the cell height in every cell (it is shown 1.5x larger than normal units in the game).
+- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a subtle boss aura that stays close to the body (no aura filling the cell).
+Boss "Rift Warhound" (균열 사냥개) — stage 95, element 모든 속성: a large armored hound made of rift crystal with five element gems
 ```
 
 ### BOSS-10 · 고목 수호수 (Rift Treant) — 10판 장 보스 · 숲
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER CHAPTER BOSS sheet, 1536x1024 landscape, same rendering style as the attached reference sheets, epic and readable:
-- LEFT: header with a crown/skull boss badge "BOSS · STAGE 10", name "Rift Treant", epithet, element tags.
-- CENTER: one large full-body key art of the boss in a dynamic pose (about 45% of the sheet width).
-- RIGHT TOP: two rounded-square face portraits (calm / enraged).
-- RIGHT MIDDLE "IN-GAME HEX TILE": the boss standing on ONE isometric hex tile but drawn 1.5x larger than a normal unit, with a glowing gold-violet boss rim on the tile.
-- BOTTOM: hex-tile sprites: IDLE, ATTACK, SKILL, HURT, KO.
-- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a boss aura.
-- Generous empty space between items, plain flat panel backgrounds.
-Boss (고목 수호수, stage 10, element 숲): a colossal corrupted tree beast with root claws and a hollow glowing face
+Create the GAME SPRITE SHEET for one HEXA FRONTIER CHAPTER BOSS (game-ready asset, epic but readable).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 3 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Cells: row 1 = IDLE, ATTACK, SKILL (signature move, strongest pose); row 2 = HURT, KO, ENRAGED IDLE (glowing eyes, aura flaring).
+- The boss fills about 88% of the cell height in every cell (it is shown 1.5x larger than normal units in the game).
+- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a subtle boss aura that stays close to the body (no aura filling the cell).
+Boss "Rift Treant" (고목 수호수) — stage 10, element 숲: a colossal corrupted tree beast with root claws and a hollow glowing face
 ```
 
 ### BOSS-20 · 심해 레비아탄 (Abyss Leviathan) — 20판 장 보스 · 물
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER CHAPTER BOSS sheet, 1536x1024 landscape, same rendering style as the attached reference sheets, epic and readable:
-- LEFT: header with a crown/skull boss badge "BOSS · STAGE 20", name "Abyss Leviathan", epithet, element tags.
-- CENTER: one large full-body key art of the boss in a dynamic pose (about 45% of the sheet width).
-- RIGHT TOP: two rounded-square face portraits (calm / enraged).
-- RIGHT MIDDLE "IN-GAME HEX TILE": the boss standing on ONE isometric hex tile but drawn 1.5x larger than a normal unit, with a glowing gold-violet boss rim on the tile.
-- BOTTOM: hex-tile sprites: IDLE, ATTACK, SKILL, HURT, KO.
-- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a boss aura.
-- Generous empty space between items, plain flat panel backgrounds.
-Boss (심해 레비아탄, stage 20, element 물): a sea serpent rising from a whirlpool, pearl horns, rift cracks along its fins
+Create the GAME SPRITE SHEET for one HEXA FRONTIER CHAPTER BOSS (game-ready asset, epic but readable).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 3 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Cells: row 1 = IDLE, ATTACK, SKILL (signature move, strongest pose); row 2 = HURT, KO, ENRAGED IDLE (glowing eyes, aura flaring).
+- The boss fills about 88% of the cell height in every cell (it is shown 1.5x larger than normal units in the game).
+- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a subtle boss aura that stays close to the body (no aura filling the cell).
+Boss "Abyss Leviathan" (심해 레비아탄) — stage 20, element 물: a sea serpent rising from a whirlpool, pearl horns, rift cracks along its fins
 ```
 
 ### BOSS-30 · 화산 와이번 (Volcano Wyvern) — 30판 장 보스 · 불
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER CHAPTER BOSS sheet, 1536x1024 landscape, same rendering style as the attached reference sheets, epic and readable:
-- LEFT: header with a crown/skull boss badge "BOSS · STAGE 30", name "Volcano Wyvern", epithet, element tags.
-- CENTER: one large full-body key art of the boss in a dynamic pose (about 45% of the sheet width).
-- RIGHT TOP: two rounded-square face portraits (calm / enraged).
-- RIGHT MIDDLE "IN-GAME HEX TILE": the boss standing on ONE isometric hex tile but drawn 1.5x larger than a normal unit, with a glowing gold-violet boss rim on the tile.
-- BOTTOM: hex-tile sprites: IDLE, ATTACK, SKILL, HURT, KO.
-- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a boss aura.
-- Generous empty space between items, plain flat panel backgrounds.
-Boss (화산 와이번, stage 30, element 불): a wyvern with obsidian scales and a lava-filled chest, wings dripping embers
+Create the GAME SPRITE SHEET for one HEXA FRONTIER CHAPTER BOSS (game-ready asset, epic but readable).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 3 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Cells: row 1 = IDLE, ATTACK, SKILL (signature move, strongest pose); row 2 = HURT, KO, ENRAGED IDLE (glowing eyes, aura flaring).
+- The boss fills about 88% of the cell height in every cell (it is shown 1.5x larger than normal units in the game).
+- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a subtle boss aura that stays close to the body (no aura filling the cell).
+Boss "Volcano Wyvern" (화산 와이번) — stage 30, element 불: a wyvern with obsidian scales and a lava-filled chest, wings dripping embers
 ```
 
 ### BOSS-40 · 뇌운 그리폰 (Thunder Griffin) — 40판 장 보스 · 바람
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER CHAPTER BOSS sheet, 1536x1024 landscape, same rendering style as the attached reference sheets, epic and readable:
-- LEFT: header with a crown/skull boss badge "BOSS · STAGE 40", name "Thunder Griffin", epithet, element tags.
-- CENTER: one large full-body key art of the boss in a dynamic pose (about 45% of the sheet width).
-- RIGHT TOP: two rounded-square face portraits (calm / enraged).
-- RIGHT MIDDLE "IN-GAME HEX TILE": the boss standing on ONE isometric hex tile but drawn 1.5x larger than a normal unit, with a glowing gold-violet boss rim on the tile.
-- BOTTOM: hex-tile sprites: IDLE, ATTACK, SKILL, HURT, KO.
-- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a boss aura.
-- Generous empty space between items, plain flat panel backgrounds.
-Boss (뇌운 그리폰, stage 40, element 바람): a griffin made of storm clouds and feathers, lightning mane
+Create the GAME SPRITE SHEET for one HEXA FRONTIER CHAPTER BOSS (game-ready asset, epic but readable).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 3 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Cells: row 1 = IDLE, ATTACK, SKILL (signature move, strongest pose); row 2 = HURT, KO, ENRAGED IDLE (glowing eyes, aura flaring).
+- The boss fills about 88% of the cell height in every cell (it is shown 1.5x larger than normal units in the game).
+- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a subtle boss aura that stays close to the body (no aura filling the cell).
+Boss "Thunder Griffin" (뇌운 그리폰) — stage 40, element 바람: a griffin made of storm clouds and feathers, lightning mane
 ```
 
 ### BOSS-50 · 거신 장수풍뎅이 (Colossus Beetle) — 50판 장 보스 · 대지
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER CHAPTER BOSS sheet, 1536x1024 landscape, same rendering style as the attached reference sheets, epic and readable:
-- LEFT: header with a crown/skull boss badge "BOSS · STAGE 50", name "Colossus Beetle", epithet, element tags.
-- CENTER: one large full-body key art of the boss in a dynamic pose (about 45% of the sheet width).
-- RIGHT TOP: two rounded-square face portraits (calm / enraged).
-- RIGHT MIDDLE "IN-GAME HEX TILE": the boss standing on ONE isometric hex tile but drawn 1.5x larger than a normal unit, with a glowing gold-violet boss rim on the tile.
-- BOTTOM: hex-tile sprites: IDLE, ATTACK, SKILL, HURT, KO.
-- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a boss aura.
-- Generous empty space between items, plain flat panel backgrounds.
-Boss (거신 장수풍뎅이, stage 50, element 대지): a gigantic rhinoceros beetle with a mountain-like shell and crystal horn
+Create the GAME SPRITE SHEET for one HEXA FRONTIER CHAPTER BOSS (game-ready asset, epic but readable).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 3 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Cells: row 1 = IDLE, ATTACK, SKILL (signature move, strongest pose); row 2 = HURT, KO, ENRAGED IDLE (glowing eyes, aura flaring).
+- The boss fills about 88% of the cell height in every cell (it is shown 1.5x larger than normal units in the game).
+- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a subtle boss aura that stays close to the body (no aura filling the cell).
+Boss "Colossus Beetle" (거신 장수풍뎅이) — stage 50, element 대지: a gigantic rhinoceros beetle with a mountain-like shell and crystal horn
 ```
 
 ### BOSS-60 · 가시 여왕 사마귀 (Thornqueen Mantis) — 60판 장 보스 · 숲
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER CHAPTER BOSS sheet, 1536x1024 landscape, same rendering style as the attached reference sheets, epic and readable:
-- LEFT: header with a crown/skull boss badge "BOSS · STAGE 60", name "Thornqueen Mantis", epithet, element tags.
-- CENTER: one large full-body key art of the boss in a dynamic pose (about 45% of the sheet width).
-- RIGHT TOP: two rounded-square face portraits (calm / enraged).
-- RIGHT MIDDLE "IN-GAME HEX TILE": the boss standing on ONE isometric hex tile but drawn 1.5x larger than a normal unit, with a glowing gold-violet boss rim on the tile.
-- BOTTOM: hex-tile sprites: IDLE, ATTACK, SKILL, HURT, KO.
-- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a boss aura.
-- Generous empty space between items, plain flat panel backgrounds.
-Boss (가시 여왕 사마귀, stage 60, element 숲): a regal mantis with rose-thorn scythes and a flower crown
+Create the GAME SPRITE SHEET for one HEXA FRONTIER CHAPTER BOSS (game-ready asset, epic but readable).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 3 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Cells: row 1 = IDLE, ATTACK, SKILL (signature move, strongest pose); row 2 = HURT, KO, ENRAGED IDLE (glowing eyes, aura flaring).
+- The boss fills about 88% of the cell height in every cell (it is shown 1.5x larger than normal units in the game).
+- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a subtle boss aura that stays close to the body (no aura filling the cell).
+Boss "Thornqueen Mantis" (가시 여왕 사마귀) — stage 60, element 숲: a regal mantis with rose-thorn scythes and a flower crown
 ```
 
 ### BOSS-70 · 증기 크라켄 (Steam Kraken) — 70판 장 보스 · 물·불
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER CHAPTER BOSS sheet, 1536x1024 landscape, same rendering style as the attached reference sheets, epic and readable:
-- LEFT: header with a crown/skull boss badge "BOSS · STAGE 70", name "Steam Kraken", epithet, element tags.
-- CENTER: one large full-body key art of the boss in a dynamic pose (about 45% of the sheet width).
-- RIGHT TOP: two rounded-square face portraits (calm / enraged).
-- RIGHT MIDDLE "IN-GAME HEX TILE": the boss standing on ONE isometric hex tile but drawn 1.5x larger than a normal unit, with a glowing gold-violet boss rim on the tile.
-- BOTTOM: hex-tile sprites: IDLE, ATTACK, SKILL, HURT, KO.
-- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a boss aura.
-- Generous empty space between items, plain flat panel backgrounds.
-Boss (증기 크라켄, stage 70, element 물·불): a kraken whose tentacles are half water half magma, wreathed in steam
+Create the GAME SPRITE SHEET for one HEXA FRONTIER CHAPTER BOSS (game-ready asset, epic but readable).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 3 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Cells: row 1 = IDLE, ATTACK, SKILL (signature move, strongest pose); row 2 = HURT, KO, ENRAGED IDLE (glowing eyes, aura flaring).
+- The boss fills about 88% of the cell height in every cell (it is shown 1.5x larger than normal units in the game).
+- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a subtle boss aura that stays close to the body (no aura filling the cell).
+Boss "Steam Kraken" (증기 크라켄) — stage 70, element 물·불: a kraken whose tentacles are half water half magma, wreathed in steam
 ```
 
 ### BOSS-80 · 모래폭풍 로크 (Sandstorm Roc) — 80판 장 보스 · 바람·대지
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER CHAPTER BOSS sheet, 1536x1024 landscape, same rendering style as the attached reference sheets, epic and readable:
-- LEFT: header with a crown/skull boss badge "BOSS · STAGE 80", name "Sandstorm Roc", epithet, element tags.
-- CENTER: one large full-body key art of the boss in a dynamic pose (about 45% of the sheet width).
-- RIGHT TOP: two rounded-square face portraits (calm / enraged).
-- RIGHT MIDDLE "IN-GAME HEX TILE": the boss standing on ONE isometric hex tile but drawn 1.5x larger than a normal unit, with a glowing gold-violet boss rim on the tile.
-- BOTTOM: hex-tile sprites: IDLE, ATTACK, SKILL, HURT, KO.
-- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a boss aura.
-- Generous empty space between items, plain flat panel backgrounds.
-Boss (모래폭풍 로크, stage 80, element 바람·대지): a giant roc bird with stone-plated wings carrying a sandstorm
+Create the GAME SPRITE SHEET for one HEXA FRONTIER CHAPTER BOSS (game-ready asset, epic but readable).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 3 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Cells: row 1 = IDLE, ATTACK, SKILL (signature move, strongest pose); row 2 = HURT, KO, ENRAGED IDLE (glowing eyes, aura flaring).
+- The boss fills about 88% of the cell height in every cell (it is shown 1.5x larger than normal units in the game).
+- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a subtle boss aura that stays close to the body (no aura filling the cell).
+Boss "Sandstorm Roc" (모래폭풍 로크) — stage 80, element 바람·대지: a giant roc bird with stone-plated wings carrying a sandstorm
 ```
 
 ### BOSS-90 · 혼돈 키메라 (Chaos Chimera) — 90판 장 보스 · 숲·물·불
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER CHAPTER BOSS sheet, 1536x1024 landscape, same rendering style as the attached reference sheets, epic and readable:
-- LEFT: header with a crown/skull boss badge "BOSS · STAGE 90", name "Chaos Chimera", epithet, element tags.
-- CENTER: one large full-body key art of the boss in a dynamic pose (about 45% of the sheet width).
-- RIGHT TOP: two rounded-square face portraits (calm / enraged).
-- RIGHT MIDDLE "IN-GAME HEX TILE": the boss standing on ONE isometric hex tile but drawn 1.5x larger than a normal unit, with a glowing gold-violet boss rim on the tile.
-- BOTTOM: hex-tile sprites: IDLE, ATTACK, SKILL, HURT, KO.
-- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a boss aura.
-- Generous empty space between items, plain flat panel backgrounds.
-Boss (혼돈 키메라, stage 90, element 숲·물·불): a three-headed chimera (forest stag, water serpent, fire lion) fused by rift cracks
+Create the GAME SPRITE SHEET for one HEXA FRONTIER CHAPTER BOSS (game-ready asset, epic but readable).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 3 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Cells: row 1 = IDLE, ATTACK, SKILL (signature move, strongest pose); row 2 = HURT, KO, ENRAGED IDLE (glowing eyes, aura flaring).
+- The boss fills about 88% of the cell height in every cell (it is shown 1.5x larger than normal units in the game).
+- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a subtle boss aura that stays close to the body (no aura filling the cell).
+Boss "Chaos Chimera" (혼돈 키메라) — stage 90, element 숲·물·불: a three-headed chimera (forest stag, water serpent, fire lion) fused by rift cracks
 ```
 
 ### BOSS-100 · 헥사 포식자 · 균열의 군주 (Hexa Devourer, Lord of the Rift) — 100판 최종 보스 · 모든 속성
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
-Create one HEXA FRONTIER FINAL BOSS sheet, 1536x1024 landscape, same rendering style as the attached reference sheets, epic and readable:
-- LEFT: header with a crown/skull boss badge "FINAL · STAGE 100", name "Hexa Devourer, Lord of the Rift", epithet, element tags.
-- CENTER: one large full-body key art of the boss in a dynamic pose (about 45% of the sheet width).
-- RIGHT TOP: two rounded-square face portraits (calm / enraged).
-- RIGHT MIDDLE "IN-GAME HEX TILE": the boss standing on ONE isometric hex tile but drawn 1.5x larger than a normal unit, with a glowing gold-violet boss rim on the tile.
-- BOTTOM: hex-tile sprites: IDLE, ATTACK, SKILL, HURT, KO, PHASE 2 (rift armor broken, crystals blazing).
-- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a boss aura.
-- Generous empty space between items, plain flat panel backgrounds.
-Boss (헥사 포식자 · 균열의 군주, stage 100, element 모든 속성): a colossal rift dragon made of shattered hex tiles, five element crystals orbiting it
+Create the GAME SPRITE SHEET for one HEXA FRONTIER FINAL BOSS (game-ready asset, epic but readable).
+- Canvas 1536x1024, TRANSPARENT background, an invisible grid of 3 columns x 2 rows of equal cells (do NOT draw grid lines or cell borders).
+- Exactly one sprite per cell, horizontally centered, every sprite at least 24 px away from its cell edges; nothing touches or overlaps another cell.
+- Common baseline: in every cell the feet (or the lowest point of a floating creature, hovering slightly) sit on the same invisible line at 88% of the cell height.
+- Same camera, same light, same outline weight in every cell.
+- Cells: row 1 = IDLE, ATTACK, SKILL (signature move, strongest pose); row 2 = HURT, KO, PHASE 2 IDLE (rift armor broken, crystals blazing).
+- The boss fills about 88% of the cell height in every cell (it is shown 1.5x larger than normal units in the game).
+- Same rift corruption language as the Rift monsters (violet hex cracks, rift crystals) plus a subtle boss aura that stays close to the body (no aura filling the cell).
+Boss "Hexa Devourer, Lord of the Rift" (헥사 포식자 · 균열의 군주) — stage 100, element 모든 속성: a colossal rift dragon made of shattered hex tiles, five element crystals orbiting it
 ```
 
 ## 기술 이펙트
@@ -1749,17 +3213,18 @@ Boss (헥사 포식자 · 균열의 군주, stage 100, element 모든 속성): a
 ### FX-hit_basic · 기본 타격
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
 Create a game skill effect sprite sheet, 1536x1024, TRANSPARENT background, a 4 x 2 grid of 8 animation frames read left-to-right, top-to-bottom (each frame 384x512), effect centered in every frame and the same scale in every frame.
-Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small hex-tile unit (unit occupies the lower-middle of the frame).
+Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small chibi unit standing on a hex (the unit occupies the lower-middle of the frame).
 Effect: a quick white slash spark impact with small star sparks (generic basic attack hit)
 Colors: white and warm gold
 ```
@@ -1767,17 +3232,18 @@ Colors: white and warm gold
 ### FX-hit_crit · 치명타
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
 Create a game skill effect sprite sheet, 1536x1024, TRANSPARENT background, a 4 x 2 grid of 8 animation frames read left-to-right, top-to-bottom (each frame 384x512), effect centered in every frame and the same scale in every frame.
-Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small hex-tile unit (unit occupies the lower-middle of the frame).
+Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small chibi unit standing on a hex (the unit occupies the lower-middle of the frame).
 Effect: a big starburst impact with radial speed lines and a gold flash (critical hit)
 Colors: gold and white
 ```
@@ -1785,17 +3251,18 @@ Colors: gold and white
 ### FX-taunt · 도발
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
 Create a game skill effect sprite sheet, 1536x1024, TRANSPARENT background, a 4 x 2 grid of 8 animation frames read left-to-right, top-to-bottom (each frame 384x512), effect centered in every frame and the same scale in every frame.
-Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small hex-tile unit (unit occupies the lower-middle of the frame).
+Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small chibi unit standing on a hex (the unit occupies the lower-middle of the frame).
 Effect: a red shout shockwave ring expanding from the unit with an angry vein icon shape
 Colors: red and orange
 ```
@@ -1803,17 +3270,18 @@ Colors: red and orange
 ### FX-shieldbash · 방패 강타
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
 Create a game skill effect sprite sheet, 1536x1024, TRANSPARENT background, a 4 x 2 grid of 8 animation frames read left-to-right, top-to-bottom (each frame 384x512), effect centered in every frame and the same scale in every frame.
-Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small hex-tile unit (unit occupies the lower-middle of the frame).
+Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small chibi unit standing on a hex (the unit occupies the lower-middle of the frame).
 Effect: a heavy shield slam: stone-colored impact crater ring plus spinning dizzy stars
 Colors: steel grey, gold stars
 ```
@@ -1821,17 +3289,18 @@ Colors: steel grey, gold stars
 ### FX-power · 강타
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
 Create a game skill effect sprite sheet, 1536x1024, TRANSPARENT background, a 4 x 2 grid of 8 animation frames read left-to-right, top-to-bottom (each frame 384x512), effect centered in every frame and the same scale in every frame.
-Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small hex-tile unit (unit occupies the lower-middle of the frame).
+Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small chibi unit standing on a hex (the unit occupies the lower-middle of the frame).
 Effect: a powerful single downward slash leaving a thick bright arc and a ground crack
 Colors: white-gold
 ```
@@ -1839,17 +3308,18 @@ Colors: white-gold
 ### FX-whirl · 회오리 베기
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
 Create a game skill effect sprite sheet, 1536x1024, TRANSPARENT background, a 4 x 2 grid of 8 animation frames read left-to-right, top-to-bottom (each frame 384x512), effect centered in every frame and the same scale in every frame.
-Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small hex-tile unit (unit occupies the lower-middle of the frame).
+Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small chibi unit standing on a hex (the unit occupies the lower-middle of the frame).
 Effect: a 360-degree spinning blade wind ring around the unit (covers the 6 surrounding hexes)
 Colors: pale cyan and white
 ```
@@ -1857,17 +3327,18 @@ Colors: pale cyan and white
 ### FX-drain · 흡수
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
 Create a game skill effect sprite sheet, 1536x1024, TRANSPARENT background, a 4 x 2 grid of 8 animation frames read left-to-right, top-to-bottom (each frame 384x512), effect centered in every frame and the same scale in every frame.
-Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small hex-tile unit (unit occupies the lower-middle of the frame).
+Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small chibi unit standing on a hex (the unit occupies the lower-middle of the frame).
 Effect: dark red life-wisps flowing from the target back to the attacker
 Colors: crimson and pink
 ```
@@ -1875,17 +3346,18 @@ Colors: crimson and pink
 ### FX-snipe · 저격
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
 Create a game skill effect sprite sheet, 1536x1024, TRANSPARENT background, a 4 x 2 grid of 8 animation frames read left-to-right, top-to-bottom (each frame 384x512), effect centered in every frame and the same scale in every frame.
-Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small hex-tile unit (unit occupies the lower-middle of the frame).
+Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small chibi unit standing on a hex (the unit occupies the lower-middle of the frame).
 Effect: a single glowing arrow streak with a target reticle flash at impact
 Colors: gold and white
 ```
@@ -1893,17 +3365,18 @@ Colors: gold and white
 ### FX-volley · 화살비
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
 Create a game skill effect sprite sheet, 1536x1024, TRANSPARENT background, a 4 x 2 grid of 8 animation frames read left-to-right, top-to-bottom (each frame 384x512), effect centered in every frame and the same scale in every frame.
-Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small hex-tile unit (unit occupies the lower-middle of the frame).
+Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small chibi unit standing on a hex (the unit occupies the lower-middle of the frame).
 Effect: many small arrows falling in a circle area with dust puffs
 Colors: brown wood and silver
 ```
@@ -1911,17 +3384,18 @@ Colors: brown wood and silver
 ### FX-heal · 치유
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
 Create a game skill effect sprite sheet, 1536x1024, TRANSPARENT background, a 4 x 2 grid of 8 animation frames read left-to-right, top-to-bottom (each frame 384x512), effect centered in every frame and the same scale in every frame.
-Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small hex-tile unit (unit occupies the lower-middle of the frame).
+Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small chibi unit standing on a hex (the unit occupies the lower-middle of the frame).
 Effect: soft green rising leaves and sparkles with a plus-shaped glow
 Colors: green and white
 ```
@@ -1929,17 +3403,18 @@ Colors: green and white
 ### FX-massheal · 치유의 비
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
 Create a game skill effect sprite sheet, 1536x1024, TRANSPARENT background, a 4 x 2 grid of 8 animation frames read left-to-right, top-to-bottom (each frame 384x512), effect centered in every frame and the same scale in every frame.
-Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small hex-tile unit (unit occupies the lower-middle of the frame).
+Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small chibi unit standing on a hex (the unit occupies the lower-middle of the frame).
 Effect: a gentle rain of glowing droplets and petals over an area
 Colors: green, aqua and white
 ```
@@ -1947,17 +3422,18 @@ Colors: green, aqua and white
 ### FX-cheer · 격려
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
 Create a game skill effect sprite sheet, 1536x1024, TRANSPARENT background, a 4 x 2 grid of 8 animation frames read left-to-right, top-to-bottom (each frame 384x512), effect centered in every frame and the same scale in every frame.
-Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small hex-tile unit (unit occupies the lower-middle of the frame).
+Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small chibi unit standing on a hex (the unit occupies the lower-middle of the frame).
 Effect: rising golden musical notes and an upward arrow aura
 Colors: gold and orange
 ```
@@ -1965,17 +3441,18 @@ Colors: gold and orange
 ### FX-weaken · 약화
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
 Create a game skill effect sprite sheet, 1536x1024, TRANSPARENT background, a 4 x 2 grid of 8 animation frames read left-to-right, top-to-bottom (each frame 384x512), effect centered in every frame and the same scale in every frame.
-Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small hex-tile unit (unit occupies the lower-middle of the frame).
+Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small chibi unit standing on a hex (the unit occupies the lower-middle of the frame).
 Effect: a sinking violet mist with a broken-shield silhouette
 Colors: violet and grey
 ```
@@ -1983,17 +3460,18 @@ Colors: violet and grey
 ### FX-command · 지휘
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
 Create a game skill effect sprite sheet, 1536x1024, TRANSPARENT background, a 4 x 2 grid of 8 animation frames read left-to-right, top-to-bottom (each frame 384x512), effect centered in every frame and the same scale in every frame.
-Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small hex-tile unit (unit occupies the lower-middle of the frame).
+Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small chibi unit standing on a hex (the unit occupies the lower-middle of the frame).
 Effect: a waving banner flash and a golden ring pulse spreading out
 Colors: gold and navy
 ```
@@ -2001,17 +3479,18 @@ Colors: gold and navy
 ### FX-starbolt · 별빛탄
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
 Create a game skill effect sprite sheet, 1536x1024, TRANSPARENT background, a 4 x 2 grid of 8 animation frames read left-to-right, top-to-bottom (each frame 384x512), effect centered in every frame and the same scale in every frame.
-Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small hex-tile unit (unit occupies the lower-middle of the frame).
+Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small chibi unit standing on a hex (the unit occupies the lower-middle of the frame).
 Effect: a small shooting star projectile with a sparkling trail and star burst
 Colors: white, pale gold and lilac
 ```
@@ -2021,17 +3500,18 @@ Colors: white, pale gold and lilac
 > 속성별 5장은 같은 프롬프트에서 속성만 바꿔 5번 생성
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
 Create a game skill effect sprite sheet, 1536x1024, TRANSPARENT background, a 4 x 2 grid of 8 animation frames read left-to-right, top-to-bottom (each frame 384x512), effect centered in every frame and the same scale in every frame.
-Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small hex-tile unit (unit occupies the lower-middle of the frame).
+Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small chibi unit standing on a hex (the unit occupies the lower-middle of the frame).
 Effect: an element-infused claw/blade strike on one target. Generate one image per element (5 images, same layout): water splash slash / fire flame slash / forest leaf slash / earth rock slash / wind gale slash
 Colors: use the element palette of the version
 ```
@@ -2041,17 +3521,18 @@ Colors: use the element palette of the version
 > 속성별 5장은 같은 프롬프트에서 속성만 바꿔 5번 생성
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
 Create a game skill effect sprite sheet, 1536x1024, TRANSPARENT background, a 4 x 2 grid of 8 animation frames read left-to-right, top-to-bottom (each frame 384x512), effect centered in every frame and the same scale in every frame.
-Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small hex-tile unit (unit occupies the lower-middle of the frame).
+Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small chibi unit standing on a hex (the unit occupies the lower-middle of the frame).
 Effect: an element projectile flying with a trail, then bursting on impact. Generate one image per element (5 images, same layout): water orb, fire ball, leaf-seed bolt, rock shard, wind blade
 Colors: use the element palette of the version
 ```
@@ -2061,17 +3542,18 @@ Colors: use the element palette of the version
 > 속성별 5장은 같은 프롬프트에서 속성만 바꿔 5번 생성
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
 Create a game skill effect sprite sheet, 1536x1024, TRANSPARENT background, a 4 x 2 grid of 8 animation frames read left-to-right, top-to-bottom (each frame 384x512), effect centered in every frame and the same scale in every frame.
-Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small hex-tile unit (unit occupies the lower-middle of the frame).
+Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small chibi unit standing on a hex (the unit occupies the lower-middle of the frame).
 Effect: an area explosion covering a target hex and its 6 neighbors. Generate one image per element (5 images, same layout): tidal splash, firestorm, thorn bloom, earth spikes, cyclone
 Colors: use the element palette of the version
 ```
@@ -2079,17 +3561,18 @@ Colors: use the element palette of the version
 ### FX-status_stun · 기절 별
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
 Create a game skill effect sprite sheet, 1536x1024, TRANSPARENT background, a 4 x 2 grid of 8 animation frames read left-to-right, top-to-bottom (each frame 384x512), effect centered in every frame and the same scale in every frame.
-Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small hex-tile unit (unit occupies the lower-middle of the frame).
+Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small chibi unit standing on a hex (the unit occupies the lower-middle of the frame).
 Effect: looping 3 small dizzy stars circling above a head (8-frame loop)
 Colors: yellow
 ```
@@ -2097,17 +3580,18 @@ Colors: yellow
 ### FX-levelup · 레벨 업
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
 Create a game skill effect sprite sheet, 1536x1024, TRANSPARENT background, a 4 x 2 grid of 8 animation frames read left-to-right, top-to-bottom (each frame 384x512), effect centered in every frame and the same scale in every frame.
-Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small hex-tile unit (unit occupies the lower-middle of the frame).
+Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small chibi unit standing on a hex (the unit occupies the lower-middle of the frame).
 Effect: a golden pillar of light with rising sparkles and an upward chevron
 Colors: gold and white
 ```
@@ -2115,17 +3599,18 @@ Colors: gold and white
 ### FX-ko_poof · 쓰러짐
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
 Create a game skill effect sprite sheet, 1536x1024, TRANSPARENT background, a 4 x 2 grid of 8 animation frames read left-to-right, top-to-bottom (each frame 384x512), effect centered in every frame and the same scale in every frame.
-Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small hex-tile unit (unit occupies the lower-middle of the frame).
+Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small chibi unit standing on a hex (the unit occupies the lower-middle of the frame).
 Effect: a soft cartoon smoke poof with small stars fading out
 Colors: grey-white
 ```
@@ -2133,35 +3618,37 @@ Colors: grey-white
 ### FX-evolve · 진화
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
 Create a game skill effect sprite sheet, 1536x1024, TRANSPARENT background, a 4 x 2 grid of 8 animation frames read left-to-right, top-to-bottom (each frame 384x512), effect centered in every frame and the same scale in every frame.
-Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small hex-tile unit (unit occupies the lower-middle of the frame).
+Style: HEXA FRONTIER painterly anime VFX — soft glow, crisp stylized shapes, small sparkle particles, no characters, no text. The effect must read on top of a small chibi unit standing on a hex (the unit occupies the lower-middle of the frame).
 Effect: a swirling cocoon of light that bursts into sparkles
 Colors: element-neutral white with rainbow sparkles
 ```
 
 ## 전투 화면 요소 · 헥사
 
-**헥사 제안**: 지금 전장 바닥은 평평한 단색 육각형이고, 스피릿은 자기 시트의 입체(아이소메트릭) 헥사 위에 서 있어서 바닥과 유닛 받침의 시점이 다릅니다. 장(지역)마다 **살짝 기울어진 2.5D 헥사 타일 세트**를 새로 만들어 바닥을 바꾸는 것을 추천합니다(유닛 받침과 같은 질감·두께). 지역 6종 × 지형 8종.
+**헥사**: 캐릭터에서 받침을 없앴으니 바닥은 게임이 그립니다. 장(지역)마다 **살짝 기울어진 2.5D 헥사 타일 세트**(지역 6종 × 지형 8종)로 바닥을 새로 만들고, 캐릭터는 그 위에 발판 링·그림자와 함께 올라갑니다. 그래서 이동해도 헥사 모양이 변하지 않습니다.
 그 밖에 범위 표시, 발판 링, 체력 막대, 상태·속성·역할·행동 아이콘, 차례 배너, 숫자 글꼴, 카드·미리보기 틀 — 모두 **글자 없이** 받아 게임이 한글을 얹습니다.
 
 ### TILE · 숲 들판 (1장·6장)
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2175,12 +3662,13 @@ Tiles (in order, left-to-right, top-to-bottom): plain grass, grass with flowers,
 ### TILE · 물안개 해안 (2장)
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2194,12 +3682,13 @@ Tiles (in order, left-to-right, top-to-bottom): sand, wet sand with shells, fore
 ### TILE · 불꽃 화산 (3장)
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2213,12 +3702,13 @@ Tiles (in order, left-to-right, top-to-bottom): ash ground, cracked basalt, fore
 ### TILE · 바람 고원 (4장)
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2232,12 +3722,13 @@ Tiles (in order, left-to-right, top-to-bottom): short grass, windswept stone, fo
 ### TILE · 대지 협곡 (5장)
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2251,12 +3742,13 @@ Tiles (in order, left-to-right, top-to-bottom): sandstone, gravel, forest (cactu
 ### TILE · 균열의 땅 (7~10장)
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2270,12 +3762,13 @@ Tiles (in order, left-to-right, top-to-bottom): rift-cracked stone, mixed grass-
 ### UI · 헥사 표시 오버레이
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2285,12 +3778,13 @@ A set of flat semi-transparent pointy-top hexagon overlays (same size as the ter
 ### UI · 유닛 발판 링
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2300,12 +3794,13 @@ A set of glowing oval base rings that sit under a unit standing on a hex, TRANSP
 ### UI · 체력·SP 막대
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2315,12 +3810,13 @@ Small HP and SP bar frames for above unit heads and for the unit card, TRANSPARE
 ### UI · 상태 아이콘
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2330,12 +3826,13 @@ A sheet of 12 small round status icons, 128x128 each, TRANSPARENT background, co
 ### UI · 속성 아이콘
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2345,12 +3842,13 @@ Five round element icons, 256x256 each, TRANSPARENT background, matching the ele
 ### UI · 역할 아이콘
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2360,12 +3858,13 @@ Seven role icons, 256x256, TRANSPARENT background, gold-on-navy emblem style: ta
 ### UI · 행동 버튼 아이콘
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2375,12 +3874,13 @@ Action button icons for the battle bottom panel, 256x256, TRANSPARENT background
 ### UI · 차례 배너
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2390,12 +3890,13 @@ Wide ribbon banners for battle phase announcements, TRANSPARENT background, NO T
 ### UI · 피해 숫자 글꼴
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2405,12 +3906,13 @@ A bitmap number font sheet for floating damage numbers, TRANSPARENT background: 
 ### UI · 공격 미리보기·유닛 카드 틀
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2427,12 +3929,13 @@ UI frames, TRANSPARENT background, NO TEXT: (1) battle bottom unit card frame (p
 > 결정할 것: 세 방향 중 하나(또는 섞기) · 메인 색·금색 트림 강도 · 글꼴 느낌(둥근/각진)
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2451,12 +3954,13 @@ Each board contains: color swatches, a primary button and a secondary button, a 
 > 결정할 것: A/B/C 중 메인 화면 구조 · 장(10판) 단위를 어떻게 보여 줄지 · 현재 위치·다음 판 강조 방식
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2475,12 +3979,13 @@ All three share: top status bar (hero portrait with level, gold 🪙, growth cry
 > 결정할 것: 노드 상태 표현(잠김/도전/클리어/별) · 보스·대장 노드 · 팝업에 넣을 정보 순서
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2496,12 +4001,13 @@ Also, as a second phone screen next to it (1536x1024 landscape, two phones side 
 > 결정할 것: 탭 5개 구성·이름 · 선택/비선택 표현 · 알림 점 위치
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2517,12 +4023,13 @@ Tabs: 원정 (compass map), 부대 (shield with 3 creature silhouettes), 도감 
 > 결정할 것: 출전 슬롯 표현(헥사 6칸 vs 카드 6장) · ▲유리/▼불리 표시 · 상성 추천 버튼 위치
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2539,12 +4046,13 @@ Buttons: "✨ 상성 추천 편성", "장비", "⚔️ 전투 시작" (primary).
 > 결정할 것: 위/아래 패널 높이 · 자동 버튼 4단계 표현 · 공격 미리보기 위치 · 헥사 바닥 2D vs 2.5D
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2561,12 +4069,13 @@ Bottom panel: selected unit card (portrait, name 웨이브팽, level, role, elem
 > 결정할 것: 승리 연출 강도 · 보상 표시 순서 · 새 스피릿 합류 연출
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2575,7 +4084,7 @@ Use the HEXA FRONTIER UI chrome language: deep navy panels, warm gold trim, parc
 All visible UI text must be KOREAN (Hangul), short and legible. Show realistic content, not lorem ipsum.
 Draw THREE result screens side by side in one 1536x1024 landscape image:
 (1) VICTORY: gold banner "승리!", stage "27 · 마그마 굴", stars 3/3, rewards (🪙 +276, item icon, 🔶 성장의 결정), level-up list with portraits ("웨이브팽 21 → 22").
-(2) NEW SPIRIT JOINS: a dramatic reveal of a new spirit "퍼퍼샷 합류!" with its full art on a hex pedestal, element and role tags, button "부대에서 보기".
+(2) NEW SPIRIT JOINS: a dramatic reveal of a new spirit "퍼퍼샷 합류!" with its full art standing in a burst of light, element and role tags, button "부대에서 보기".
 (3) DEFEAT: muted banner "패배…", reason line, and helpful next-step buttons: "앞 판에서 경험치 벌기", "편성 바꾸기 (▲상성 추천)", "장비 바꾸기", "다시 도전".
 ```
 
@@ -2584,12 +4093,13 @@ Draw THREE result screens side by side in one 1536x1024 landscape image:
 > 결정할 것: 목록 정렬·필터(속성/역할) · 진화 단계 보여 주기 · 장비 3칸·성장의 결정 위치
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2598,7 +4108,7 @@ Use the HEXA FRONTIER UI chrome language: deep navy panels, warm gold trim, parc
 All visible UI text must be KOREAN (Hangul), short and legible. Show realistic content, not lorem ipsum.
 Draw TWO phone screens side by side (1536x1024 landscape):
 (1) 부대 list: filter chips by element (💧🔥🌿⛰️🌪️) and role (탱커/근딜/원딜/힐러/서포터), a 4-column grid of spirit cards (portrait, level, element dot, role icon, small "출전" badge on party members).
-(2) Spirit detail for "쉘나이트": large art on a hex pedestal with evolution track (Lv.1 → Lv.10 → Lv.25, current stage highlighted), stats (체력, 공격, 방어, 마법방어, 이동력, 사거리, SP), two skills (one locked until Lv.5), equipment slots (무기/갑옷/장신구), XP bar, button "🔶 성장의 결정 쓰기".
+(2) Spirit detail for "터스크월러스": large full-body art on a soft light circle with evolution track (Lv.1 → Lv.10 → Lv.25, current stage highlighted), stats (체력, 공격, 방어, 마법방어, 이동력, 사거리, SP), two skills (one locked until Lv.5), equipment slots (무기/갑옷/장신구), XP bar, button "🔶 성장의 결정 쓰기".
 ```
 
 ### 9단계 · 도감 탭 (스피릿 60종)
@@ -2606,12 +4116,13 @@ Draw TWO phone screens side by side (1536x1024 landscape):
 > 결정할 것: 미발견 표시(실루엣/물음표) · 속성별 페이지 vs 한 화면 · 수집률 보상
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2626,12 +4137,13 @@ Draw the spirit collection (도감) screen: header "스피릿 도감 23/60", ele
 > 결정할 것: 탭 구성(소모품/장비/결정) · 가격·보유 표시 · 판매 흐름
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2646,12 +4158,13 @@ Draw the shop (상점) screen: tabs "소모품 / 장비 / 특별", gold balance 
 > 결정할 것: 타이틀 연출 · 주인공 카드 구성 · 고르지 않은 주인공 안내 문구
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 
@@ -2668,12 +4181,13 @@ Draw TWO phone screens side by side (1536x1024 landscape):
 > 결정할 것: 버튼 모양·상태 · 패널·팝업 틀 · 토스트·배지·뱃지
 
 ```
-[HEXA FRONTIER STYLE BIBLE v1 — keep identical across all images]
-- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown line art, soft cel shading with subtle painted texture, gentle rim light. Match the attached HEXA FRONTIER reference sheets exactly (same rendering, line weight, saturation).
-- Proportions: big head, compact body (SD 1:2 to 1:2.5). Silhouette must read clearly at 64 px.
-- Lighting: key light from upper-left, warm ambient fill, soft contact shadow under every unit.
+[HEXA FRONTIER STYLE BIBLE v2 — keep identical across all images]
+- Art style: cute-but-heroic chibi fantasy creatures, 2.5D painterly anime illustration, clean dark-brown outline (uniform ~3 px around the whole silhouette), soft cel shading with subtle painted texture, gentle rim light. High detail but a silhouette that reads clearly at 64 px.
+- Proportions: big head, compact body (SD 1:2 to 1:2.5).
+- Lighting: key light from upper-left, warm ambient fill. Identical lighting in every image.
 - Element palettes: WATER sky-blue #4AA3FF + teal + pearl white; FIRE ember orange #FF7A45 + crimson + gold sparks; FOREST leaf green #5CC46A + moss + small flowers; EARTH sand ochre #C9A063 + slate stone + amber crystals; WIND mint #7FE0D0 + white feathers + cloud wisps.
-- Game units stand on an isometric pointy-top hexagon tile (same camera angle as the reference), the tile is about 30% of the sprite height.
+- GAME SPRITE RULES (most important): every character is drawn ALONE on a fully TRANSPARENT background — NO ground, NO hex tile, NO base, NO pedestal, NO platform, NO grass patch, NO rock under the feet, NO cast shadow, NO frame, NO card, NO text or labels. The game draws the hex floor and the shadow itself. Do NOT imitate older HEXA FRONTIER collection sheets that show hex bases.
+- Camera: three-quarter front view, body turned slightly to the viewer's left, eye level a little above the creature (same angle in every image so the game can mirror sprites).
 - UI chrome language: deep navy panels #16233B, warm gold trim #C9A95A, parchment cream #F7EFD9, rounded corners, small compass-star motif (the HEXA FRONTIER emblem).
 - No watermarks, no logos other than the HEXA FRONTIER compass emblem. Text only where the prompt asks for it.
 

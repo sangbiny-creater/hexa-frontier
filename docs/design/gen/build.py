@@ -14,68 +14,79 @@ def P(spec):
     return STYLE + "\n\n" + spec
 
 # 0 사용법
-sections.append(("howto", "사용법", """GPT(이미지 생성)에 **프롬프트를 그대로 붙여 넣기 전에 레퍼런스를 함께 첨부**하세요. 일관성은 레퍼런스가 거의 다 정합니다.
+sections.append(("howto", "사용법", """**모든 캐릭터는 게임 전용 스프라이트로 새로 그립니다.** 기존 S0x 시트는 바닥에 헥사가 붙어 있어 이동할 때 헥사 모양이 바뀌고 깨지므로 **하나도 쓰지 않고, 레퍼런스로도 첨부하지 않습니다.**
 
-- **스피릿·몬스터·보스**: 기존 시트 2~3장(예: `S03-T01.png`, `S02-M01.png`, `S04-R01.png`)을 함께 첨부 → "첨부 시트와 같은 화풍·같은 배치로".
-- **주인공이 나오는 화면**: `C01.png`(아렌), `C02.png`(리아) 첨부.
+- **스프라이트 규칙**: 투명 배경, 받침·헥사·그림자·글자 없음, 모든 칸 같은 카메라·같은 바닥선(칸 높이 88%). 헥사 바닥과 그림자는 게임이 그립니다. 그래서 어떤 지형 위에서도, 이동 중에도 모양이 변하지 않습니다.
+- **일관성 순서**: ① 속성 라인업 1장(예: 물)을 먼저 받아 화풍·비율을 정함 → ② 마음에 드는 라인업과 **처음 승인한 스프라이트 시트 1장**을 이후 모든 생성에 첨부("첨부 이미지와 같은 화풍·같은 크기·같은 바닥선").
+- **초상**: 스프라이트 시트가 확정되면 그 시트를 첨부하고 '초상 세트' 프롬프트(하나로 공용)를 붙여 넣으면 됩니다.
+- **주인공**: `C01.png`(아렌), `C02.png`(리아)는 얼굴·옷·색만 참고하고 받침 없이 다시 그립니다.
 - **UI 단계**: 앞 단계에서 고른 이미지를 다음 단계에 첨부하고, 프롬프트의 `{choice}` 자리에 고른 안(예: "B 헥사 대륙 지도")을 적어 주세요.
-- 모든 프롬프트 맨 위의 **[STYLE BIBLE]** 블록은 지우지 말고 그대로 두세요 (같은 대화 안에서도 매번 넣는 게 일관성에 좋습니다).
-- 글자: 게임 안의 버튼·패널·배너 원본은 **글자 없이** 받고(게임이 한글을 얹음), 화면 시안(UI 1~11단계)만 한글을 넣어 받습니다. GPT가 한글을 틀리게 쓰면 시안 판단용으로만 보시면 됩니다.
-- 크기: 시트·세트는 1536×1024(가로), 화면 시안은 1024×1536(세로). 투명 배경은 "TRANSPARENT background"가 들어간 것만.
+- 모든 프롬프트 맨 위의 **[STYLE BIBLE]** 블록은 지우지 말고 그대로 두세요.
+- 글자: 게임 안의 버튼·패널·배너 원본은 **글자 없이**, 화면 시안(UI 1~11단계)만 한글을 넣어 받습니다.
+- 투명 배경이 안 나오면 GPT에 "배경을 투명하게(PNG 알파) 다시"라고 한 번 더 요청하세요. 그래도 안 되면 단색 배경(#FF00FF)으로 받아도 제가 지웁니다.
 
 **받은 파일 이름 (이렇게 저장해 주시면 바로 잘라서 넣습니다)**
 
 | 종류 | 이름 규칙 | 예 |
 |---|---|---|
-| 새 스피릿 시트 | 표의 코드 | `F-T3.png`, `Fi-S1.png` |
-| 몬스터 시트 | `MON-속성코드-번호` | `MON-F-1.png` (숲 1번) |
-| 중간보스 / 보스 | `MID-판`, `BOSS-판` | `MID-25.png`, `BOSS-100.png` |
+| 속성 라인업 | `LINEUP-속성코드` | `LINEUP-W.png` |
+| 스피릿 스프라이트 / 초상 | `코드` / `코드-P` | `F-T1.png`, `F-T1-P.png` |
+| 주인공 | `C01`, `C02` (+`-P`) | `C01.png`, `C02-P.png` |
+| 몬스터 | `MON-속성코드-번호` (+`-P`) | `MON-F-1.png` |
+| 중간보스 / 보스 | `MID-판`, `BOSS-판` (+`-P`) | `MID-25.png`, `BOSS-100-P.png` |
 | 기술 이펙트 | `FX-이름(-속성)` | `FX-whirl.png`, `FX-blast-fire.png` |
 | 지형 타일 | `TILE-장` | `TILE-ch3.png` |
 | 전투 요소 | 표의 제목 | `UI-overlay.png` |
 | UI 시안 | `UIx-안` | `UI2-A.png` |
 """, []))
 
-sections.append(("style", "스타일 바이블", "모든 프롬프트 맨 위에 들어가는 공통 블록입니다. 색·빛·비율·배경을 고정해서 60종 스피릿, 몬스터, UI가 한 게임처럼 보이게 합니다.", [dict(title="공통 STYLE BIBLE", note="모든 프롬프트에 이미 포함되어 있어요. 따로 쓸 때만 복사.", prompt=STYLE)]))
+sections.append(("style", "스타일 바이블", "모든 프롬프트 맨 위에 들어가는 공통 블록입니다. 화풍·빛·카메라·**받침 없는 투명 스프라이트 규칙**을 고정해서 60종 스피릿, 몬스터, 보스, UI가 한 게임처럼 보이게 합니다.", [
+    dict(title="공통 STYLE BIBLE", note="모든 프롬프트에 이미 포함되어 있어요. 따로 쓸 때만 복사.", prompt=STYLE),
+    dict(title="초상 세트 (공용) — 스피릿 Lv.1/10/25", note="확정된 스프라이트 시트를 첨부하고 그대로 붙여 넣기 → `코드-P.png`", prompt=P(PORTRAIT.format(a="Lv.1 form", b="Lv.10 form", c="Lv.25 form"))),
+    dict(title="초상 세트 (공용) — 몬스터·보스·주인공", note="몬스터: 일반/정예/정예 화남 · 보스·주인공: 평소/화남(진지)/웃음", prompt=P(PORTRAIT.format(a="calm / normal", b="angry or serious (elite version for monsters)", c="happy or enraged (pick what fits the character)"))),
+]))
 
 # 2 스피릿
-rows = ["| 코드 | 속성 | 역할 | 이름 | 그림 |", "|---|---|---|---|---|"]
-for el, role, code, ko, en, src, new in SPIRITS:
-    rows.append(f"| {code} | {el} | {role} | {ko} ({en}) | {'🆕 새로 만들기' if new else '기존 ' + src.split(' ')[0]}{' · 확인 필요' if 'check' in src else ''} |")
-removed = "\n".join(f"- ~~{c} {n}~~ → {r}" for c, n, r in REMOVED)
-new_items = []
-for el, role, code, ko, en, src, new in SPIRITS:
-    if not new:
-        continue
-    n = {"F-T3": 3, "F-R2": 2, "F-R3": 3, "F-S2": 2}.get(code, int(code[-1]))
-    badge = f"{EL_EN[el]} {ROLE_EN[role]} {n}"
-    new_items.append(dict(title=f"{code} · {ko} ({en}) — {el} {role}", note="", prompt=P(SPIRIT_SHEET.format(badge=badge, en=en, epithet="(invent a short epithet)", ko=ko, desc=src))))
-cnt_new = sum(1 for s in SPIRITS if s[6])
-sections.append(("spirits", "스피릿 60종", f"""속성마다 **탱커 3 · 근딜 3 · 원딜 3 · 힐러 1 · 서포터 2 = 12종**, 5속성 × 12 = **60종**.
-기존 레퍼런스 시트 중 생물 디자인은 그대로 쓰고({60 - cnt_new}종), 마법사처럼 보이는 캐릭터는 모두 빼고 동물·짐승형으로 새로 만듭니다(**새로 만들 {cnt_new}종**).
+ROLE_KIND = {("근딜", "p"): "PHYSICAL MELEE DEALER", ("근딜", "m"): "MAGIC MELEE DEALER", ("원딜", "p"): "PHYSICAL RANGED DEALER", ("원딜", "m"): "MAGIC RANGED DEALER"}
+KIND_KO = {"p": "물리", "m": "마법"}
+rows = ["| 코드 | 속성 | 역할 | 이름 | 모습 (기본형) |", "|---|---|---|---|---|"]
+for el, role, code, ko, en, kind, atk, desc in SPIRITS:
+    r = f"{role}({KIND_KO[kind]})" if role in ("근딜", "원딜") else role
+    rows.append(f"| {code} | {el} | {r} | {ko} ({en}) | {desc.split(';')[0]} |")
+lineups, sp_items = [], []
+for el in ["물", "불", "숲", "대지", "바람"]:
+    lst = [s for s in SPIRITS if s[0] == el]
+    text = "\n".join(f"{i + 1}. {s[2]} {s[4]} ({s[1]}): {s[7].split(';')[0]}" for i, s in enumerate(lst))
+    lineups.append(dict(title=f"LINEUP-{EL_CODE[el]} · {el} 속성 12종 라인업", note="물 라인업부터 받아서 화풍·비율을 먼저 확정하세요" if el == "물" else "", prompt=P(ELEMENT_LINEUP.format(el_en=EL_EN[el], sample=lst[0][2], lst=text))))
+for el, role, code, ko, en, kind, atk, desc in SPIRITS:
+    role_en = ROLE_KIND.get((role, kind), ROLE_EN[role])
+    sp_items.append(dict(title=f"{code} · {ko} ({en}) — {el} {role}", note="", prompt=P(SPIRIT_SHEET.format(attack=atk, role_hint=ROLE_HINT[role], code=code, en=en, ko=ko, el=EL_EN[el], role_en=role_en, desc=desc))))
+sections.append(("spirits", "스피릿 60종 (전부 새로)", """속성마다 **탱커 3 · 근딜 3 · 원딜 3 · 힐러 1 · 서포터 2 = 12종**, 5속성 × 12 = **60종 모두 새 디자인**입니다. 기존 시트는 재사용하지 않습니다.
+모두 동물·짐승·원소 생물이고 마법사형은 없습니다. 한 장 = **스프라이트 시트**(진화 3단계 × 대기·공격·피격·쓰러짐 4동작, 투명 배경, 받침 없음). 초상은 확정된 시트를 첨부해 '초상 세트' 공용 프롬프트로 받습니다.
+**순서**: 속성 라인업 5장 → 마음에 들면 개별 시트 60장.
 
-**뺀 마법사형 (다시 만듦)**
-{removed}
+""" + "\n".join(rows), lineups + sp_items))
 
-'확인 필요'는 시트를 다시 보고 마법사 느낌이면 같은 방식으로 새로 만들 후보입니다.
-
-""" + "\n".join(rows), new_items))
+# 2-1 주인공
+hero_items = [dict(title=f"{c} · {ko} ({en}) — 주인공", note=f"`{ref}`를 첨부하세요 (얼굴·옷·색만 참고)", prompt=P(HERO_SHEET.format(en=en, ko=ko, ref=ref, attack=atk, skill=sk, desc=d))) for c, ko, en, ref, atk, sk, d in HEROES]
+sections.append(("heroes", "주인공 2명", "아렌·리아도 스피릿과 같은 규칙(투명 배경·받침 없음·같은 바닥선)으로 게임 전용 스프라이트를 새로 받습니다.", hero_items))
 
 # 3 몬스터
 mon_items = []
 for el, lst in MONSTERS.items():
     for i, (ko, en, desc) in enumerate(lst):
-        mon_items.append(dict(title=f"MON-{EL_CODE[el]}-{i + 1} · {ko} ({en}) — {el} {MON_ROLES[i]}", note="", prompt=P(MONSTER_SHEET.format(badge=f"RIFT {EL_EN[el]} {i + 1}", en=en, ko=ko, el=EL_EN[el], role=MON_ROLES[i], desc=desc))))
+        mon_items.append(dict(title=f"MON-{EL_CODE[el]}-{i + 1} · {ko} ({en}) — {el} {MON_ROLES[i]}", note="", prompt=P(MONSTER_SHEET.format(en=en, ko=ko, el=EL_EN[el], role=MON_ROLES[i], desc=desc))))
 sections.append(("monsters", "몬스터 30종", """스피릿과 헷갈리지 않게 **'균열체'**로 통일: 몸에 보라색 육각 균열과 균열 수정, 붉은보라 눈빛. 비율은 스피릿과 같은 SD.
-속성마다 6역할 — **근접 졸개 · 돌격대 · 방패 · 사수 · 치유체 · 저주체**. 시트에 일반·정예(대장) 두 모습을 함께 받습니다.""", mon_items))
+속성마다 6역할 — **근접 졸개 · 돌격대 · 방패 · 사수 · 치유체 · 저주체**. 한 장 = 일반·정예 × 대기·공격·피격·쓰러짐 (투명 배경, 받침 없음).""", mon_items))
 
 # 4 보스
 boss_items = []
 for st, el, ko, en, desc in MIDBOSSES:
-    boss_items.append(dict(title=f"MID-{st} · {ko} ({en}) — {st}판 중간보스 · {el}", note="", prompt=P(BOSS_SHEET.format(kind="ELITE (MID-BOSS)", badge=f"ELITE · STAGE {st}", en=en, ko=ko, stage=st, el=el, desc=desc, phase=""))))
+    boss_items.append(dict(title=f"MID-{st} · {ko} ({en}) — {st}판 중간보스 · {el}", note="", prompt=P(BOSS_SHEET.format(kind="ELITE MID-BOSS", en=en, ko=ko, stage=st, el=el, desc=desc, extra="ENRAGED IDLE (glowing eyes, aura flaring)"))))
 for st, el, ko, en, desc, phase in BOSSES:
-    boss_items.append(dict(title=f"BOSS-{st} · {ko} ({en}) — {st}판 {'최종 보스' if st == 100 else '장 보스'} · {el}", note="", prompt=P(BOSS_SHEET.format(kind="FINAL BOSS" if st == 100 else "CHAPTER BOSS", badge=f"{'FINAL' if st == 100 else 'BOSS'} · STAGE {st}", en=en, ko=ko, stage=st, el=el, desc=desc, phase=phase))))
-sections.append(("bosses", "중간보스 10 · 보스 10", "5판마다 중간보스(대장), 10판마다 장 보스, 100판은 최종 보스(2단계 모습 포함). 게임에서는 한 칸을 차지하지만 1.5배 크게 그립니다.", boss_items))
+    extra = "PHASE 2 IDLE (rift armor broken, crystals blazing)" if st == 100 else "ENRAGED IDLE (glowing eyes, aura flaring)"
+    boss_items.append(dict(title=f"BOSS-{st} · {ko} ({en}) — {st}판 {'최종 보스' if st == 100 else '장 보스'} · {el}", note="", prompt=P(BOSS_SHEET.format(kind="FINAL BOSS" if st == 100 else "CHAPTER BOSS", en=en, ko=ko, stage=st, el=el, desc=desc, extra=extra))))
+sections.append(("bosses", "중간보스 10 · 보스 10", "5판마다 중간보스(대장), 10판마다 장 보스, 100판은 최종 보스(2단계 모습 포함). 한 장 = 대기·공격·기술·피격·쓰러짐·분노(최종 보스는 2단계). 게임에서는 한 칸을 차지하지만 1.5배 크게 그립니다.", boss_items))
 
 # 5 이펙트
 fx_items = []
@@ -90,7 +101,7 @@ for i, (name, look, tiles) in enumerate(BIOMES):
     battle_items.append(dict(title=f"TILE · {name}", note="", prompt=P(TILESET.format(n=n, biome=look, tiles=tiles))))
 for name, desc in BATTLE_ELEMENTS:
     battle_items.append(dict(title=f"UI · {name}", note="", prompt=P(desc)))
-sections.append(("battle", "전투 화면 요소 · 헥사", """**헥사 제안**: 지금 전장 바닥은 평평한 단색 육각형이고, 스피릿은 자기 시트의 입체(아이소메트릭) 헥사 위에 서 있어서 바닥과 유닛 받침의 시점이 다릅니다. 장(지역)마다 **살짝 기울어진 2.5D 헥사 타일 세트**를 새로 만들어 바닥을 바꾸는 것을 추천합니다(유닛 받침과 같은 질감·두께). 지역 6종 × 지형 8종.
+sections.append(("battle", "전투 화면 요소 · 헥사", """**헥사**: 캐릭터에서 받침을 없앴으니 바닥은 게임이 그립니다. 장(지역)마다 **살짝 기울어진 2.5D 헥사 타일 세트**(지역 6종 × 지형 8종)로 바닥을 새로 만들고, 캐릭터는 그 위에 발판 링·그림자와 함께 올라갑니다. 그래서 이동해도 헥사 모양이 변하지 않습니다.
 그 밖에 범위 표시, 발판 링, 체력 막대, 상태·속성·역할·행동 아이콘, 차례 배너, 숫자 글꼴, 카드·미리보기 틀 — 모두 **글자 없이** 받아 게임이 한글을 얹습니다.""", battle_items))
 
 # 7 UI 단계
@@ -209,7 +220,7 @@ pre {{ margin: 8px 0 0; padding: 12px; border-radius: 8px; background: var(--cod
   <div class="top">
     <div class="eyebrow">HEXA FRONTIER · ART DIRECTION</div>
     <h1>헥사 프론티어 프롬프트 북</h1>
-    <p>GPT 이미지용 프롬프트 <span class="count">{total}</span>개 — 스피릿 60종 계획, 몬스터 30, 보스 20, 이펙트, 전투 요소, UI·UX 12단계. 각 카드의 [복사]를 눌러 그대로 붙여 넣으세요.</p>
+    <p>GPT 이미지용 프롬프트 <span class="count">{total}</span>개 — 스피릿 60종 전부 새로, 주인공 2, 몬스터 30, 보스 20, 이펙트, 전투 요소, UI·UX 12단계. 각 카드의 [복사]를 눌러 그대로 붙여 넣으세요.</p>
   </div>
   <nav aria-label="섹션">{nav}</nav>
   {"".join(body)}
