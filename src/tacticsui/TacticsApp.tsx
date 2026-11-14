@@ -34,8 +34,8 @@ import {
   type Pos,
   type Unit,
 } from '../tactics/engine';
-import { ENEMIES, STAGES, terrainAt } from '../tactics/stages';
-import { BattleView, type Marks } from './BattleView';
+import { COLS, ENEMIES, ROWS, STAGES, terrainAt } from '../tactics/stages';
+import { BattleView, cellXY, VIEW_H, type Marks } from './BattleView';
 import { HelpPanel, img, RosterPanel, ShopPanel, UnitChip } from './Panels';
 import { useTactics } from './store';
 
@@ -65,6 +65,23 @@ export function TacticsApp() {
   const [auto, setAuto] = useState(false);
   const autoRef = useRef(auto);
   autoRef.current = auto;
+  // D117: 지도는 위아래로 스크롤 — 고른 유닛·움직이는 적을 따라간다
+  const mapRef = useRef<HTMLDivElement>(null);
+  const focus = useCallback(
+    (uid: number | null, instant = false) => {
+      const el = mapRef.current;
+      const bb = ref.current.battle;
+      if (!el || !bb || uid === null) return;
+      const u = bb.units[uid];
+      const svg = el.querySelector('svg');
+      if (!u || !svg) return;
+      const y = (cellXY(u.c, u.r).y / VIEW_H) * svg.clientHeight;
+      const top = y - el.clientHeight * 0.55;
+      const visible = y > el.scrollTop + el.clientHeight * 0.15 && y < el.scrollTop + el.clientHeight * 0.85;
+      if (!visible || instant) el.scrollTo({ top, behavior: instant ? 'auto' : 'smooth' });
+    },
+    [ref],
+  );
 
   useEffect(() => {
     if (!toast) return;
@@ -94,11 +111,12 @@ export function TacticsApp() {
         await sleep(side === 'enemy' ? 520 : 450);
         const r = act((_c, bb) => (bb ? stepSide(bb, side) : null));
         if (!r) break;
+        focus(r.uid);
         show(r.ev);
         if (ref.current.battle?.result) return;
       }
     },
-    [act, show, ref],
+    [act, show, ref, focus],
   );
   const endTurn = useCallback(async () => {
     if (busy || !ref.current.battle || ref.current.battle.result) return;
@@ -111,10 +129,13 @@ export function TacticsApp() {
     if (ref.current.battle && !ref.current.battle.result) {
       show(act((_c, bb) => endEnemyPhase(bb!)));
       const nb = ref.current.battle;
-      if (nb && !nb.result) setBanner(`${nb.turn}턴 · 아군 차례`);
+      if (nb && !nb.result) {
+        setBanner(`${nb.turn}턴 · 아군 차례`);
+        focus(nb.units.find((x) => x.side === 'ally' && !x.dead)?.uid ?? null);
+      }
     }
     setBusy(false);
-  }, [busy, act, show, runSide, ref]);
+  }, [busy, act, show, runSide, ref, focus]);
   const runAuto = useCallback(async () => {
     if (busy) return;
     clearSel();
@@ -407,7 +428,7 @@ export function TacticsApp() {
       for (const v of mr.values()) {
         marks.threat.add(key(v.c, v.r));
         const rg = unitStats(su).range;
-        for (let r = 0; r < 12; r++) for (let c = 0; c < 9; c++) {
+        for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
           const dd = Math.max(0, hexDist({ c, r }, v));
           if (dd >= rg[0] && dd <= rg[1]) marks.threat.add(key(c, r));
         }
@@ -513,7 +534,7 @@ export function TacticsApp() {
         </button>
       </header>
       <div className={`t-phase ${b.phase}`}>{b.phase === 'ally' ? `🔵 아군 차례 · 행동 남은 ${left}/${allies.length}` : '🔴 적군 차례…'}</div>
-      <main className="t-map">
+      <main className="t-map" ref={mapRef}>
         <BattleView b={b} marks={su ? marks : EMPTY} selected={sel} fx={fx} fxKey={fxKey} onTap={onTap} />
         {banner && (
           <div key={banner} className="t-banner">
@@ -644,7 +665,7 @@ export function TacticsApp() {
               🏆 {st.win === 'boss' ? '👑 보스를 쓰러뜨리면 승리' : '적을 모두 쓰러뜨리면 승리'} · ⏳ {st.turns}턴 · 💀 아렌이 쓰러지면 패배
             </div>
             <div className="tac-tip">💡 {st.tip}</div>
-            <button className="cta" onClick={() => (setBrief(false), setBanner('1턴 · 아군 차례'))}>
+            <button className="cta" onClick={() => (setBrief(false), setBanner('1턴 · 아군 차례'), focus(b.units.find((x) => x.side === 'ally')?.uid ?? null, true))}>
               전투 시작
             </button>
           </div>
