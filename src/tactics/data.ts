@@ -77,44 +77,66 @@ export const SKILLS: Record<string, SkillDef> = {
   massheal: { id: 'massheal', name: '치유의 비', icon: '🌈', kind: 'heal', sp: 16, range: [0, 0], power: 1.5, area: 'allies2', desc: '2칸 안의 아군 모두 회복.' },
   cheer: { id: 'cheer', name: '격려', icon: '📯', kind: 'buff', sp: 8, range: [1, 2], power: 0, effect: { kind: 'atkUp', turns: 2, pct: 30 }, desc: '아군 하나 공격 +30% (2턴).' },
   weaken: { id: 'weaken', name: '약화', icon: '🌫️', kind: 'debuff', sp: 10, range: [1, 3], power: 0, effect: { kind: 'defDown', turns: 2, pct: 30 }, desc: '적 하나 방어·마법방어 -30% (2턴).' },
+  starbolt: { id: 'starbolt', name: '별빛탄', icon: '🌠', kind: 'attack', sp: 10, range: [1, 3], power: 1.55, desc: '1~3칸, 1.55배 마법 피해 (속성 없음).' },
   command: { id: 'command', name: '지휘', icon: '🚩', kind: 'buff', sp: 12, range: [0, 0], power: 0, area: 'allies2', effect: { kind: 'atkUp', turns: 1, pct: 20 }, desc: '2칸 안의 아군 모두 공격 +20% (1턴).' },
 };
 
-// ── 유닛(스피릿·주인공) ──
+// ── 유닛(주인공 2명 + 스피릿 25종: 속성 5 × 역할 5) ──
 export interface UnitDef {
   id: string;
   name: string;
-  art: string; // public/assets/<art>.webp (t: 전신, p: 얼굴)
+  art: string; // public/assets/<art>-t1~3 / -p1~3 (레벨 10·25에 진화). '<이름>-<단계>'면 그 단계로 고정
   element: Element | null;
   role: Role;
   bonus?: Partial<{ hp: number; atk: number; def: number; res: number; move: number }>; // 개성
   skills?: [string, string]; // 역할 기본 기술 대신
-  leader?: boolean; // 쓰러지면 패배
+  hero?: boolean; // 주인공 (고른 쪽이 지도자: 쓰러지면 패배)
   desc: string;
 }
 export const UNITS: Record<string, UnitDef> = {
-  aren: { id: 'aren', name: '아렌', art: 'hero', element: null, role: 'pmelee', bonus: { hp: 8, def: 2 }, skills: ['power', 'command'], leader: true, desc: '모험가. 쓰러지면 패배. 속성이 없어 상성을 타지 않는다.' },
-  shellknight: { id: 'shellknight', name: '쉘나이트', art: 'shellknight-1', element: 'water', role: 'tank', desc: '물의 방패. 불 속성 적을 막는 데 좋다.' },
-  emberwing: { id: 'emberwing', name: '엠버윙', art: 'emberwing-1', element: 'fire', role: 'mranged', desc: '불꽃 마법사. 숲 속성 적을 태운다.' },
-  bloomel: { id: 'bloomel', name: '블루멜', art: 'bloomel-1', element: 'forest', role: 'healer', desc: '꽃의 치유사.' },
-  galewing: { id: 'galewing', name: '게일윙', art: 'galewing-1', element: 'wind', role: 'pranged', desc: '바람 궁수. 물 속성 적을 꿰뚫는다.' },
-  rocktusk: { id: 'rocktusk', name: '락터스크', art: 'rocktusk-1', element: 'earth', role: 'pmelee', bonus: { hp: 6 }, desc: '바위 엄니로 들이받는다. 바람 속성 적에게 약하다.' },
-  tidekit: { id: 'tidekit', name: '타이드킷', art: 'tidekit-1', element: 'water', role: 'mmelee', desc: '물결을 두른 발톱.' },
-  leafkit: { id: 'leafkit', name: '리프킷', art: 'leafkit-1', element: 'forest', role: 'support', desc: '숲의 전령. 아군을 북돋운다.' },
-  skywarden: { id: 'skywarden', name: '스카이워든', art: 'skywarden-1', element: 'wind', role: 'mmelee', desc: '폭풍을 부르는 늑대.' },
-  terrastone: { id: 'terrastone', name: '테라스톤', art: 'terrastone-1', element: 'earth', role: 'mranged', desc: '대지를 울리는 돌 마법사.' },
-  grovegolem: { id: 'grovegolem', name: '그로브골렘', art: 'grovegolem-1', element: 'forest', role: 'tank', bonus: { hp: 10, move: -1 }, desc: '고목의 거인. 느리지만 아주 단단하다.' },
-  flarewing: { id: 'flarewing', name: '플레어윙', art: 'emberwing-2', element: 'fire', role: 'support', desc: '불꽃 깃발. 적의 방어를 녹인다.' },
-  leafpup: { id: 'leafpup', name: '리프펍', art: 'leafpup-2', element: 'forest', role: 'pmelee', bonus: { move: 1 }, desc: '숲을 달리는 사냥개. 이동력 +1.' },
-  stormwing: { id: 'stormwing', name: '스톰윙', art: 'galewing-2', element: 'wind', role: 'healer', desc: '바람의 치유사.' },
-  coralguard: { id: 'coralguard', name: '코랄가드', art: 'shellknight-2', element: 'water', role: 'pranged', desc: '산호 창을 던진다.' },
-  magmatusk: { id: 'magmatusk', name: '마그마터스크', art: 'rocktusk-2', element: 'fire', role: 'tank', desc: '용암 갑옷의 수호자.' },
+  // 주인공 (처음에 한 명을 고르고, 고르지 않은 쪽은 99판에서 합류)
+  aren: { id: 'aren', name: '아렌', art: 'hero', element: null, role: 'pmelee', bonus: { hp: 8, def: 2 }, skills: ['power', 'command'], hero: true, desc: '검을 든 모험가. 속성이 없어 상성을 타지 않는다.' },
+  lia: { id: 'lia', name: '리아', art: 'heroine', element: null, role: 'mranged', bonus: { hp: 10, def: 2, res: 2 }, skills: ['starbolt', 'command'], hero: true, desc: '지팡이를 든 모험가. 속성이 없어 상성을 타지 않는다.' },
+  // 🌿 숲
+  grovegolem: { id: 'grovegolem', name: '그로브골렘', art: 'grovegolem', element: 'forest', role: 'tank', bonus: { hp: 8 }, desc: '고목의 거인. 숲을 지키는 방패.' },
+  bladewarden: { id: 'bladewarden', name: '블레이드워든', art: 'leafpup', element: 'forest', role: 'pmelee', desc: '잎사귀 칼날의 검사.' },
+  sylvanarcher: { id: 'sylvanarcher', name: '실반 아처', art: 'leafkit', element: 'forest', role: 'pranged', desc: '잎에서 태어난 명사수.' },
+  bloomel: { id: 'bloomel', name: '블루멜', art: 'bloomel', element: 'forest', role: 'healer', desc: '숲의 치유사.' },
+  willowisp: { id: 'willowisp', name: '윌로위스프', art: 'willowisp', element: 'forest', role: 'support', desc: '숲의 길잡이. 아군을 북돋운다.' },
+  // 🔥 불
+  ignagolem: { id: 'ignagolem', name: '이그나골렘', art: 'ignagolem', element: 'fire', role: 'tank', bonus: { hp: 6 }, desc: '용암의 수호자.' },
+  flameclaw: { id: 'flameclaw', name: '플레임클로', art: 'flameclaw', element: 'fire', role: 'pmelee', bonus: { move: 1 }, desc: '불꽃 발톱의 돌격수. 이동력 +1.' },
+  emberwing: { id: 'emberwing', name: '엠버윙', art: 'emberwing', element: 'fire', role: 'mranged', desc: '불꽃 화살을 쏘는 마법사.' },
+  flamora: { id: 'flamora', name: '플라모라', art: 'flamora', element: 'fire', role: 'healer', desc: '따뜻한 불꽃의 치유사.' },
+  pyronomad: { id: 'pyronomad', name: '파이로노마드', art: 'pyronomad', element: 'fire', role: 'support', desc: '떠도는 불꽃. 적의 방어를 녹인다.' },
+  // 💧 물
+  shellknight: { id: 'shellknight', name: '쉘나이트', art: 'shellknight', element: 'water', role: 'tank', desc: '바다의 방패.' },
+  wavefang: { id: 'wavefang', name: '웨이브팽', art: 'wavefang', element: 'water', role: 'mmelee', desc: '물결을 두른 칼날 늑대.' },
+  neritha: { id: 'neritha', name: '네리타', art: 'neritha', element: 'water', role: 'mranged', desc: '거품을 엮는 마법사.' },
+  aqualyn: { id: 'aqualyn', name: '아쿠아린', art: 'aqualyn', element: 'water', role: 'healer', desc: '맑은 물의 치유사.' },
+  aquadron: { id: 'aquadron', name: '아쿠아드론', art: 'aquadron', element: 'water', role: 'support', desc: '조류를 다스리는 가오리.' },
+  // 🌪️ 바람
+  cloudtusk: { id: 'cloudtusk', name: '클라우드터스크', art: 'cloudtusk', element: 'wind', role: 'tank', desc: '하늘의 수호 매머드.' },
+  skywarden: { id: 'skywarden', name: '스카이워든', art: 'skywarden', element: 'wind', role: 'mmelee', bonus: { move: 1 }, desc: '폭풍의 늑대. 이동력 +1.' },
+  aeralis: { id: 'aeralis', name: '에어랄리스', art: 'galewing', element: 'wind', role: 'pranged', desc: '바람의 궁수.' },
+  sylphia: { id: 'sylphia', name: '실피아', art: 'sylphia', element: 'wind', role: 'healer', desc: '산들바람의 치유사.' },
+  cloudavian: { id: 'cloudavian', name: '클라우디언', art: 'cloudavian', element: 'wind', role: 'support', desc: '하늘의 노래꾼.' },
+  // ⛰️ 대지
+  terrastone: { id: 'terrastone', name: '테라스톤', art: 'terrastone', element: 'earth', role: 'tank', bonus: { hp: 10, move: -1 }, desc: '살아 있는 성벽. 느리지만 아주 단단하다.' },
+  rocktusk: { id: 'rocktusk', name: '락터스크', art: 'rocktusk', element: 'earth', role: 'pmelee', bonus: { hp: 6 }, desc: '땅을 울리는 엄니.' },
+  pebblin: { id: 'pebblin', name: '페블린', art: 'pebblin', element: 'earth', role: 'pranged', desc: '돌을 던지는 꼬마 골렘.' },
+  terrawisp: { id: 'terrawisp', name: '테라위스프', art: 'terrawisp', element: 'earth', role: 'healer', desc: '부드러운 대지의 빛.' },
+  geomancer: { id: 'geomancer', name: '지오맨서', art: 'geomancer', element: 'earth', role: 'support', desc: '돌을 지휘하는 마법사.' },
 };
-/** 유닛 그림: '<이름>-<단계>' → 전신/얼굴 파일 */
-export function unitArt(art: string, kind: 't' | 'p'): string {
-  if (art === 'hero') return kind === 't' ? 'hero-t' : 'hero-p';
-  const [name, tier] = art.split('-');
-  return `${name}-${kind}${tier ?? 1}`;
+export const HEROES = ['aren', 'lia'] as const;
+export const SPIRIT_IDS = Object.keys(UNITS).filter((id) => !UNITS[id].hero);
+/** 진화 단계: 1~9레벨 1단계, 10~24 2단계, 25~ 3단계 */
+export const tierOf = (lv: number) => (lv >= 25 ? 3 : lv >= 10 ? 2 : 1);
+/** 유닛 그림 파일 이름 */
+export function unitArt(art: string, kind: 't' | 'p', lv = 1): string {
+  if (art === 'hero' || art === 'heroine') return `${art}-${kind}`;
+  const [name, fixed] = art.split('-');
+  return `${name}-${kind}${fixed ?? tierOf(lv)}`;
 }
 
 // ── 지형 ──
@@ -147,6 +169,7 @@ export const ITEMS: Record<string, ItemDef> = {
   // 소모품 (아군 1~1칸, 행동 1번)
   potion: { id: 'potion', name: '상처약', icon: '💊', price: 30, use: { heal: 40 }, desc: '자기나 옆 아군 체력 40% 회복.' },
   hipotion: { id: 'hipotion', name: '회복약', icon: '🧪', price: 80, use: { heal: 100 }, desc: '자기나 옆 아군 체력 모두 회복.' },
+  crystal: { id: 'crystal', name: '성장의 결정', icon: '🔶', price: 220, desc: '부대 화면에서 스피릿 하나에게 쓰면 경험치 +100 (1레벨). 출전 못 한 스피릿을 키울 때.' },
   ether: { id: 'ether', name: 'SP 물약', icon: '🔷', price: 50, use: { sp: 20 }, desc: '자기나 옆 아군 SP +20.' },
   // 무기
   sword1: { id: 'sword1', name: '쇠 검', icon: '🗡️', slot: 'weapon', price: 120, stats: { atk: 4 }, roles: ['tank', 'pmelee'], desc: '공격 +4' },
@@ -183,5 +206,5 @@ export const BAL = {
   spHit: 3, // 기본 공격·반격이 맞으면
   spMaxBase: 30,
   xpLevel: 100, // 레벨업에 필요한 경험치 (고정)
-  maxParty: [4, 4, 4, 5, 5, 5, 6, 6, 6, 6], // 스테이지별 출전 인원
+  benchXp: 0.35, // 출전 못 한 스피릿은 출전한 스피릿 평균 경험치의 35%
 };

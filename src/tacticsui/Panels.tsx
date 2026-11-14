@@ -1,7 +1,7 @@
 // 전술 전투 (D109) 창들: 부대(능력치·기술·장비), 상점, 도움말.
 import { useState } from 'react';
 import { EL_COLOR, EL_ICON, EL_NAME, ELEMENTS, ITEMS, ROLES, unitArt, type ItemSlot } from '../tactics/data';
-import { buyItem, canEquip, defOf, equipItem, itemScore, rosterStats, sellItem, shopStock, unequipItem, autoEquip, type Campaign } from '../tactics/engine';
+import { buyItem, canEquip, defOf, equipItem, itemScore, rosterStats, sellItem, shopStock, unequipItem, autoEquip, useCrystal, type Campaign } from '../tactics/engine';
 import { ROLE_ORDER } from '../tactics/stages';
 
 const BASE = (import.meta.env?.BASE_URL ?? '/') + 'assets/';
@@ -29,7 +29,7 @@ export function UnitChip({ id, cp, on, onClick }: { id: string; cp: Campaign; on
   const d = defOf(id);
   return (
     <button className={`uchip ${on ? 'on' : ''}`} onClick={onClick}>
-      <img src={img(unitArt(d.art, 'p'))} alt="" />
+      <img src={img(unitArt(d.art, 'p', cp.roster[id].lv))} alt="" />
       <span className="uc-lv">{cp.roster[id].lv}</span>
       {d.element && <i className="uc-el" style={{ background: EL_COLOR[d.element] }} />}
       <b>{d.name}</b>
@@ -60,14 +60,14 @@ export function RosterPanel({ cp, act, onClose, toast }: { cp: Campaign; act: Ac
       </div>
       <div className="unit-detail">
         <div className="ud-top">
-          <img src={img(unitArt(d.art, 't'))} alt="" />
+          <img src={img(unitArt(d.art, 't', u.lv))} alt="" />
           <div>
             <h3>
               {d.name} <span className="muted">{u.lv}레벨</span>
             </h3>
             <div>
               {role.icon} {role.name} · {d.element ? `${EL_ICON[d.element]} ${EL_NAME[d.element]}` : '속성 없음'}
-              {d.leader && <b className="leader"> · 👑 지도자(쓰러지면 패배)</b>}
+              {pick === cp.hero && <b className="leader"> · 👑 지도자(쓰러지면 패배)</b>}
             </div>
             <div className="bar xp">
               <i style={{ width: `${ro.xp}%` }} />
@@ -75,6 +75,21 @@ export function RosterPanel({ cp, act, onClose, toast }: { cp: Campaign; act: Ac
             </div>
             <small className="muted">{d.desc}</small>
           </div>
+        </div>
+        <div className="ud-crystal">
+          <span>
+            🔶 성장의 결정 {cp.bag.crystal ?? 0}개 · 쓰면 경험치 +100 (1레벨){u.lv < 10 ? ' · 10레벨에 진화' : u.lv < 25 ? ' · 25레벨에 진화' : ''}
+          </span>
+          <button
+            className="t-btn"
+            disabled={(cp.bag.crystal ?? 0) <= 0}
+            onClick={() => {
+              const e = act((c) => useCrystal(c, pick));
+              toast(e ?? `🔶 ${d.name} 경험치 +100`);
+            }}
+          >
+            쓰기
+          </button>
         </div>
         <div className="ud-stats">
           <span>❤️ 체력 {s.hp}</span>

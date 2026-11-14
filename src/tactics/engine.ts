@@ -1,7 +1,8 @@
 // 헥사 전술 전투 (D109) 규칙: 캠페인(부대·골드·가방·진행) + 전투(턴·이동·공격·반격·기술·아이템·승패).
 import { createRng, hashSeed } from '../core/rng';
 import { BAL, elMul, ITEMS, ROLES, SKILLS, TERRAIN, TERRAIN_EL_BONUS, UNITS, type ItemSlot, type SkillDef, type UnitDef } from './data';
-import { COLS, ENEMIES, ROWS, STAGES, terrainAt, type StageDef } from './stages';
+import { COLS, ENEMIES, ROWS, START_SPIRITS, STAGES, terrainAt, type StageDef } from './stages';
+// 이웃 칸은 최대 크기 안에서 구하고, 지도 밖(판마다 다름)은 terrainAt이 null → 이동·거리 계산에서 빠진다
 
 // ───────── 헥사 좌표 (odd-r: 홀수 줄이 반 칸 오른쪽) ─────────
 export type Pos = { c: number; r: number };
@@ -21,7 +22,7 @@ export function dist(a: Pos, b: Pos): number {
 }
 
 // ───────── 캠페인 (저장되는 것) ─────────
-export const TACTICS_VERSION = 1;
+export const TACTICS_VERSION = 2; // D119: 주인공 선택·스피릿 25종·100판
 export interface RosterEntry {
   lv: number;
   xp: number;
@@ -29,6 +30,7 @@ export interface RosterEntry {
 }
 export interface Campaign {
   version: number;
+  hero: 'aren' | 'lia'; // 고른 주인공 (지도자)
   roster: Record<string, RosterEntry>;
   joined: string[]; // 합류 순서
   party: string[]; // 마지막 출전 명단
@@ -37,10 +39,11 @@ export interface Campaign {
   cleared: number[];
   tut: number;
 }
-export function newCampaign(): Campaign {
-  const start = ['aren', 'shellknight', 'emberwing', 'bloomel'];
+export function newCampaign(hero: 'aren' | 'lia' = 'aren'): Campaign {
+  const start = [hero, ...START_SPIRITS];
   return {
     version: TACTICS_VERSION,
+    hero,
     roster: Object.fromEntries(start.map((id) => [id, { lv: 1, xp: 0, equip: {} }])),
     joined: [...start],
     party: [...start],
@@ -51,7 +54,9 @@ export function newCampaign(): Campaign {
   };
 }
 export const unlockedStage = (cp: Campaign) => Math.min(STAGES.length, Math.max(0, ...cp.cleared) + 1);
-export const maxParty = (n: number) => BAL.maxParty[n - 1] ?? 6;
+/** 출전 인원: 1~9판 4명, 10~39판 5명, 40판~ 6명 */
+export const maxParty = (n: number) => (n < 10 ? 4 : n < 40 ? 5 : 6);
+export const otherHero = (cp: Campaign) => (cp.hero === 'aren' ? 'lia' : 'aren');
 
 // ───────── 전투 상태 ─────────
 export type Side = 'ally' | 'enemy';
@@ -77,6 +82,9 @@ export interface Unit {
   acted: boolean;
   from?: Pos; // 이동 취소용
   boss?: boolean;
+  leader?: boolean; // 쓰러지면 패배
+  gain?: number; // 이번 전투에서 얻은 경험치 (출전 못 한 스피릿 나눠 주기용)
+  pw?: number; // 적 능력치 배율 (판마다)
   ai?: 'charge' | 'hold' | 'guard';
   equip: string[];
   st: Status;
@@ -115,15 +123,17 @@ export function unitStats(u: Unit) {
   const L = u.lv - 1;
   const eq = { hp: 0, atk: 0, def: 0, res: 0, move: 0, sp: 0 };
   for (const id of u.equip) for (const [k, v] of Object.entries(ITEMS[id]?.stats ?? {})) eq[k as keyof typeof eq] += v as number;
-  const foe = u.side === 'enemy' ? { hp: BAL_FOE.hp, atk: BAL_FOE.atk } : { hp: 1, atk: 1 };
+  const foe = u.side === 'enemy' ? { hp: BAL_FOE.hp * (u.pw ?? 1), atk: BAL_FOE.atk * (u.pw ?? 1) } : { hp: 1, atk: 1 };
   let atk = (role.base.atk + role.grow.atk * L + (d.bonus?.atk ?? 0) + eq.atk) * foe.atk;
   let def = role.base.def + role.grow.def * L + (d.bonus?.def ?? 0) + eq.def;
   let res = role.base.res + role.grow.res * L + (d.bonus?.res ?? 0) + eq.res;
   if (u.st.atkUp) atk *= 1 + u.st.atkUp.pct / 100;
   if (u.st.defDown) (def *= 1 - u.st.defDown.pct / 100), (res *= 1 - u.st.defDown.pct / 100);
   if (u.st.guard) (def *= 1.3), (res *= 1.3);
+  // 지도자(고른 주인공)는 지휘관답게 더 단단하다
+  if (u.leader) (def *= 1.15), (res *= 1.15);
   return {
-    hp: Math.round((role.base.hp + role.grow.hp * L + (d.bonus?.hp ?? 0) + eq.hp) * foe.hp * (u.boss ? 1.5 : 1)),
+    hp: Math.round((role.base.hp + role.grow.hp * L + (d.bonus?.hp ?? 0) + eq.hp) * foe.hp * (u.boss ? 1.5 : 1) * (u.leader ? 1.25 : 1)),
     atk,
     def,
     res,
@@ -134,7 +144,7 @@ export function unitStats(u: Unit) {
   };
 }
 /** 적 능력치 배율 (밸런스) */
-export const BAL_FOE = { hp: 0.95, atk: 0.8 };
+export const BAL_FOE = { hp: 1.0, atk: 0.9 };
 
 /** 유닛이 가진 기술 (역할 기술 2개, 두 번째는 5레벨부터) */
 export function skillsOf(u: Unit): SkillDef[] {
@@ -157,20 +167,21 @@ export function createBattle(cp: Campaign, n: number, party: string[], seed = 1)
   const st = STAGES[n - 1];
   const units: Unit[] = [];
   // 탱커·근접은 앞줄(10), 원거리·힐러·서포터는 뒷줄(11)
-  const front = st.deploy.filter(([, r]) => r === 10);
-  const back = st.deploy.filter(([, r]) => r === 11);
+  const maxR = Math.max(...st.deploy.map(([, r]) => r));
+  const front = st.deploy.filter(([, r]) => r === maxR - 1);
+  const back = st.deploy.filter(([, r]) => r === maxR);
   const melee = (id: string) => ['tank', 'pmelee', 'mmelee'].includes(defOf(id).role);
   const order = [...party].sort((a, b) => Number(melee(b)) - Number(melee(a)));
   for (const id of order.slice(0, maxParty(n))) {
     const pool = melee(id) ? (front.length ? front : back) : back.length ? back : front;
     const [c, r] = pool.shift()!;
     const ro = cp.roster[id];
-    const u: Unit = { uid: units.length, def: id, side: 'ally', lv: ro.lv, xp: ro.xp, c, r, hp: 0, sp: BAL.spStart, dead: false, moved: false, acted: false, equip: Object.values(ro.equip).filter(Boolean) as string[], st: {} };
+    const u: Unit = { uid: units.length, def: id, side: 'ally', lv: ro.lv, xp: ro.xp, c, r, hp: 0, sp: BAL.spStart, dead: false, moved: false, acted: false, leader: id === cp.hero, gain: 0, equip: Object.values(ro.equip).filter(Boolean) as string[], st: {} };
     u.hp = unitStats(u).hp;
     units.push(u);
   }
   for (const e of st.enemies) {
-    const u: Unit = { uid: units.length, def: `e_${e.id}`, side: 'enemy', lv: e.lv, xp: 0, c: e.c, r: e.r, hp: 0, sp: 0, dead: false, moved: false, acted: false, boss: e.boss, ai: e.ai ?? 'charge', equip: [], st: {} };
+    const u: Unit = { uid: units.length, def: `e_${e.id}`, side: 'enemy', lv: e.lv, xp: 0, c: e.c, r: e.r, hp: 0, sp: 0, pw: st.power, dead: false, moved: false, acted: false, boss: e.boss, ai: e.ai ?? 'charge', equip: [], st: {} };
     u.hp = unitStats(u).hp;
     units.push(u);
   }
@@ -282,12 +293,12 @@ function applyHit(b: Battle, ev: Ev[], a: Unit, t: Unit, power: number, dmg: 'ph
   ev.push({ k: 'hit', from: a.uid, to: t.uid, amount, mul: h.mul, crit, counter: opts.counter, skill: opts.skill });
   say(b, `${nameOf(a)}${opts.counter ? ' 반격' : opts.skill ? ` ${SKILLS[opts.skill].name}` : ''} → ${nameOf(t)} -${amount}${h.mul > 1 ? ' (유리!)' : h.mul < 1 ? ' (불리)' : ''}${crit ? ' 치명타!' : ''}`);
   if (!opts.skill || SKILLS[opts.skill]?.kind === 'attack') a.sp = Math.min(unitStats(a).spMax, a.sp + (opts.skill ? 0 : BAL.spHit));
-  gainXp(b, ev, a, 10 + 3 * Math.max(-3, t.lv - a.lv));
+  gainXp(b, ev, a, Math.max(3, 10 + 3 * (t.lv - a.lv)));
   if (t.hp <= 0) {
     t.dead = true;
     ev.push({ k: 'die', uid: t.uid });
     say(b, `💀 ${nameOf(t)} 쓰러짐`);
-    gainXp(b, ev, a, (t.boss ? 70 : 25) + 5 * Math.max(-4, t.lv - a.lv));
+    gainXp(b, ev, a, Math.max(t.boss ? 25 : 10, (t.boss ? 70 : 25) + 5 * (t.lv - a.lv)));
   }
   return amount;
 }
@@ -347,7 +358,7 @@ export function useSkill(b: Battle, u: Unit, skillId: string, at: Pos): Ev[] | s
   } else if (sk.kind === 'heal') {
     for (const t of hits.filter((x) => x.side === u.side)) {
       healUnit(b, ev, t, Math.round(unitStats(u).atk * sk.power + unitStats(t).hp * 0.1));
-      gainXp(b, ev, u, 12);
+      gainXp(b, ev, u, supportXp(b, u, 12));
     }
   } else {
     const targets = sk.kind === 'buff' ? hits.filter((x) => x.side === u.side) : main ? [main] : [];
@@ -360,7 +371,7 @@ export function useSkill(b: Battle, u: Unit, skillId: string, at: Pos): Ev[] | s
       if (sk.effect?.kind === 'atkUp') (t.st.atkUp = { pct: sk.effect.pct ?? 20, turns: sk.effect.turns }), ev.push({ k: 'buff', uid: t.uid, text: `📯 공격 +${sk.effect.pct}%` });
       if (sk.effect?.kind === 'defDown') (t.st.defDown = { pct: sk.effect.pct ?? 20, turns: sk.effect.turns }), ev.push({ k: 'buff', uid: t.uid, text: `🌫️ 방어 -${sk.effect.pct}%` });
     }
-    gainXp(b, ev, u, 8);
+    gainXp(b, ev, u, supportXp(b, u, 8));
     say(b, `${nameOf(u)} ${sk.name}!`);
   }
   finishAction(b, ev, u);
@@ -405,9 +416,16 @@ export function waitUnit(b: Battle, u: Unit): Ev[] | string {
 }
 
 // ───────── 경험치·레벨 ─────────
+/** 치료·강화 경험치: 적 평균 레벨보다 높을수록 줄어든다 (힐러만 혼자 레벨이 치솟지 않게) */
+function supportXp(b: Battle, u: Unit, base: number) {
+  const foes = b.units.filter((x) => x.side !== u.side);
+  const avg = foes.reduce((a, x) => a + x.lv, 0) / Math.max(1, foes.length);
+  return Math.max(1, base - 3 * Math.max(0, u.lv - avg));
+}
 function gainXp(b: Battle, ev: Ev[], u: Unit, amount: number) {
   if (u.side !== 'ally' || u.dead) return;
   u.xp += Math.max(1, Math.round(amount));
+  u.gain = (u.gain ?? 0) + Math.max(1, Math.round(amount));
   while (u.xp >= BAL.xpLevel) {
     u.xp -= BAL.xpLevel;
     const before = unitStats(u).hp;
@@ -427,7 +445,7 @@ function finishAction(b: Battle, ev: Ev[], u: Unit) {
 export function checkEnd(b: Battle, ev: Ev[] = []) {
   if (b.result) return;
   const st = stageOf(b);
-  const lost = alive(b, 'ally').length === 0 || b.units.some((u) => u.side === 'ally' && u.dead && defOf(u.def).leader);
+  const lost = alive(b, 'ally').length === 0 || b.units.some((u) => u.side === 'ally' && u.dead && u.leader);
   const won = st.win === 'boss' ? b.units.some((u) => u.boss && u.dead) : alive(b, 'enemy').length === 0;
   if (lost) b.result = 'lose';
   else if (won) b.result = 'win';
@@ -499,6 +517,16 @@ export function finishBattle(cp: Campaign, b: Battle): BattleReward {
     ro.lv = u.lv;
     ro.xp = u.xp;
   }
+  // 출전 못 한 스피릿도 출전한 스피릿 평균 경험치의 일부를 받는다 (D119)
+  const fought = b.units.filter((x) => x.side === 'ally');
+  const avgGain = fought.reduce((a, x) => a + (x.gain ?? 0), 0) / Math.max(1, fought.length);
+  for (const id of cp.joined) {
+    if (fought.some((x) => x.def === id)) continue;
+    const ro = cp.roster[id];
+    const from = ro.lv;
+    addXp(ro, Math.round(avgGain * BAL.benchXp));
+    if (ro.lv > from) levels.push({ id, from, to: ro.lv });
+  }
   // 쓴 소모품 반영
   for (const [id, n] of Object.entries(b.bag)) if (ITEMS[id]?.use) cp.bag[id] = n;
   const gold = win ? (first ? st.gold : Math.round(st.gold * 0.4)) : Math.round(st.gold * 0.1);
@@ -508,8 +536,9 @@ export function finishBattle(cp: Campaign, b: Battle): BattleReward {
   const joins: string[] = [];
   if (first) {
     cp.cleared.push(st.n);
-    const avg = Math.max(1, Math.floor(b.units.filter((x) => x.side === 'ally').reduce((a, x) => a + x.lv, 0) / Math.max(1, b.units.filter((x) => x.side === 'ally').length)) - 1);
-    for (const id of st.joins)
+    const avg = joinLevel(cp);
+    const joinIds = [...st.joins, ...(st.n === 98 ? [otherHero(cp)] : [])];
+    for (const id of joinIds)
       if (!cp.roster[id]) {
         cp.roster[id] = { lv: avg, xp: 0, equip: {} };
         cp.joined.push(id);
@@ -517,6 +546,28 @@ export function finishBattle(cp: Campaign, b: Battle): BattleReward {
       }
   }
   return { win, first, gold, items, joins, levels };
+}
+
+/** 경험치를 더하고 100마다 레벨업 (캠페인 쪽) */
+export function addXp(ro: RosterEntry, amount: number) {
+  ro.xp += Math.max(0, amount);
+  while (ro.xp >= BAL.xpLevel) {
+    ro.xp -= BAL.xpLevel;
+    ro.lv++;
+  }
+}
+/** 새로 합류하는 스피릿의 레벨: 가장 높은 6명 평균 - 1 */
+export function joinLevel(cp: Campaign): number {
+  const lvs = cp.joined.map((id) => cp.roster[id].lv).sort((a, b) => b - a).slice(0, 6);
+  return Math.max(1, Math.round(lvs.reduce((a, x) => a + x, 0) / Math.max(1, lvs.length)) - 1);
+}
+/** 성장의 결정: 스피릿 하나에게 경험치 +100 */
+export function useCrystal(cp: Campaign, id: string): string | null {
+  if ((cp.bag.crystal ?? 0) <= 0) return '성장의 결정이 없어요 (상점·보상)';
+  if (!cp.roster[id]) return '없는 스피릿이에요';
+  cp.bag.crystal--;
+  addXp(cp.roster[id], 100);
+  return null;
 }
 
 // ───────── 부대·장비·상점 ─────────
@@ -568,7 +619,7 @@ export function sellItem(cp: Campaign, itemId: string): number {
 /** 유닛 하나의 능력치 (캠페인 화면용) */
 export function rosterStats(cp: Campaign, id: string) {
   const ro = cp.roster[id];
-  const u: Unit = { uid: -1, def: id, side: 'ally', lv: ro.lv, xp: ro.xp, c: 0, r: 0, hp: 0, sp: 0, dead: false, moved: false, acted: false, equip: Object.values(ro.equip).filter(Boolean) as string[], st: {} };
+  const u: Unit = { uid: -1, def: id, side: 'ally', lv: ro.lv, xp: ro.xp, c: 0, r: 0, hp: 0, sp: 0, dead: false, moved: false, acted: false, leader: id === cp.hero, equip: Object.values(ro.equip).filter(Boolean) as string[], st: {} };
   return { u, s: unitStats(u), skills: skillsOf(u) };
 }
 /** 장비 점수 (자동 장착용) */

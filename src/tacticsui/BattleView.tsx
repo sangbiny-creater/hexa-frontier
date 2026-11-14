@@ -2,7 +2,7 @@
 import { hexCorners } from '../core/hex';
 import { EL_COLOR, TERRAIN, unitArt } from '../tactics/data';
 import { defOf, unitStats, type Battle, type Ev } from '../tactics/engine';
-import { COLS, ROWS, STAGES, terrainAt } from '../tactics/stages';
+import { sizeOf, STAGES, terrainAt, VIEW_COLS, type StageDef } from '../tactics/stages';
 
 const S = 22; // 헥스 반지름
 const HW = Math.sqrt(3) * S;
@@ -13,8 +13,13 @@ const img = (n: string) => `${BASE}${n}.webp`;
 export function cellXY(c: number, r: number) {
   return { x: HW * (c + (r & 1 ? 0.5 : 0)) + HW * 0.55, y: S * 1.5 * r + S + TOP };
 }
-export const VIEW_W = HW * (COLS + 0.6);
-export const VIEW_H = S * 1.5 * (ROWS - 1) + S * 2 + TOP + 4;
+/** 이 판 지도의 SVG 크기 (지도 단위) */
+export function viewSize(st: StageDef) {
+  const { cols, rows } = sizeOf(st);
+  return { w: HW * (cols + 0.6), h: S * 1.5 * (rows - 1) + S * 2 + TOP + 4, cols, rows };
+}
+/** 화면 너비 대비 지도 너비 (가로 6칸이 화면 너비) */
+export const widthRatio = (st: StageDef) => (sizeOf(st).cols + 0.6) / (VIEW_COLS + 0.6);
 
 const FILL: Record<string, string> = { plain: '#3d6b41', forest: '#2a5531', hill: '#7b6a45', water: '#2c6a9c', rock: '#1d2a22', camp: '#4a5e3a' };
 
@@ -28,11 +33,12 @@ export interface Marks {
 
 export function BattleView({ b, marks, selected, fx, fxKey, onTap }: { b: Battle; marks: Marks; selected: number | null; fx: Ev[]; fxKey: number; onTap: (c: number, r: number) => void }) {
   const st = STAGES[b.stage - 1];
+  const vs = viewSize(st);
   const cells: { c: number; r: number }[] = [];
-  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) cells.push({ c, r });
+  for (let r = 0; r < vs.rows; r++) for (let c = 0; c < vs.cols; c++) cells.push({ c, r });
   const k = (c: number, r: number) => `${c},${r}`;
   return (
-    <svg className="tworld" viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} preserveAspectRatio="xMidYMid meet">
+    <svg className="tworld" viewBox={`0 0 ${vs.w} ${vs.h}`} preserveAspectRatio="xMidYMid meet" style={{ width: `${widthRatio(st) * 100}%` }}>
       {/* 지형 */}
       {cells.map(({ c, r }) => {
         const t = terrainAt(st, c, r) ?? 'plain';
@@ -79,7 +85,7 @@ export function BattleView({ b, marks, selected, fx, fxKey, onTap }: { b: Battle
           return (
             <g key={`u${u.uid}`} className={`tu ${u.side} ${done ? 'done' : ''} ${selected === u.uid ? 'sel' : ''}`} style={{ transform: `translate(${p.x}px, ${p.y}px)` }} onClick={() => onTap(u.c, u.r)}>
               <ellipse cx={0} cy={S * 0.35} rx={S * 0.78} ry={S * 0.36} className="tu-base" />
-              <image href={img(unitArt(d.art, 't'))} x={-w / 2} y={-w * 0.9 + S * 0.35} width={w} height={w} preserveAspectRatio="xMidYMax meet" />
+              <image href={img(unitArt(d.art, 't', u.lv))} x={-w / 2} y={-w * 0.9 + S * 0.35} width={w} height={w} preserveAspectRatio="xMidYMax meet" />
               <rect x={-S * 0.72} y={-w * 0.9 + S * 0.2} width={S * 1.44} height={4} rx={2} fill="#000b" />
               <rect x={-S * 0.72} y={-w * 0.9 + S * 0.2} width={S * 1.44 * Math.max(0, u.hp / s.hp)} height={4} rx={2} className={u.side === 'ally' ? 'hp-ally' : 'hp-enemy'} />
               {d.element && <circle cx={-S * 0.78} cy={-w * 0.9 + S * 0.22 + 2} r={4} fill={EL_COLOR[d.element]} stroke="#000" strokeWidth={0.6} />}

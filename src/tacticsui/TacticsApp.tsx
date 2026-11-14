@@ -1,7 +1,7 @@
 // 헥사 전술 전투 (D109): 처음 화면 → 스테이지 목록 → 출전 준비 → 전투(턴제) → 결과 → 다음 스테이지.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { stepSide } from '../tactics/ai';
-import { EL_COLOR, EL_ICON, EL_NAME, elMul, ITEMS, ROLES, SKILLS, unitArt, type SkillDef } from '../tactics/data';
+import { EL_COLOR, EL_ICON, EL_NAME, elMul, ITEMS, ROLES, SKILLS, UNITS, unitArt, type SkillDef } from '../tactics/data';
 import {
   attack,
   attackTargets,
@@ -34,12 +34,12 @@ import {
   type Pos,
   type Unit,
 } from '../tactics/engine';
-import { COLS, ENEMIES, ROWS, STAGES, terrainAt } from '../tactics/stages';
-import { BattleView, cellXY, VIEW_H, type Marks } from './BattleView';
+import { CHAPTERS, chapterOf, ENEMIES, sizeOf, STAGES, terrainAt } from '../tactics/stages';
+import { BattleView, cellXY, viewSize, type Marks } from './BattleView';
 import { HelpPanel, img, RosterPanel, ShopPanel, UnitChip } from './Panels';
 import { useTactics } from './store';
 
-type Screen = 'title' | 'camp' | 'prep' | 'battle' | 'result';
+type Screen = 'title' | 'choose' | 'camp' | 'prep' | 'battle' | 'result';
 type Mode = { k: 'idle' } | { k: 'select' } | { k: 'menu' } | { k: 'attack' } | { k: 'skill'; skill: string } | { k: 'item'; item: string } | { k: 'inspect' };
 type Pending = { k: 'attack'; t: number } | { k: 'skill'; skill: string; at: Pos } | null;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -75,10 +75,13 @@ export function TacticsApp() {
       const u = bb.units[uid];
       const svg = el.querySelector('svg');
       if (!u || !svg) return;
-      const y = (cellXY(u.c, u.r).y / VIEW_H) * svg.clientHeight;
-      const top = y - el.clientHeight * 0.55;
-      const visible = y > el.scrollTop + el.clientHeight * 0.15 && y < el.scrollTop + el.clientHeight * 0.85;
-      if (!visible || instant) el.scrollTo({ top, behavior: instant ? 'auto' : 'smooth' });
+      const vs = viewSize(STAGES[bb.stage - 1]);
+      const p = cellXY(u.c, u.r);
+      const y = (p.y / vs.h) * svg.clientHeight;
+      const x = (p.x / vs.w) * svg.clientWidth;
+      const visY = y > el.scrollTop + el.clientHeight * 0.15 && y < el.scrollTop + el.clientHeight * 0.85;
+      const visX = x > el.scrollLeft + el.clientWidth * 0.12 && x < el.scrollLeft + el.clientWidth * 0.88;
+      if (!visY || !visX || instant) el.scrollTo({ top: y - el.clientHeight * 0.55, left: x - el.clientWidth / 2, behavior: instant ? 'auto' : 'smooth' });
     },
     [ref],
   );
@@ -158,6 +161,13 @@ export function TacticsApp() {
     }
   }, [b, busy, screen, endTurn, runAuto, mode.k, brief, auto]);
 
+  // 스테이지 목록을 열면 다음 판이 보이게
+  useEffect(() => {
+    if (screen !== 'camp') return;
+    const id = setTimeout(() => document.querySelector('.stage-card.next')?.scrollIntoView({ block: 'center' }), 30);
+    return () => clearTimeout(id);
+  }, [screen]);
+
   // 승패가 나면 결과 화면
   useEffect(() => {
     if (!b?.result || screen !== 'battle') return;
@@ -199,7 +209,7 @@ export function TacticsApp() {
         <button
           className="cta"
           onClick={() => {
-            if (!b) return setScreen('camp');
+            if (!b) return setScreen(hasSave ? 'camp' : 'choose');
             setScreen('battle');
             setBrief(false);
             // 이어서 할 때도 아군 쪽을 보여 준다
@@ -209,10 +219,35 @@ export function TacticsApp() {
           {b ? '전투 이어서' : hasSave ? '이어서 하기' : '모험 시작'}
         </button>
         {hasSave && (
-          <button className="ghost" onClick={() => confirm('처음부터 다시 시작할까요?') && (reset(), setScreen('camp'))}>
+          <button className="ghost" onClick={() => confirm('처음부터 다시 시작할까요?') && setScreen('choose')}>
             처음부터
           </button>
         )}
+      </div>
+    );
+
+  // ── 주인공 고르기 (D119) ──
+  if (screen === 'choose')
+    return (
+      <div className="tac title">
+        <div className="t-logo">
+          누구와 <span>떠날까요?</span>
+        </div>
+        <div className="t-sub">고른 주인공이 부대의 지도자예요. 고르지 않은 쪽은 먼 훗날 동료로 만나게 돼요.</div>
+        <div className="hero-pick">
+          {(['aren', 'lia'] as const).map((id) => (
+            <button key={id} className="hero-card" onClick={() => (reset(id), setBattle(null), setScreen('camp'))}>
+              <img className="face" src={img(unitArt(UNITS[id].art, 'p'))} alt="" />
+              <img className="tile" src={img(unitArt(UNITS[id].art, 't'))} alt="" />
+              <b>{UNITS[id].name}</b>
+              <small>
+                {ROLES[UNITS[id].role].icon} {ROLES[UNITS[id].role].name}
+                <br />
+                {UNITS[id].desc}
+              </small>
+            </button>
+          ))}
+        </div>
       </div>
     );
 
@@ -251,12 +286,20 @@ export function TacticsApp() {
         </header>
         <div className="stage-list">
           {STAGES.map((st) => {
+            const head = (st.n - 1) % 10 === 0 ? CHAPTERS[chapterOf(st.n)] : null;
             const done = cp.cleared.includes(st.n);
             const locked = st.n > open;
             const els = [...new Set(st.enemies.map((e) => ENEMIES[`e_${e.id}`].element).filter(Boolean))];
             const lv = Math.round(st.enemies.reduce((a, e) => a + e.lv, 0) / st.enemies.length);
             return (
-              <div key={st.n} className={`stage-card ${done ? 'cleared' : ''} ${locked ? 'locked' : ''} ${st.n === open && !done ? 'next' : ''}`}>
+              <div key={st.n} className="stage-wrap">
+              {head && (
+                <div className="chap-head">
+                  {head.name}
+                  <small>{head.els ? head.els.map((e) => EL_ICON[e]).join('') + ' 속성 적이 많아요' : '여러 속성'}</small>
+                </div>
+              )}
+              <div className={`stage-card ${done ? 'cleared' : ''} ${locked ? 'locked' : ''} ${st.n === open && !done ? 'next' : ''}`}>
                 <div className="sc-num">{st.n}</div>
                 <div className="sc-info">
                   <b>
@@ -266,9 +309,10 @@ export function TacticsApp() {
                     {st.win === 'boss' ? '👑 보스 격파' : '⚔️ 적 전멸'} · 적 {st.enemies.length} · 평균 {lv}레벨 · {els.map((e) => EL_ICON[e!]).join('')}
                   </small>
                 </div>
-                <button className="cta small-cta" disabled={locked} onClick={() => (setPrep(st.n), setParty(cp.party.filter((id) => cp.roster[id]).slice(0, maxParty(st.n))), setScreen('prep'))}>
+                <button className="cta small-cta" disabled={locked} onClick={() => (setPrep(st.n), setParty([cp.hero, ...cp.party.filter((id) => cp.roster[id] && id !== cp.hero)].slice(0, maxParty(st.n))), setScreen('prep'))}>
                   {locked ? '🔒' : done ? '다시' : '출전'}
                 </button>
+              </div>
               </div>
             );
           })}
@@ -290,12 +334,12 @@ export function TacticsApp() {
       return els.reduce((a, x) => a + (elMul(e, x) > 1 ? 1 : 0) - (elMul(x, e) > 1 ? 0.5 : 0), 0);
     };
     const toggle = (id: string) => {
-      if (defOf(id).leader) return setToast('아렌은 늘 출전해요 (지도자)');
+      if (id === cp.hero) return setToast(`${UNITS[cp.hero].name}은(는) 늘 출전해요 (지도자)`);
       setParty((p) => (p.includes(id) ? p.filter((x) => x !== id) : p.length >= max ? (setToast(`이번 판은 ${max}명까지`), p) : [...p, id]));
     };
     const recommend = () => {
-      const pool = cp.joined.filter((id) => !defOf(id).leader).sort((a, c) => good(c) - good(a) || cp.roster[c].lv - cp.roster[a].lv);
-      const out = ['aren'];
+      const pool = cp.joined.filter((id) => id !== cp.hero).sort((a, c) => good(c) - good(a) || cp.roster[c].lv - cp.roster[a].lv);
+      const out: string[] = [cp.hero];
       const roles = new Set<string>();
       // 탱커·힐러 하나씩은 꼭, 그다음 상성 좋은 순
       for (const need of ['tank', 'healer']) {
@@ -319,13 +363,13 @@ export function TacticsApp() {
         <div className="prep-body">
           <p className="tac-story">{st.story}</p>
           <div className="tac-goal">
-            🏆 {st.win === 'boss' ? '👑 보스를 쓰러뜨리면 승리' : '적을 모두 쓰러뜨리면 승리'} · ⏳ {st.turns}턴 안에 · 💀 아렌이 쓰러지면 패배
+            🏆 {st.win === 'boss' ? '👑 보스를 쓰러뜨리면 승리' : '적을 모두 쓰러뜨리면 승리'} · ⏳ {st.turns}턴 안에 · 💀 {UNITS[cp.hero].name}이(가) 쓰러지면 패배
           </div>
           <div className="prep-sec">적</div>
           <div className="foe-row">
             {foes.map((f, i) => (
               <div key={i} className={`foe ${f.boss ? 'boss' : ''}`}>
-                <img src={img(unitArt(f.d.art, 'p'))} alt="" />
+                <img src={img(unitArt(f.d.art, 'p', f.lv))} alt="" />
                 <small>
                   {f.boss ? '👑' : ''}
                   {f.d.name}
@@ -361,7 +405,7 @@ export function TacticsApp() {
           <button className="ghost" onClick={() => setPanel('shop')}>
             🏪 상점
           </button>
-          <button className="cta" disabled={!party.includes('aren')} onClick={() => startBattle(prep, party)}>
+          <button className="cta" disabled={!party.includes(cp.hero)} onClick={() => startBattle(prep, party)}>
             ⚔️ 전투 시작
           </button>
         </div>
@@ -390,7 +434,7 @@ export function TacticsApp() {
           ))}
           {reward.joins.map((id) => (
             <div key={id} className="tac-join">
-              <img src={img(unitArt(defOf(id).art, 't'))} alt="" />
+              <img src={img(unitArt(defOf(id).art, 't', ref.current.cp.roster[id]?.lv ?? 1))} alt="" />
               <div>
                 <b>✨ {defOf(id).name} 합류!</b>
                 <small>
@@ -437,7 +481,8 @@ export function TacticsApp() {
       for (const v of mr.values()) {
         marks.threat.add(key(v.c, v.r));
         const rg = unitStats(su).range;
-        for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+        const dim = sizeOf(STAGES[b.stage - 1]);
+        for (let r = 0; r < dim.rows; r++) for (let c = 0; c < dim.cols; c++) {
           const dd = Math.max(0, hexDist({ c, r }, v));
           if (dd >= rg[0] && dd <= rg[1]) marks.threat.add(key(c, r));
         }
@@ -671,7 +716,7 @@ export function TacticsApp() {
             </div>
             <p>{st.story}</p>
             <div className="tac-goal">
-              🏆 {st.win === 'boss' ? '👑 보스를 쓰러뜨리면 승리' : '적을 모두 쓰러뜨리면 승리'} · ⏳ {st.turns}턴 · 💀 아렌이 쓰러지면 패배
+              🏆 {st.win === 'boss' ? '👑 보스를 쓰러뜨리면 승리' : '적을 모두 쓰러뜨리면 승리'} · ⏳ {st.turns}턴 · 💀 {UNITS[cp.hero].name}이(가) 쓰러지면 패배
             </div>
             <div className="tac-tip">💡 {st.tip}</div>
             <button className="cta" onClick={() => (setBrief(false), setBanner('1턴 · 아군 차례'), focus(b.units.find((x) => x.side === 'ally')?.uid ?? null, true))}>
@@ -718,7 +763,7 @@ function UnitCard({ b, u }: { b: Battle; u: Unit }) {
   const t = terrainAt(STAGES[b.stage - 1], u.c, u.r);
   return (
     <div className={`ucard ${u.side}`}>
-      <img src={img(unitArt(d.art, 'p'))} alt="" />
+      <img src={img(unitArt(d.art, 'p', u.lv))} alt="" />
       <div className="uc-main">
         <div className="uc-name">
           <b>

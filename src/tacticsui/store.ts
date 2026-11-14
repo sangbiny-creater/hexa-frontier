@@ -21,15 +21,18 @@ function load(): Saved | null {
 export function useTactics() {
   const [saved, setSaved] = useState<Saved>(() => load() ?? { cp: newCampaign(), battle: null });
   const [hasSave] = useState(() => !!load());
+  // 주인공을 고르기 전(새 게임)에는 저장하지 않는다 — 고르기 전에 새로고침해도 다시 고르게
+  const [persist, setPersist] = useState(() => !!load());
   const ref = useRef(saved);
   ref.current = saved;
   useEffect(() => {
+    if (!persist) return;
     try {
       localStorage.setItem(TAC_KEY, JSON.stringify(saved));
     } catch {
       /* 저장 불가 */
     }
-  }, [saved]);
+  }, [saved, persist]);
   /** 캠페인·전투를 복사본에서 바꾼다 */
   const act = useCallback(<T,>(fn: (cp: Campaign, b: Battle | null) => T): T => {
     const d = structuredClone(ref.current);
@@ -43,10 +46,11 @@ export function useTactics() {
     ref.current = d;
     setSaved(d);
   }, []);
-  const reset = useCallback(() => {
-    const f = { cp: newCampaign(), battle: null };
+  const reset = useCallback((hero: 'aren' | 'lia' = 'aren') => {
+    const f = { cp: newCampaign(hero), battle: null };
     ref.current = f;
     setSaved(f);
+    setPersist(true);
   }, []);
   return { cp: saved.cp, battle: saved.battle, act, setBattle, reset, hasSave, ref };
 }

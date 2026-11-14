@@ -89,8 +89,8 @@
 .t-phase { text-align: center; font-size: 11.5px; font-weight: 800; padding: 3px; }
 .t-phase.ally { background: #1f4f7a; }
 .t-phase.enemy { background: #7a2a24; }
-.t-map { position: relative; flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; background: #0d1a12; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
-.tworld { width: 100%; height: auto; display: block; touch-action: pan-y; }
+.t-map { position: relative; flex: 1; min-height: 0; overflow: auto; background: #0d1a12; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+.tworld { height: auto; display: block; touch-action: pan-x pan-y; max-width: none; }
 .tworld .tu { transition: transform 0.35s ease-out; cursor: pointer; }
 .tworld .tu.done image { filter: grayscale(0.8) brightness(0.75); }
 .tworld .tu-base { fill: #0006; stroke-width: 2; }
@@ -202,3 +202,15 @@
 .res-btns .ghost, .res-btns .cta { width: 100%; }
 .tac-tip, .tac-goal, .tac-story { color: inherit; }
 .t-panel { min-height: 246px; justify-content: space-between; }
+
+/* D119: 주인공 고르기 · 장 묶음 */
+.hero-pick { display: flex; gap: 10px; width: 100%; max-width: 380px; }
+.hero-card { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 6px; border-radius: 16px; background: #ffffff10; border: 2px solid #ffffff26; color: #eef4ef; }
+.hero-card.on { border-color: #ffd257; background: #ffd2571f; }
+.hero-card img.face { width: 84px; height: 96px; object-fit: cover; border-radius: 12px; border: 2px solid #c9a95a; }
+.hero-card img.tile { width: 90px; }
+.hero-card b { font-size: 16px; }
+.hero-card small { font-size: 11px; color: #b8cbbf; line-height: 1.4; }
+.chap-head { position: sticky; top: 0; z-index: 2; margin: 6px 0 0; padding: 6px 10px; border-radius: 10px; background: #1f3329; font-weight: 900; font-size: 13px; display: flex; justify-content: space-between; }
+.chap-head small { color: #b8cbbf; font-weight: 700; }
+.ud-crystal { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 6px 8px; border-radius: 10px; background: #fff6dc; font-size: 12px; }

@@ -100,7 +100,7 @@ export function planAction(b: Battle, u: Unit): Plan {
     if (p.act.k !== 'wait') p.score += 200;
     if (!best || p.score > best.score) best = p;
   };
-  const leader = !!defOf(u.def).leader;
+  const leader = !!u.leader;
   // 다가가기 점수: 힐러·서포터는 아군 쪽, 나머지는 상대 쪽 (지형을 따라 가는 거리)
   const support = ['healer', 'support'].includes(roleOf(u));
   const goals = support && friends.length > 1 ? friends.filter((x) => x !== u).map((x) => ({ c: x.c, r: x.r })) : foes.map((x) => ({ c: x.c, r: x.r }));
@@ -111,7 +111,10 @@ export function planAction(b: Battle, u: Unit): Plan {
     const tt = terrainAt(stageOf(b), from.c, from.r);
     // 위험도: 이 칸에 서 있으면 다음 상대 차례에 받을 수 있는 피해
     const th = threat(u, from, foes);
-    const safety = (tt ? TERRAIN[tt].guard * 0.15 + (TERRAIN[tt].heal ? 2 : 0) : 0) - th * (u.side === 'ally' ? 0.35 : 0.1) - (leader && th >= u.hp * 0.7 ? 300 : 0);
+    // 지도자는 위험을 훨씬 크게 본다: 다음 차례에 쓰러질 수 있는 칸은 피하고, 아군 뒤에 선다
+    const lethal = leader && th >= u.hp * 0.6;
+    const behind = leader ? friends.filter((f) => f !== u && dist(f, from) <= 2).length * 3 : 0;
+    const safety = (tt ? TERRAIN[tt].guard * 0.15 + (TERRAIN[tt].heal ? 2 : 0) : 0) - th * (leader ? 1.2 : u.side === 'ally' ? 0.35 : 0.1) - (lethal ? 400 : 0) + behind;
     const mv = from.c === u.c && from.r === u.r ? null : from;
     // 이 칸에서 아무것도 안 하고 기다리기 (다가가는 만큼 점수)
     const tooClose = s.range[0] >= 2 && foes.some((f) => dist(f, from) < 2) ? 15 : 0;
