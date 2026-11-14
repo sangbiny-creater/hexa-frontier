@@ -62,9 +62,12 @@ export function TacticsApp() {
   const [busy, setBusy] = useState(false);
   const [banner, setBanner] = useState<string | null>(null);
   const [brief, setBrief] = useState(false);
-  const [auto, setAuto] = useState(false);
+  // D126: 자동 버튼 — 꺼짐 → 켜짐(1배) → 2배속 → 4배속 → 꺼짐
+  const [auto, setAuto] = useState<0 | 1 | 2 | 4>(0);
   const autoRef = useRef(auto);
   autoRef.current = auto;
+  const spd = () => autoRef.current || 1; // 화면 속도 배율
+  const nextAuto = (a: 0 | 1 | 2 | 4): 0 | 1 | 2 | 4 => (a === 0 ? 1 : a === 1 ? 2 : a === 2 ? 4 : 0);
   // D117: 지도는 위아래로 스크롤 — 고른 유닛·움직이는 적을 따라간다
   const mapRef = useRef<HTMLDivElement>(null);
   const focus = useCallback(
@@ -93,7 +96,7 @@ export function TacticsApp() {
   }, [toast]);
   useEffect(() => {
     if (!banner) return;
-    const id = setTimeout(() => setBanner(null), 1300);
+    const id = setTimeout(() => setBanner(null), 1300 / spd());
     return () => clearTimeout(id);
   }, [banner]);
 
@@ -111,7 +114,7 @@ export function TacticsApp() {
   const runSide = useCallback(
     async (side: 'ally' | 'enemy') => {
       for (let i = 0; i < 40; i++) {
-        await sleep(side === 'enemy' ? 520 : 450);
+        await sleep((side === 'enemy' ? 520 : 450) / spd());
         const r = act((_c, bb) => (bb ? stepSide(bb, side) : null));
         if (!r) break;
         focus(r.uid);
@@ -127,7 +130,7 @@ export function TacticsApp() {
     setBusy(true);
     show(act((_c, bb) => endAllyPhase(bb!)));
     setBanner('적군 차례');
-    await sleep(500);
+    await sleep(500 / spd());
     await runSide('enemy');
     if (ref.current.battle && !ref.current.battle.result) {
       show(act((_c, bb) => endEnemyPhase(bb!)));
@@ -152,11 +155,11 @@ export function TacticsApp() {
     if (screen !== 'battle' || !b || b.result || busy || b.phase !== 'ally' || brief) return;
     const left = alive(b, 'ally').filter((u) => !u.acted);
     if (left.length === 0) {
-      const id = setTimeout(() => void endTurn(), 450);
+      const id = setTimeout(() => void endTurn(), 450 / spd());
       return () => clearTimeout(id);
     }
     if (autoRef.current && mode.k === 'idle') {
-      const id = setTimeout(() => void runAuto(), 300);
+      const id = setTimeout(() => void runAuto(), 300 / spd());
       return () => clearTimeout(id);
     }
   }, [b, busy, screen, endTurn, runAuto, mode.k, brief, auto]);
@@ -175,10 +178,10 @@ export function TacticsApp() {
       const r = act((c, bb) => finishBattle(c, bb!));
       setReward({ ...r, stage: b.stage });
       setBattle(null);
-      setAuto(false);
+      setAuto(0);
       clearSel();
       setScreen('result');
-    }, 1300);
+    }, 1300 / spd());
     return () => clearTimeout(id);
   }, [b?.result, screen, act, setBattle, b?.stage]);
 
@@ -571,7 +574,7 @@ export function TacticsApp() {
   const items = Object.keys(b.bag).filter((id) => (b.bag[id] ?? 0) > 0 && ITEMS[id].use);
 
   return (
-    <div className="tac battle">
+    <div className="tac battle" style={{ ['--spd' as string]: String(auto || 1) }}>
       <header className="t-bhead">
         <b>
           {st.n}. {st.name}
@@ -699,8 +702,8 @@ export function TacticsApp() {
           </div>
         )}
         <div className="t-foot">
-          <button className={`ghost ${auto ? 'on' : ''}`} onClick={() => setAuto((a) => !a)} disabled={b.phase !== 'ally'}>
-            🤖 자동 {auto ? '켜짐' : '꺼짐'}
+          <button className={`ghost ${auto ? 'on' : ''}`} onClick={() => setAuto((a) => nextAuto(a))}>
+            🤖 {auto === 0 ? '자동 꺼짐' : auto === 1 ? '자동 켜짐' : `자동 ${auto}배속`}
           </button>
           <button className="cta small-cta" disabled={busy || b.phase !== 'ally'} onClick={() => void endTurn()}>
             턴 종료 ▶

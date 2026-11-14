@@ -91,7 +91,7 @@
 .t-phase.enemy { background: #7a2a24; }
 .t-map { position: relative; flex: 1; min-height: 0; overflow: auto; background: #0d1a12; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
 .tworld { height: auto; display: block; touch-action: pan-x pan-y; max-width: none; }
-.tworld .tu { transition: transform 0.35s ease-out; cursor: pointer; }
+.tworld .tu { transition: transform calc(0.35s / var(--spd, 1)) ease-out; cursor: pointer; }
 .tworld .tu.done image { filter: grayscale(0.8) brightness(0.75); }
 .tworld .tu-base { fill: #0006; stroke-width: 2; }
 .tworld .tu.ally .tu-base { stroke: #4aa3ff; }
@@ -106,7 +106,7 @@
 .tworld .m-area { fill: #ffd25755; stroke: #ffd257; stroke-width: 2; }
 .tworld .m-threat { fill: #ff5a5a1f; stroke: #ff5a5a55; stroke-width: 0.8; }
 .tworld .m-path { fill: #ffd257; }
-.tworld .t-num { font-size: 11px; font-weight: 900; fill: #fff; paint-order: stroke; stroke: #000; stroke-width: 2.5px; animation: tnum 1.1s forwards; }
+.tworld .t-num { font-size: 11px; font-weight: 900; fill: #fff; paint-order: stroke; stroke: #000; stroke-width: 2.5px; animation: tnum calc(1.1s / var(--spd, 1)) forwards; }
 .tworld .t-num.hurt { fill: #ff8f80; }
 .tworld .t-num.strong { fill: #ffa94d; font-size: 13px; }
 .tworld .t-num.weak { fill: #b8c4cf; font-size: 10px; }
@@ -115,7 +115,7 @@
 .tworld .t-num.lv { fill: #ffd257; font-size: 10px; }
 .tworld .t-num.buff { fill: #e7d4ff; font-size: 9px; }
 @keyframes tnum { 0% { opacity: 0; transform: translateY(4px); } 15% { opacity: 1; transform: translateY(0); } 80% { opacity: 1; } 100% { opacity: 0; transform: translateY(-10px); } }
-.t-banner { position: fixed; left: 50%; top: 40%; z-index: 20; transform: translate(-50%, -50%); padding: 10px 22px; border-radius: 14px; background: #000c; border: 1px solid #ffffff33; font-size: 18px; font-weight: 900; pointer-events: none; animation: tban 1.3s forwards; white-space: nowrap; }
+.t-banner { position: fixed; left: 50%; top: 40%; z-index: 20; transform: translate(-50%, -50%); padding: 10px 22px; border-radius: 14px; background: #000c; border: 1px solid #ffffff33; font-size: 18px; font-weight: 900; pointer-events: none; animation: tban calc(1.3s / var(--spd, 1)) forwards; white-space: nowrap; }
 @keyframes tban { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); } 15% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
 .t-panel { display: flex; flex-direction: column; gap: 6px; padding: 8px 8px calc(env(safe-area-inset-bottom) + 8px); background: #142620; border-top: 1px solid #ffffff1a; }
 .t-hint { font-size: 12px; color: #b8cbbf; line-height: 1.45; padding: 4px; }
