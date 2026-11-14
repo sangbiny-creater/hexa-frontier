@@ -1,12 +1,12 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { RpgApp } from '../rpgui/RpgApp';
+import { TacticsApp } from '../tacticsui/TacticsApp';
 import './styles.css';
-import '../rpgui/rpg.css';
+import '../tacticsui/tactics.css';
 
-// D72: 헥사 들판 사냥 RPG. (이전 판 화면은 src/ui/App.tsx에 남아 있음)
+// D109: 헥사 전술 전투 (턴제). 이전 사냥 RPG는 src/rpgui/RpgApp.tsx에 그대로 남아 있음
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <RpgApp />
+    <TacticsApp />
   </StrictMode>,
 );
