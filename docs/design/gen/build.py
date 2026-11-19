@@ -164,6 +164,37 @@ sections.append(("agent", "Copilot 에이전트", f"""프롬프트를 하나씩 
     dict(title="시작 문구 6개", note="제목 / 메시지", prompt="\n".join(f"{t} / {m}" for t, m in AG.STARTERS)),
 ]))
 
+
+# 9 작업 목록 v2 (D134)
+import agent_v2 as AG2
+JOBS2 = AG2.build_jobs()
+INSTR2 = AG2.instructions(JOBS2)
+assert len(INSTR2) <= 8000
+open(os.path.join(KIT, "HEXA_작업목록_v2.txt"), "w", encoding="utf-8").write(AG2.queue_text(JOBS2))
+open(os.path.join(KIT, "지침_v2.txt"), "w", encoding="utf-8").write(INSTR2)
+summ2 = "\n".join(f"| {p} | {a} ~ {b} | {n} |" for p, a, b, n in AG.phase_summary(JOBS2))
+roster = ["| 코드 | 이름 | 그림 |", "|---|---|---|"]
+for src, code, el, role, k, ko, en, *_ in AG2.OLD:
+    roster.append(f"| {code} | {ko} ({en}) · {el} {role} | 기존 `{src}` → 게임 스프라이트로 다시 |")
+for code in AG2.KEEP_NEW:
+    s_ = next(x for x in SPIRITS if x[2] == code)
+    roster.append(f"| {code} | {s_[3]} ({s_[4]}) · {s_[0]} {s_[1]} | 이미 만든 새 그림 그대로 |")
+sections.append(("agent2", "작업 목록 v2", f"""**지식 파일을 `HEXA_작업목록_v2.txt`로 바꾸고, 지침을 `지침_v2.txt`로 바꿉니다** (예전 `HEXA_작업목록.txt`는 지식에서 빼 주세요). 작업 {len(JOBS2)}개.
+
+- **A 초상 다시 그리기 13장**: 초상 프롬프트가 사람 흉상(가슴·어깨) 구도를 시켜서 네 발 짐승·물고기·장어·벌이 사람처럼 나왔습니다. 몸 구조 고정(ANATOMY LOCK)으로 다시 그립니다. 공용 초상 프롬프트도 고쳤습니다.
+- **B 기존 스피릿 37종 (최우선)**: `image/old`의 시트 디자인을 그대로 살려 받침 없는 게임 스프라이트 + 초상으로. 같은 자리의 새 디자인 37종은 빠지고(파일은 `image/dropped-new/`에 보관), 이미 만든 새 스피릿 23종은 그대로 씁니다.
+- **C UI 2~12단계**: UI1에서 고른 **1안 '탐험의 숲'**을 적용. 예전 스타일 바이블의 '남색 패널' 줄이 1안을 덮어써서 UI2에 반영이 안 됐습니다 → UI 작업은 1안 전용 스타일 블록으로 바꾸고, `image/ref/UI-STYLE-01.png`(1안 확대본)를 꼭 첨부하게 했습니다. 하단 탭: 원정 · 부대 · 스피릿 · 도감 · 상점.
+
+| 단계 | 작업 | 개수 |
+|---|---|---|
+{summ2}
+
+**스피릿 60종 v2 (기존 37 + 새 23)**
+
+""" + "\n".join(roster), [
+    dict(title=f"지침 v2 ({len(INSTR2)}자)", note="에이전트 지침 칸을 이것으로 통째로 바꾸기", prompt=INSTR2),
+] + [dict(title=f"{j['id']} · {j['name']}", note=f"저장: {j['file']} · 첨부: {j['refs']}", prompt=j["prompt"]) for j in JOBS2]))
+
 # ── 마크다운 ──
 md = ["# HEXA FRONTIER 디자인 · GPT 이미지 프롬프트 (D127)", "", "content.py에서 만들어짐 — 고칠 때는 `docs/design/gen/content.py`를 고치고 `python3 docs/design/gen/build.py`.", ""]
 for sid, title, intro, items in sections:

@@ -36,8 +36,9 @@ ROLE_HINT = {
 }
 
 PORTRAIT = """Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, TRANSPARENT background, three head-and-shoulders portraits side by side in an invisible 3-column grid: left = {a}, center = {b}, right = {c}.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, TRANSPARENT background, three portraits side by side in an invisible 3-column grid: left = {a}, center = {b}, right = {c}.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait."""
 
 ELEMENT_LINEUP = """Create a DESIGN LINEUP of all 12 {el_en} spirits of HEXA FRONTIER in their Lv.1 baby forms, to lock the designs and the relative scale before making individual sprite sheets.

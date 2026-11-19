@@ -161,8 +161,9 @@ JOB-007 | 단계: 2 주인공 | 이름: 아렌 초상
 첨부 레퍼런스: 방금 승인한 C01.png
 JOB-007 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-007 끝 =====
 
@@ -187,8 +188,9 @@ JOB-009 | 단계: 2 주인공 | 이름: 리아 초상
 첨부 레퍼런스: 방금 승인한 C02.png
 JOB-009 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-009 끝 =====
 
@@ -219,8 +221,9 @@ JOB-011 | 단계: 3 스피릿 60 | 이름: F-T1 모스백 초상
 첨부 레퍼런스: 방금 승인한 F-T1.png
 JOB-011 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-011 끝 =====
 
@@ -249,8 +252,9 @@ JOB-013 | 단계: 3 스피릿 60 | 이름: F-T2 스텀프배저 초상
 첨부 레퍼런스: 방금 승인한 F-T2.png
 JOB-013 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-013 끝 =====
 
@@ -279,8 +283,9 @@ JOB-015 | 단계: 3 스피릿 60 | 이름: F-T3 루트라이노 초상
 첨부 레퍼런스: 방금 승인한 F-T3.png
 JOB-015 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-015 끝 =====
 
@@ -309,8 +314,9 @@ JOB-017 | 단계: 3 스피릿 60 | 이름: F-M1 리프링스 초상
 첨부 레퍼런스: 방금 승인한 F-M1.png
 JOB-017 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-017 끝 =====
 
@@ -339,8 +345,9 @@ JOB-019 | 단계: 3 스피릿 60 | 이름: F-M2 브램블울프 초상
 첨부 레퍼런스: 방금 승인한 F-M2.png
 JOB-019 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-019 끝 =====
 
@@ -369,8 +376,9 @@ JOB-021 | 단계: 3 스피릿 60 | 이름: F-M3 바인폭스 초상
 첨부 레퍼런스: 방금 승인한 F-M3.png
 JOB-021 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-021 끝 =====
 
@@ -399,8 +407,9 @@ JOB-023 | 단계: 3 스피릿 60 | 이름: F-R1 시드샷 초상
 첨부 레퍼런스: 방금 승인한 F-R1.png
 JOB-023 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-023 끝 =====
 
@@ -429,8 +438,9 @@ JOB-025 | 단계: 3 스피릿 60 | 이름: F-R2 글로우프로그 초상
 첨부 레퍼런스: 방금 승인한 F-R2.png
 JOB-025 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-025 끝 =====
 
@@ -459,8 +469,9 @@ JOB-027 | 단계: 3 스피릿 60 | 이름: F-R3 쏜비틀 초상
 첨부 레퍼런스: 방금 승인한 F-R3.png
 JOB-027 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-027 끝 =====
 
@@ -489,8 +500,9 @@ JOB-029 | 단계: 3 스피릿 60 | 이름: F-H1 블룸디어 초상
 첨부 레퍼런스: 방금 승인한 F-H1.png
 JOB-029 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-029 끝 =====
 
@@ -519,8 +531,9 @@ JOB-031 | 단계: 3 스피릿 60 | 이름: F-S1 페탈모스 초상
 첨부 레퍼런스: 방금 승인한 F-S1.png
 JOB-031 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-031 끝 =====
 
@@ -549,8 +562,9 @@ JOB-033 | 단계: 3 스피릿 60 | 이름: F-S2 모스로스 초상
 첨부 레퍼런스: 방금 승인한 F-S2.png
 JOB-033 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-033 끝 =====
 
@@ -579,8 +593,9 @@ JOB-035 | 단계: 3 스피릿 60 | 이름: Fi-T1 마그마크랩 초상
 첨부 레퍼런스: 방금 승인한 Fi-T1.png
 JOB-035 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-035 끝 =====
 
@@ -609,8 +624,9 @@ JOB-037 | 단계: 3 스피릿 60 | 이름: Fi-T2 신더록스 초상
 첨부 레퍼런스: 방금 승인한 Fi-T2.png
 JOB-037 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-037 끝 =====
 
@@ -639,8 +655,9 @@ JOB-039 | 단계: 3 스피릿 60 | 이름: Fi-T3 킬른골렘 초상
 첨부 레퍼런스: 방금 승인한 Fi-T3.png
 JOB-039 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-039 끝 =====
 
@@ -669,8 +686,9 @@ JOB-041 | 단계: 3 스피릿 60 | 이름: Fi-M1 신더팽 초상
 첨부 레퍼런스: 방금 승인한 Fi-M1.png
 JOB-041 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-041 끝 =====
 
@@ -699,8 +717,9 @@ JOB-043 | 단계: 3 스피릿 60 | 이름: Fi-M2 차르보어 초상
 첨부 레퍼런스: 방금 승인한 Fi-M2.png
 JOB-043 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-043 끝 =====
 
@@ -729,8 +748,9 @@ JOB-045 | 단계: 3 스피릿 60 | 이름: Fi-M3 파이로타이거 초상
 첨부 레퍼런스: 방금 승인한 Fi-M3.png
 JOB-045 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-045 끝 =====
 
@@ -759,8 +779,9 @@ JOB-047 | 단계: 3 스피릿 60 | 이름: Fi-R1 스파크호그 초상
 첨부 레퍼런스: 방금 승인한 Fi-R1.png
 JOB-047 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-047 끝 =====
 
@@ -789,8 +810,9 @@ JOB-049 | 단계: 3 스피릿 60 | 이름: Fi-R2 애쉬드레이크 초상
 첨부 레퍼런스: 방금 승인한 Fi-R2.png
 JOB-049 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-049 끝 =====
 
@@ -819,8 +841,9 @@ JOB-051 | 단계: 3 스피릿 60 | 이름: Fi-R3 플레어카멜레온 초상
 첨부 레퍼런스: 방금 승인한 Fi-R3.png
 JOB-051 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-051 끝 =====
 
@@ -849,8 +872,9 @@ JOB-053 | 단계: 3 스피릿 60 | 이름: Fi-H1 엠버판다 초상
 첨부 레퍼런스: 방금 승인한 Fi-H1.png
 JOB-053 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-053 끝 =====
 
@@ -879,8 +903,9 @@ JOB-055 | 단계: 3 스피릿 60 | 이름: Fi-S1 하스펍 초상
 첨부 레퍼런스: 방금 승인한 Fi-S1.png
 JOB-055 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-055 끝 =====
 
@@ -909,8 +934,9 @@ JOB-057 | 단계: 3 스피릿 60 | 이름: Fi-S2 킨들핀치 초상
 첨부 레퍼런스: 방금 승인한 Fi-S2.png
 JOB-057 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-057 끝 =====
 
@@ -939,8 +965,9 @@ JOB-059 | 단계: 3 스피릿 60 | 이름: W-T1 터스크월러스 초상
 첨부 레퍼런스: 방금 승인한 W-T1.png
 JOB-059 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-059 끝 =====
 
@@ -969,8 +996,9 @@ JOB-061 | 단계: 3 스피릿 60 | 이름: W-T2 클램가드 초상
 첨부 레퍼런스: 방금 승인한 W-T2.png
 JOB-061 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-061 끝 =====
 
@@ -999,8 +1027,9 @@ JOB-063 | 단계: 3 스피릿 60 | 이름: W-T3 하이드로히포 초상
 첨부 레퍼런스: 방금 승인한 W-T3.png
 JOB-063 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-063 끝 =====
 
@@ -1029,8 +1058,9 @@ JOB-065 | 단계: 3 스피릿 60 | 이름: W-M1 오르카 초상
 첨부 레퍼런스: 방금 승인한 W-M1.png
 JOB-065 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-065 끝 =====
 
@@ -1059,8 +1089,9 @@ JOB-067 | 단계: 3 스피릿 60 | 이름: W-M2 클로스터 초상
 첨부 레퍼런스: 방금 승인한 W-M2.png
 JOB-067 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-067 끝 =====
 
@@ -1089,8 +1120,9 @@ JOB-069 | 단계: 3 스피릿 60 | 이름: W-M3 타이드아홀로틀 초상
 첨부 레퍼런스: 방금 승인한 W-M3.png
 JOB-069 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-069 끝 =====
 
@@ -1119,8 +1151,9 @@ JOB-071 | 단계: 3 스피릿 60 | 이름: W-R1 퍼퍼샷 초상
 첨부 레퍼런스: 방금 승인한 W-R1.png
 JOB-071 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-071 끝 =====
 
@@ -1149,8 +1182,9 @@ JOB-073 | 단계: 3 스피릿 60 | 이름: W-R2 나르왈 초상
 첨부 레퍼런스: 방금 승인한 W-R2.png
 JOB-073 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-073 끝 =====
 
@@ -1179,8 +1213,9 @@ JOB-075 | 단계: 3 스피릿 60 | 이름: W-R3 스냅쉬림프 초상
 첨부 레퍼런스: 방금 승인한 W-R3.png
 JOB-075 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-075 끝 =====
 
@@ -1209,8 +1244,9 @@ JOB-077 | 단계: 3 스피릿 60 | 이름: W-H1 타이드포니 초상
 첨부 레퍼런스: 방금 승인한 W-H1.png
 JOB-077 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-077 끝 =====
 
@@ -1239,8 +1275,9 @@ JOB-079 | 단계: 3 스피릿 60 | 이름: W-S1 버블롯 초상
 첨부 레퍼런스: 방금 승인한 W-S1.png
 JOB-079 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-079 끝 =====
 
@@ -1269,8 +1306,9 @@ JOB-081 | 단계: 3 스피릿 60 | 이름: W-S2 펭드럼 초상
 첨부 레퍼런스: 방금 승인한 W-S2.png
 JOB-081 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-081 끝 =====
 
@@ -1299,8 +1337,9 @@ JOB-083 | 단계: 3 스피릿 60 | 이름: Wi-T1 님버스램 초상
 첨부 레퍼런스: 방금 승인한 Wi-T1.png
 JOB-083 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-083 끝 =====
 
@@ -1329,8 +1368,9 @@ JOB-085 | 단계: 3 스피릿 60 | 이름: Wi-T2 스카이웨일 초상
 첨부 레퍼런스: 방금 승인한 Wi-T2.png
 JOB-085 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-085 끝 =====
 
@@ -1359,8 +1399,9 @@ JOB-087 | 단계: 3 스피릿 60 | 이름: Wi-T3 게일베어 초상
 첨부 레퍼런스: 방금 승인한 Wi-T3.png
 JOB-087 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-087 끝 =====
 
@@ -1389,8 +1430,9 @@ JOB-089 | 단계: 3 스피릿 60 | 이름: Wi-M1 게일헤어 초상
 첨부 레퍼런스: 방금 승인한 Wi-M1.png
 JOB-089 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-089 끝 =====
 
@@ -1419,8 +1461,9 @@ JOB-091 | 단계: 3 스피릿 60 | 이름: Wi-M2 블레이드크레인 초상
 첨부 레퍼런스: 방금 승인한 Wi-M2.png
 JOB-091 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-091 끝 =====
 
@@ -1449,8 +1492,9 @@ JOB-093 | 단계: 3 스피릿 60 | 이름: Wi-M3 볼트펍 초상
 첨부 레퍼런스: 방금 승인한 Wi-M3.png
 JOB-093 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-093 끝 =====
 
@@ -1479,8 +1523,9 @@ JOB-095 | 단계: 3 스피릿 60 | 이름: Wi-R1 페더스위프트 초상
 첨부 레퍼런스: 방금 승인한 Wi-R1.png
 JOB-095 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-095 끝 =====
 
@@ -1509,8 +1554,9 @@ JOB-097 | 단계: 3 스피릿 60 | 이름: Wi-R2 스톰카이트 초상
 첨부 레퍼런스: 방금 승인한 Wi-R2.png
 JOB-097 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-097 끝 =====
 
@@ -1539,8 +1585,9 @@ JOB-099 | 단계: 3 스피릿 60 | 이름: Wi-R3 게일플라이 초상
 첨부 레퍼런스: 방금 승인한 Wi-R3.png
 JOB-099 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-099 끝 =====
 
@@ -1569,8 +1616,9 @@ JOB-101 | 단계: 3 스피릿 60 | 이름: Wi-H1 클라우드파카 초상
 첨부 레퍼런스: 방금 승인한 Wi-H1.png
 JOB-101 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-101 끝 =====
 
@@ -1599,8 +1647,9 @@ JOB-103 | 단계: 3 스피릿 60 | 이름: Wi-S1 윈드차임 초상
 첨부 레퍼런스: 방금 승인한 Wi-S1.png
 JOB-103 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-103 끝 =====
 
@@ -1629,8 +1678,9 @@ JOB-105 | 단계: 3 스피릿 60 | 이름: Wi-S2 브리즈글라이더 초상
 첨부 레퍼런스: 방금 승인한 Wi-S2.png
 JOB-105 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-105 끝 =====
 
@@ -1659,8 +1709,9 @@ JOB-107 | 단계: 3 스피릿 60 | 이름: E-T1 아이언딜로 초상
 첨부 레퍼런스: 방금 승인한 E-T1.png
 JOB-107 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-107 끝 =====
 
@@ -1689,8 +1740,9 @@ JOB-109 | 단계: 3 스피릿 60 | 이름: E-T2 스톤펀트 초상
 첨부 레퍼런스: 방금 승인한 E-T2.png
 JOB-109 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-109 끝 =====
 
@@ -1719,8 +1771,9 @@ JOB-111 | 단계: 3 스피릿 60 | 이름: E-T3 안킬로 초상
 첨부 레퍼런스: 방금 승인한 E-T3.png
 JOB-111 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-111 끝 =====
 
@@ -1749,8 +1802,9 @@ JOB-113 | 단계: 3 스피릿 60 | 이름: E-M1 볼더에이프 초상
 첨부 레퍼런스: 방금 승인한 E-M1.png
 JOB-113 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-113 끝 =====
 
@@ -1779,8 +1833,9 @@ JOB-115 | 단계: 3 스피릿 60 | 이름: E-M2 락조 초상
 첨부 레퍼런스: 방금 승인한 E-M2.png
 JOB-115 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-115 끝 =====
 
@@ -1809,8 +1864,9 @@ JOB-117 | 단계: 3 스피릿 60 | 이름: E-M3 쿼츠맨티스 초상
 첨부 레퍼런스: 방금 승인한 E-M3.png
 JOB-117 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-117 끝 =====
 
@@ -1839,8 +1895,9 @@ JOB-119 | 단계: 3 스피릿 60 | 이름: E-R1 볼더몰 초상
 첨부 레퍼런스: 방금 승인한 E-R1.png
 JOB-119 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-119 끝 =====
 
@@ -1869,8 +1926,9 @@ JOB-121 | 단계: 3 스피릿 60 | 이름: E-R2 지오드스콜피온 초상
 첨부 레퍼런스: 방금 승인한 E-R2.png
 JOB-121 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-121 끝 =====
 
@@ -1899,8 +1957,9 @@ JOB-123 | 단계: 3 스피릿 60 | 이름: E-R3 샌드카멜 초상
 첨부 레퍼런스: 방금 승인한 E-R3.png
 JOB-123 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-123 끝 =====
 
@@ -1929,8 +1988,9 @@ JOB-125 | 단계: 3 스피릿 60 | 이름: E-H1 클레이바라 초상
 첨부 레퍼런스: 방금 승인한 E-H1.png
 JOB-125 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-125 끝 =====
 
@@ -1959,8 +2019,9 @@ JOB-127 | 단계: 3 스피릿 60 | 이름: E-S1 듄페넥 초상
 첨부 레퍼런스: 방금 승인한 E-S1.png
 JOB-127 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-127 끝 =====
 
@@ -1989,8 +2050,9 @@ JOB-129 | 단계: 3 스피릿 60 | 이름: E-S2 쿼츠햄 초상
 첨부 레퍼런스: 방금 승인한 E-S2.png
 JOB-129 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = Lv.1 form, center = Lv.10 form, right = Lv.25 form.
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-129 끝 =====
 
@@ -2018,8 +2080,9 @@ JOB-131 | 단계: 4 몬스터 30 | 이름: MON-F-1 균열 덩굴뱀 초상
 첨부 레퍼런스: 방금 승인한 MON-F-1.png
 JOB-131 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-131 끝 =====
 
@@ -2045,8 +2108,9 @@ JOB-133 | 단계: 4 몬스터 30 | 이름: MON-F-2 가시멧돼지 초상
 첨부 레퍼런스: 방금 승인한 MON-F-2.png
 JOB-133 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-133 끝 =====
 
@@ -2072,8 +2136,9 @@ JOB-135 | 단계: 4 몬스터 30 | 이름: MON-F-3 썩은 그루터기 초상
 첨부 레퍼런스: 방금 승인한 MON-F-3.png
 JOB-135 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-135 끝 =====
 
@@ -2099,8 +2164,9 @@ JOB-137 | 단계: 4 몬스터 30 | 이름: MON-F-4 포자두꺼비 초상
 첨부 레퍼런스: 방금 승인한 MON-F-4.png
 JOB-137 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-137 끝 =====
 
@@ -2126,8 +2192,9 @@ JOB-139 | 단계: 4 몬스터 30 | 이름: MON-F-5 이끼달팽이 초상
 첨부 레퍼런스: 방금 승인한 MON-F-5.png
 JOB-139 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-139 끝 =====
 
@@ -2153,8 +2220,9 @@ JOB-141 | 단계: 4 몬스터 30 | 이름: MON-F-6 저주버섯 초상
 첨부 레퍼런스: 방금 승인한 MON-F-6.png
 JOB-141 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-141 끝 =====
 
@@ -2180,8 +2248,9 @@ JOB-143 | 단계: 4 몬스터 30 | 이름: MON-W-1 균열 피라냐 초상
 첨부 레퍼런스: 방금 승인한 MON-W-1.png
 JOB-143 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-143 끝 =====
 
@@ -2207,8 +2276,9 @@ JOB-145 | 단계: 4 몬스터 30 | 이름: MON-W-2 작살상어 초상
 첨부 레퍼런스: 방금 승인한 MON-W-2.png
 JOB-145 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-145 끝 =====
 
@@ -2234,8 +2304,9 @@ JOB-147 | 단계: 4 몬스터 30 | 이름: MON-W-3 따개비거북 초상
 첨부 레퍼런스: 방금 승인한 MON-W-3.png
 JOB-147 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-147 끝 =====
 
@@ -2261,8 +2332,9 @@ JOB-149 | 단계: 4 몬스터 30 | 이름: MON-W-4 먹물문어 초상
 첨부 레퍼런스: 방금 승인한 MON-W-4.png
 JOB-149 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-149 끝 =====
 
@@ -2288,8 +2360,9 @@ JOB-151 | 단계: 4 몬스터 30 | 이름: MON-W-5 물방울해파리 초상
 첨부 레퍼런스: 방금 승인한 MON-W-5.png
 JOB-151 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-151 끝 =====
 
@@ -2315,8 +2388,9 @@ JOB-153 | 단계: 4 몬스터 30 | 이름: MON-W-6 소용돌이장어 초상
 첨부 레퍼런스: 방금 승인한 MON-W-6.png
 JOB-153 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-153 끝 =====
 
@@ -2342,8 +2416,9 @@ JOB-155 | 단계: 4 몬스터 30 | 이름: MON-Fi-1 불똥도마뱀 초상
 첨부 레퍼런스: 방금 승인한 MON-Fi-1.png
 JOB-155 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-155 끝 =====
 
@@ -2369,8 +2444,9 @@ JOB-157 | 단계: 4 몬스터 30 | 이름: MON-Fi-2 화염코뿔소 초상
 첨부 레퍼런스: 방금 승인한 MON-Fi-2.png
 JOB-157 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-157 끝 =====
 
@@ -2396,8 +2472,9 @@ JOB-159 | 단계: 4 몬스터 30 | 이름: MON-Fi-3 용암덩이 초상
 첨부 레퍼런스: 방금 승인한 MON-Fi-3.png
 JOB-159 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-159 끝 =====
 
@@ -2423,8 +2500,9 @@ JOB-161 | 단계: 4 몬스터 30 | 이름: MON-Fi-4 화산박쥐 초상
 첨부 레퍼런스: 방금 승인한 MON-Fi-4.png
 JOB-161 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-161 끝 =====
 
@@ -2450,8 +2528,9 @@ JOB-163 | 단계: 4 몬스터 30 | 이름: MON-Fi-5 재부엉이 초상
 첨부 레퍼런스: 방금 승인한 MON-Fi-5.png
 JOB-163 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-163 끝 =====
 
@@ -2477,8 +2556,9 @@ JOB-165 | 단계: 4 몬스터 30 | 이름: MON-Fi-6 그을음 정령 초상
 첨부 레퍼런스: 방금 승인한 MON-Fi-6.png
 JOB-165 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-165 끝 =====
 
@@ -2504,8 +2584,9 @@ JOB-167 | 단계: 4 몬스터 30 | 이름: MON-Wi-1 칼바람족제비 초상
 첨부 레퍼런스: 방금 승인한 MON-Wi-1.png
 JOB-167 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-167 끝 =====
 
@@ -2531,8 +2612,9 @@ JOB-169 | 단계: 4 몬스터 30 | 이름: MON-Wi-2 번개매 초상
 첨부 레퍼런스: 방금 승인한 MON-Wi-2.png
 JOB-169 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-169 끝 =====
 
@@ -2558,8 +2640,9 @@ JOB-171 | 단계: 4 몬스터 30 | 이름: MON-Wi-3 구름거북 초상
 첨부 레퍼런스: 방금 승인한 MON-Wi-3.png
 JOB-171 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-171 끝 =====
 
@@ -2585,8 +2668,9 @@ JOB-173 | 단계: 4 몬스터 30 | 이름: MON-Wi-4 돌풍벌 초상
 첨부 레퍼런스: 방금 승인한 MON-Wi-4.png
 JOB-173 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-173 끝 =====
 
@@ -2612,8 +2696,9 @@ JOB-175 | 단계: 4 몬스터 30 | 이름: MON-Wi-5 깃털박새 초상
 첨부 레퍼런스: 방금 승인한 MON-Wi-5.png
 JOB-175 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-175 끝 =====
 
@@ -2639,8 +2724,9 @@ JOB-177 | 단계: 4 몬스터 30 | 이름: MON-Wi-6 회오리여우 초상
 첨부 레퍼런스: 방금 승인한 MON-Wi-6.png
 JOB-177 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-177 끝 =====
 
@@ -2666,8 +2752,9 @@ JOB-179 | 단계: 4 몬스터 30 | 이름: MON-E-1 자갈딱정벌레 초상
 첨부 레퍼런스: 방금 승인한 MON-E-1.png
 JOB-179 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-179 끝 =====
 
@@ -2693,8 +2780,9 @@ JOB-181 | 단계: 4 몬스터 30 | 이름: MON-E-2 암석들소 초상
 첨부 레퍼런스: 방금 승인한 MON-E-2.png
 JOB-181 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-181 끝 =====
 
@@ -2720,8 +2808,9 @@ JOB-183 | 단계: 4 몬스터 30 | 이름: MON-E-3 바위게 초상
 첨부 레퍼런스: 방금 승인한 MON-E-3.png
 JOB-183 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-183 끝 =====
 
@@ -2747,8 +2836,9 @@ JOB-185 | 단계: 4 몬스터 30 | 이름: MON-E-4 모래거미 초상
 첨부 레퍼런스: 방금 승인한 MON-E-4.png
 JOB-185 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-185 끝 =====
 
@@ -2774,8 +2864,9 @@ JOB-187 | 단계: 4 몬스터 30 | 이름: MON-E-5 진흙도롱뇽 초상
 첨부 레퍼런스: 방금 승인한 MON-E-5.png
 JOB-187 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-187 끝 =====
 
@@ -2801,8 +2892,9 @@ JOB-189 | 단계: 4 몬스터 30 | 이름: MON-E-6 균열 수정벌레 초상
 첨부 레퍼런스: 방금 승인한 MON-E-6.png
 JOB-189 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-189 끝 =====
 
@@ -2830,8 +2922,9 @@ JOB-191 | 단계: 5 보스 20 | 이름: MID-5 가시멧돼지 대장 초상
 첨부 레퍼런스: 방금 승인한 MID-5.png
 JOB-191 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-191 끝 =====
 
@@ -2857,8 +2950,9 @@ JOB-193 | 단계: 5 보스 20 | 이름: MID-15 따개비 대왕거북 초상
 첨부 레퍼런스: 방금 승인한 MID-15.png
 JOB-193 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-193 끝 =====
 
@@ -2884,8 +2978,9 @@ JOB-195 | 단계: 5 보스 20 | 이름: MID-25 화염코뿔소 대장 초상
 첨부 레퍼런스: 방금 승인한 MID-25.png
 JOB-195 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-195 끝 =====
 
@@ -2911,8 +3006,9 @@ JOB-197 | 단계: 5 보스 20 | 이름: MID-35 번개매 여왕 초상
 첨부 레퍼런스: 방금 승인한 MID-35.png
 JOB-197 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-197 끝 =====
 
@@ -2938,8 +3034,9 @@ JOB-199 | 단계: 5 보스 20 | 이름: MID-45 암석들소 대장 초상
 첨부 레퍼런스: 방금 승인한 MID-45.png
 JOB-199 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-199 끝 =====
 
@@ -2965,8 +3062,9 @@ JOB-201 | 단계: 5 보스 20 | 이름: MID-55 독포자 두꺼비왕 초상
 첨부 레퍼런스: 방금 승인한 MID-55.png
 JOB-201 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-201 끝 =====
 
@@ -2992,8 +3090,9 @@ JOB-203 | 단계: 5 보스 20 | 이름: MID-65 증기 장어 초상
 첨부 레퍼런스: 방금 승인한 MID-65.png
 JOB-203 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-203 끝 =====
 
@@ -3019,8 +3118,9 @@ JOB-205 | 단계: 5 보스 20 | 이름: MID-75 모래폭풍 전갈 초상
 첨부 레퍼런스: 방금 승인한 MID-75.png
 JOB-205 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-205 끝 =====
 
@@ -3046,8 +3146,9 @@ JOB-207 | 단계: 5 보스 20 | 이름: MID-85 균열 키메라 새끼 초상
 첨부 레퍼런스: 방금 승인한 MID-85.png
 JOB-207 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-207 끝 =====
 
@@ -3073,8 +3174,9 @@ JOB-209 | 단계: 5 보스 20 | 이름: MID-95 균열 사냥개 초상
 첨부 레퍼런스: 방금 승인한 MID-95.png
 JOB-209 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-209 끝 =====
 
@@ -3100,8 +3202,9 @@ JOB-211 | 단계: 5 보스 20 | 이름: BOSS-10 고목 수호수 초상
 첨부 레퍼런스: 방금 승인한 BOSS-10.png
 JOB-211 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-211 끝 =====
 
@@ -3127,8 +3230,9 @@ JOB-213 | 단계: 5 보스 20 | 이름: BOSS-20 심해 레비아탄 초상
 첨부 레퍼런스: 방금 승인한 BOSS-20.png
 JOB-213 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-213 끝 =====
 
@@ -3154,8 +3258,9 @@ JOB-215 | 단계: 5 보스 20 | 이름: BOSS-30 화산 와이번 초상
 첨부 레퍼런스: 방금 승인한 BOSS-30.png
 JOB-215 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-215 끝 =====
 
@@ -3181,8 +3286,9 @@ JOB-217 | 단계: 5 보스 20 | 이름: BOSS-40 뇌운 그리폰 초상
 첨부 레퍼런스: 방금 승인한 BOSS-40.png
 JOB-217 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-217 끝 =====
 
@@ -3208,8 +3314,9 @@ JOB-219 | 단계: 5 보스 20 | 이름: BOSS-50 거신 장수풍뎅이 초상
 첨부 레퍼런스: 방금 승인한 BOSS-50.png
 JOB-219 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-219 끝 =====
 
@@ -3235,8 +3342,9 @@ JOB-221 | 단계: 5 보스 20 | 이름: BOSS-60 가시 여왕 사마귀 초상
 첨부 레퍼런스: 방금 승인한 BOSS-60.png
 JOB-221 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-221 끝 =====
 
@@ -3262,8 +3370,9 @@ JOB-223 | 단계: 5 보스 20 | 이름: BOSS-70 증기 크라켄 초상
 첨부 레퍼런스: 방금 승인한 BOSS-70.png
 JOB-223 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-223 끝 =====
 
@@ -3289,8 +3398,9 @@ JOB-225 | 단계: 5 보스 20 | 이름: BOSS-80 모래폭풍 로크 초상
 첨부 레퍼런스: 방금 승인한 BOSS-80.png
 JOB-225 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-225 끝 =====
 
@@ -3316,8 +3426,9 @@ JOB-227 | 단계: 5 보스 20 | 이름: BOSS-90 혼돈 키메라 초상
 첨부 레퍼런스: 방금 승인한 BOSS-90.png
 JOB-227 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-227 끝 =====
 
@@ -3343,8 +3454,9 @@ JOB-229 | 단계: 5 보스 20 | 이름: BOSS-100 헥사 포식자 · 균열의 �
 첨부 레퍼런스: 방금 승인한 BOSS-100.png
 JOB-229 프롬프트:
 Create the PORTRAIT SET for the HEXA FRONTIER character shown in the ATTACHED SPRITE SHEET (same character, same colors, same design — copy it exactly).
-- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three head-and-shoulders portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
-- Each portrait fits a 460x460 square area, same framing for all three: top of head (ears/horns included) at 8% of the square, chest cut at the bottom edge, face turned slightly to the viewer's left, lively expression.
+ANATOMY LOCK: keep the body plan of the sprite. Four-legged beasts stay four-legged (show the head and the front of the horizontal body with the front legs), fish and eels stay fish (no neck, no chest, no arms), insects stay insects. Only humanoid characters get a head-and-shoulders bust. Never add a nose, ears, hair, fur or feathers the sprite does not have.
+- Canvas 1536x1024, solid flat pure magenta #FF00FF background (chroma key, no gradient, no checkerboard), three portraits side by side in an invisible 3-column grid: left = calm / normal, center = angry or serious (elite version for monsters), right = happy or enraged (pick what fits the character).
+- Each portrait fits a 460x460 square area, same framing for all three: a close-up of the character's own IDLE pose, same three-quarter angle facing the viewer's left, the head filling about 60% of the square, lively expression.
 - No background color, no frame, no circle, no text — the game adds frames. Nothing touches another portrait.
 ===== JOB-229 끝 =====
 
