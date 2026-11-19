@@ -18,7 +18,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 * { box-sizing: border-box; }
-html, body, #root { margin: 0; height: 100%; background: #08100d; overscroll-behavior: none; }
+html, body, #root { margin: 0; height: 100%; background: #2f4a2e; overscroll-behavior: none; }
 button { font: inherit; color: inherit; border: none; background: none; cursor: pointer; touch-action: manipulation; }
 button:disabled { opacity: 0.45; cursor: default; }
 img { user-select: none; -webkit-user-drag: none; }

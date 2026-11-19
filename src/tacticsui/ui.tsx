@@ -14,7 +14,7 @@ export const face = (id: string, lv = 1) => {
   return d.hero ? ui(`hero-${id}`) : art(unitArt(d.art, 'p', lv));
 };
 // CSS 배경 그림 (상대 경로 빌드에서도 맞게)
-if (typeof document !== 'undefined') document.documentElement.style.setProperty('--fx-bg', `url(${ui('bg-forest')})`);
+if (typeof document !== 'undefined') document.documentElement.style.setProperty('--fx-bg', `url(${new URL(ui('bg-forest'), document.baseURI).href})`);
 
 export type Tab = 'expedition' | 'party' | 'spirit' | 'dex' | 'shop';
 export const TABS: { id: Tab; name: string }[] = [
