@@ -214,3 +214,19 @@
 .chap-head { position: sticky; top: 0; z-index: 2; margin: 6px 0 0; padding: 6px 10px; border-radius: 10px; background: #1f3329; font-weight: 900; font-size: 13px; display: flex; justify-content: space-between; }
 .chap-head small { color: #b8cbbf; font-weight: 700; }
 .ud-crystal { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 6px 8px; border-radius: 10px; background: #fff6dc; font-size: 12px; }
+
+/* D136 '탐험의 숲' 전투 지도 */
+.fx-battle .t-map { background: transparent; }
+.fx-battle .tworld .tu-base { fill: #1a3a0e55; stroke: none; }
+.fx-battle .tworld .tu.ally .tu-base, .fx-battle .tworld .tu.enemy .tu-base, .fx-battle .tworld .tu.sel .tu-base { stroke: none; }
+.fx-battle .tworld .m-move { fill: #6cc8ff66; stroke: #c8f0ff; stroke-width: 1.4; }
+.fx-battle .tworld .m-target { fill: #ff5a4a55; stroke: #ff7a6a; stroke-width: 2; }
+.fx-battle .tworld .m-area { fill: #ffe27a66; stroke: #ffd24a; stroke-width: 2.2; }
+.fx-battle .tworld .m-threat { fill: #ff5a4a26; stroke: #ff7a6a66; stroke-width: 0.8; }
+.fx-battle .tworld .m-sel { fill: #ffe27a44; stroke: #ffd24a; stroke-width: 2.6; filter: drop-shadow(0 0 3px #ffd24a); }
+.fx-battle .tworld .m-sel.enemy { fill: #ff5a4a44; stroke: #ff5a4a; filter: drop-shadow(0 0 3px #ff5a4a); }
+.fx-battle .tworld .hp-ally { fill: #4ade50; }
+.fx-battle .tworld .hp-enemy { fill: #ff4a3a; }
+.fx-battle .t-banner { background: linear-gradient(#fffaea, #fff4d6); border: 3px solid #e2bd62; color: #3b2a12; box-shadow: 0 6px 16px #0007; }
+.tsheet { border: 3px solid #e2bd62; border-bottom: 0; }
+.tsheet-head b { color: #3b2a12; }
