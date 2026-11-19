@@ -195,6 +195,27 @@ sections.append(("agent2", "작업 목록 v2", f"""**지식 파일을 `HEXA_작�
     dict(title=f"지침 v2 ({len(INSTR2)}자)", note="에이전트 지침 칸을 이것으로 통째로 바꾸기", prompt=INSTR2),
 ] + [dict(title=f"{j['id']} · {j['name']}", note=f"저장: {j['file']} · 첨부: {j['refs']}", prompt=j["prompt"]) for j in JOBS2]))
 
+
+# v2 마크다운 (GPT에 직접 붙여 넣기용, D135)
+md2 = ["# HEXA FRONTIER · GPT 프롬프트 v2", "",
+       f"GPT 대화창에 **하나씩 복사해서 붙여 넣는** 용도입니다. 총 {len(JOBS2)}개. 각 항목의 **첨부**에 적힌 그림을 같이 올리고, 받은 그림은 **저장** 이름으로 저장하세요.", "",
+       "- 배경은 마젠타(#FF00FF) 단색으로 받습니다 (제가 지웁니다). GPT가 체크무늬를 그리면 \"마젠타 단색 배경으로 다시\"라고 요청하세요.",
+       "- 같은 대화를 이어 가면 화풍이 잘 유지됩니다. 새 대화를 열면 승인한 그림 1~2장을 같이 첨부하세요.", "",
+       "## 목차", ""]
+cur = None
+for j in JOBS2:
+    if j["phase"] != cur:
+        cur = j["phase"]
+        md2.append(f"- {cur}")
+md2.append("")
+cur = None
+for j in JOBS2:
+    if j["phase"] != cur:
+        cur = j["phase"]
+        md2 += [f"## {cur}", ""]
+    md2 += [f"### {j['id']} · {j['name']}", "", f"- **저장**: `{j['file']}`", f"- **첨부**: {j['refs']}", "", "```", j["prompt"], "```", ""]
+open(os.path.join(OUT, "GPT_프롬프트_v2.md"), "w", encoding="utf-8").write("\n".join(md2))
+
 # ── 마크다운 ──
 md = ["# HEXA FRONTIER 디자인 · GPT 이미지 프롬프트 (D127)", "", "content.py에서 만들어짐 — 고칠 때는 `docs/design/gen/content.py`를 고치고 `python3 docs/design/gen/build.py`.", ""]
 for sid, title, intro, items in sections:
